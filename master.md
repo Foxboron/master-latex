@@ -52,3 +52,11 @@ Reproducers setup:
 
 
 Public 
+
+
+
+Paris:
+https://pad.riseup.net/p/reproduciblebuilds4-rebuilders
+https://pad.riseup.net/p/reproduciblebuilds4-trustmodels
+https://pad.riseup.net/p/reproduciblebuilds4-trustmodelsII
+https://pad.riseup.net/p/reproduciblebuilds4-rebuildersIII

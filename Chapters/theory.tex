@@ -7,30 +7,84 @@
 \chapter{Theory}
 \label{ch:theory}
 In this section we will take a closer look at the theory surrounding
-supply chains and reproducible builds. Somethingsomething test
+supply chains, reproducible builds, ...
 
 \section{Supply Chains}\label{sec:supply_chain}
     \subsection*{The Supply Chain}
-    \subsection*{Artifacts}
-    \subsection*{Verification}
+    The supply chain is a system of delivering products to users. In the real of
+    software development the product is the given software you are distributing.
+    The supply chain in this regard is the complete steps from developers
+    writing code. The code is committed to a repository or central storage. This
+    code is then tested and prepared for release. The release can either be by
+    making the product available for download, or by deploying the software to
+    the customers.
+
+    TODO: Find a proper definition of supply chain to add
+
     \subsubsection*{in-toto}
-    \subsubsection*{Certificate transparency log}
+    in-toto is a framework to verify the integrity of a supply chain. It defines
+    a specification that details what steps should occur. As one supply chain
+    could define and utilize any number of steps its vital for this to be
+    extensible, and customize able. In-toto lets the specification detail who
+    should perform the step in the supply chain.
+  
+    The layout describes what each step of the supply chain, along with a set of
+    signatures and keys that defines the valid authorizes of the given step.
+
+    TODO: Add an example of a layout
+
+    The link metadata is a JSON file that specifies what the values, and outputs
+    of the corresponding step should be. Evaluating the specification along with
+    the link metadata lets the users, or the organization, verify that the
+    supply chain has not been tampered with. 
+
+    TODO: Add an example of link-metadata
+
+\section{Linux Distributions}\label{sec:linux_distributions}
+    \subsection*{Linux}
+    Linux is free and open-source project that implements a kernel. It was first
+    developed by Linus Torvalds in the early 1990 and has grown into the largest
+    open-source project today. It is commonly used in everything from firmware
+    modules on a computer, to the every increasing field of Internet of Thing,
+    along with servers and on personal computers.
+
+    Linux is accompanied by a suit of tools and environment that is commonly
+    referred to as a ''Distribution'' and defines an operating system based on
+    Linux. These are created by companies as commercial products, as well as
+    groups of volunteers as a hobby for free. A lot of open-source development
+    is done with, and for, Linux.
+
+    \subsection*{Debian}
+    Debian was one of the first operating systems based on Linux, and was
+    created by Ian Murdock in 1993.
+
+    \subsection*{apt and package manager}
+    One of the main innovations from debian was the creation of the very first
+    package manager. Package manager allows users to download pre-compiled
+    software from centralized repositories maintained by the Debian developers.
+    This allows users to easily fetch, update and remove installed packages on
+    their system.
+
 
 \section{Reproducible Builds}\label{sec:reproducible_builds}
     \subsection*{Determinism}
     \subsection*{Source Date Epoch}
     \subsection*{Buildinfo}
 
-\section{Linux Distributions}\label{sec:linux_distributions}
-    \subsection*{History of Linux}
-    \subsection*{Debian}
-    \subsection*{Arch Linux}
-
 \section{Rebuilders}\label{sec:rebuilders} 
 
-\section{Development}\label{sec:python} 
+\section{Merkle Trees}
+Merkle Trees are....
+
+    \subsection*{Blockchain}
+
+    \subsubsection*{Certificate transparency log}
+
+
+\section{Development}\label{sec:development} 
     \subsection*{Python}
-    \subsection*{Sqlalchemy}
+    \subsection*{sqlalchemy}
+    \subsection*{Panda and matplotlib}
 
 \section{Summary}\label{sec:summary-theory} 
 
