@@ -5,15 +5,71 @@
 \documentclass[../Main/thesis.tex]{subfiles}
 \begin{document}
 \chapter{Research Overview}\label{ch:research_overview}
+In this chapter we will take a look at the current research that has gone into
+the topics discussed in this thesis. We will go through current efforts and
+related fields where research has been done.
 
-\section{Related work}\label{sec:related}
-\subsection{Contour}\label{sec:contour}
+% \section{Reproducible builds}\label{sec:repro}
+% Reproducible builds is the challenge of producing bit-for-bit identical binaries
+% given the same source code. This is important for projects that provides
+% pre-compiled version of projects where the source-code is available. The efforts
+% gone into reproducible builds has largely been done by Free and Open-Source
+% communities the past years as this aligns greatly with the spirit of the
+% communities.
 
-\subsection{Chainiac}\label{sec:chainiac}
+\section{Software Distribution Transparency and Auditability}\label{sec:benjamin}
+The initial work on package transparency logs, as a form of binary transparency,
+was done by \citeauthor{1711.07278v1}. It implements an append-only merkle tree to
+keep track of released versions of software into a package repository, namely
+debian.\cite{1711.07278v1}
 
-\subsection{Benjamin}\label{sec:benjamin}
+It details a novel hidden attack, where a backdoored package is distributed to
+some users but not everyone. As the transparency log knows which package is the
+correct one, it is possible to detect such attacks. The implementation also
+defines log monitors, that peaks at inclusions and makes sure the logs are
+operating properly and doesn't leave out information.
 
-\section{Summary}\label{sec:researchoverview-summary}
+
+\section{CHAINIAC}\label{sec:chainiac}
+CHAINIAC by \citeauthor*{kirill-niktin-2017} introduces a framework to help
+collectively validate source-to-binary correspondence\cite{kirill-niktin-2017}.
+This is done by introducing a cothority. Each developer commits their binaries
+and corresponding source code to a merkle tree which is then signed by the
+developers. This is built through a distributed system which will rebuild and
+corroborate their results to aggregate signatures on packages. The number of
+required signatures from this cothority is defined by the project and pushed to
+a skipchain based update timeline.
+
+
+\section{Contour}\label{sec:contour}
+Contour by \citeauthor{1712.08427v2} is a system that implements binary
+transparency by utilizing blockchains. In blockchains merkle trees are used to
+store the data. In this implementation the resulting binaries are hashes on the
+chain. The resulting merkle root is then hashed with previous roots to provide
+the transaction and a block header. This is again distributed and secure from
+split view attacks, where one server presents the client with a malicious view
+of the world. Split view attacks enable the remote log to provide proofs to the
+client which are not present else where. The solution to this is by adding a
+consensus on top of the tree. The implementation was tested using the Python
+packaging index, PyPi, and the debian package repository to test the solution.\cite{1712.08427v2}
+
+
+\section{Go transparency log}\label{sec:go-transparency-log}
+Go has been developing their dependency management the past year. With the
+release of their new dependency manager, go mod, they now produce dependency
+information along with a lockfile. The lockfile, go.sum, contains packages along
+with versions and checksums.
+
+A recent proposal by \citeauthor{russ-cos-and-filippo-valsorda} details how this
+go.sum file would be commited to a transparency log to provide a verification
+method for dependency releases in the go ecosystem. It implements a own database
+to model merkle trees, and lets nodes validate and monitor the tree for
+dependency inclusions. The idea is to check this log server when dependency
+files are downloaded for proofs of releases.\cite{russ-cos-and-filippo-valsorda}
+
+\section{TUF - The Update Framework}\label{sec:tuf}
+
+\section*{Summary}\label{sec:researchoverview-summary}
 
 \blankpage
 \end{document}
