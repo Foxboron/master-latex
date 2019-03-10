@@ -7,7 +7,7 @@
 \chapter{Theory}
 \label{ch:theory}
 In this section we will take a closer look at the theory surrounding
-supply chains, reproducible builds, ...
+supply chains, reproducible builds, transparency logs and rebuilders.
 
 \section{Supply Chains}\label{sec:supply_chain}
     \subsection*{The Supply Chain}
@@ -19,7 +19,7 @@ supply chains, reproducible builds, ...
     making the product available for download, or by deploying the software to
     the customers.
 
-    TODO: Find a proper definition of supply chain to add
+    TODO: Find a proper definition of supply chain
 
     \subsubsection*{in-toto}
     in-toto is a framework to verify the integrity of a supply chain. It defines
@@ -62,7 +62,7 @@ supply chains, reproducible builds, ...
     by the Debian developers.  This allows users to easily fetch, update and
     remove installed packages on their system.
 
-    Debian has spawned 
+    %Debian has spawned 
 
 
 \section{Reproducible Builds}\label{sec:reproducible_builds}
@@ -80,14 +80,31 @@ supply chains, reproducible builds, ...
     \subsection*{Source Date Epoch}
     \subsection*{Buildinfo}
 
-\section{Rebuilders}\label{sec:rebuilders} 
+    \subsection*{Rebuilders}%\label{sec:rebuilders} 
 
 \section{Merkle Trees}
-Merkle Trees are....
+Merkle Trees is a tree structure based on cryptographic secure hashing
+function.\cite{ralph-c.-merkle-1998} It creates a binary tree where each leaf
+is hashed, and combined two and two. The top node of this tree is reffed to as a
+''root node''. The interesting property of merkle trees is the ability to verify
+the inclusion of elements by calculating the path from the given leaf to the
+root node. This can be done by acquiring the missing hashes for each
+intermediate node, and then hash each of the steps together.
 
-    \subsection*{Blockchain}
+    % \subsection*{Blockchain}
 
     \subsubsection*{Certificate transparency log}
+    Certificate transparency logs uses merkle trees to give organization issuing
+    TLS certificates, as used in HTTP, a log of who and what issues
+    log.\cite{b.-laurie-a.-langley-e.kaster-google-2013} This is used to detect
+    cases where certificate issue keys have been compromised, or if certificates
+    have been issued for domains as a form of misuse.
+
+    Monitors follow these logs to assure consistency and to make sure logs do
+    not misbehave. It also allows monitors to verify the append-only property of
+    the log.
+
+
 
 
 \section{Development}\label{sec:development} 
@@ -95,7 +112,7 @@ Merkle Trees are....
     \subsection*{sqlalchemy}
     \subsection*{Panda and matplotlib}
 
-\section{Summary}\label{sec:summary-theory} 
+\section*{Summary}\label{sec:summary-theory} 
 
 \blankpage
 \end{document}
