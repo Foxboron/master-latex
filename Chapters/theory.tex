@@ -11,15 +11,25 @@ supply chains, reproducible builds, transparency logs and rebuilders.
 
 \section{Supply Chains}\label{sec:supply_chain}
     \subsection*{The Supply Chain}
-    The supply chain is a system of delivering products to users. In the real of
-    software development the product is the given software you are distributing.
-    The supply chain in this regard is the complete steps from developers
-    writing code. The code is committed to a repository or central storage. This
-    code is then tested and prepared for release. The release can either be by
-    making the product available for download, or by deploying the software to
-    the customers.
+   %  \say{Traditionally, supply chains have also been linked to the movement of
+   %  raw materials and subcomponents through a manufacturing process for
+   %  consumer products such as automobiles and appliances.}
 
-    TODO: Find a proper definition of supply chain
+    Most of todays software are developed through a series of steps. This is
+    traditionally called ``The Software Supply Chain'' and encompasses the
+    development of the software, all the way to the delivery of the project
+    \cite{rj-ellison-2010}.
+
+    In the world of open-source the software delivery are usually done by Linux
+    distributions, or other similar methods of distributions. The supply chain
+    in this regard is the complete steps from developers getting the source code
+    for the project, until it is delivered as a compiled artifact to the
+    end-user. This also includes the wider network of packages that are needed
+    for the distribution of the project. This is broader then looking at it as a
+    ``software delivery lifecycle'' which only encompasses the release of the
+    project, not the distribution after this.
+
+    % TODO: Software Delivery Lifecycle
 
     \subsubsection*{in-toto}
     in-toto is a framework to verify the integrity of a supply chain. It defines
@@ -42,14 +52,14 @@ supply chains, reproducible builds, transparency logs and rebuilders.
 
 \section{Linux Distributions}\label{sec:linux_distributions}
     \subsection*{Linux}
-    Linux is free and open-source project that implements a kernel. It was first
-    developed by Linus Torvalds in the early 1990 and has grown into the largest
-    open-source project today. It is commonly used in everything from firmware
-    modules on a computer, to the every increasing field of Internet of Thing,
-    along with servers and on personal computers.
+    Linux is free and open-source kernel. It was first developed by Linus
+    Torvalds in the early 1990 and has grown into the largest open-source
+    project today. It is commonly used in everything from firmware modules on a
+    computer, to the every increasing field of Internet of Thing, along with
+    servers and on personal computers.
 
     Linux is accompanied by a suit of tools and environment that is commonly
-    referred to as a ''Distribution'' and defines an operating system based on
+    referred to as a ``distribution'' and defines an operating system based on
     Linux. These are created by companies as commercial products, as well as
     groups of volunteers as a hobby for free. A lot of open-source development
     is done with, and for, Linux.
@@ -62,21 +72,32 @@ supply chains, reproducible builds, transparency logs and rebuilders.
     by the Debian developers.  This allows users to easily fetch, update and
     remove installed packages on their system.
 
-    %Debian has spawned 
+    These packages are maintained by package maintainers who package, update and
+    maintain the required files to distribute this to the end user. Each
+    maintainer has a cryptographic secure singing key they use to fetch, and
+    publish source packages to a build server. These source packages contains
+    the needed files, patches and package files to compile the project source
+    code to a format accepted by the debian package manager, apt.
+
+    The build server verifies the signatures and compile these source packages
+    to the all the supported architectures. It will then sign these packages
+    with its own key, and then distribute these to the end-user in the form of a
+    mirror system.
 
 
 \section{Reproducible Builds}\label{sec:reproducible_builds}
 
     Reproducible builds is a set of practices for how to achieve deterministic
-    compilation of software. Most of to
+    compilation of software. 
 
-    \say{A build is reproducible if given the same source code, build environment
-    and build instructions, any party can recreate bit-by-bit identical copies of
-    all specified artifacts.}
 
     % TODO: Reproducible builds definition
 
     \subsection*{Determinism}
+        \say{A build is reproducible if given the same source code, build environment
+        and build instructions, any party can recreate bit-by-bit identical copies of
+        all specified artifacts.}
+
     \subsection*{Source Date Epoch}
     \subsection*{Buildinfo}
 
@@ -100,14 +121,37 @@ intermediate node, and then hash each of the steps together.
     cases where certificate issue keys have been compromised, or if certificates
     have been issued for domains as a form of misuse.
 
-    Monitors follow these logs to assure consistency and to make sure logs do
-    not misbehave. It also allows monitors to verify the append-only property of
-    the log.
+    Proofs in the context of transparency logs are tuple pairs where the first
+    element describes the position, and the second element includes the hash of
+    the given object. Given the correct order of hashing, the product of this
+    should be some merkle tree root the log is either currently using, or have
+    used in the past.
 
+    There are three features needed to implement a transparency log.
+    - Audit proof
+    - Inclusion proof
+    - Consistency proof
+
+    Each of this proofs are needed to correctly verify that a transparency log
+    is correctly operating and can verify this to monitors.  Monitors follow
+    these logs to assure consistency and to make sure logs do not misbehave. It
+    also allows monitors to verify the append-only property of the log.
+
+   The audit proof is used to  verify that the given element in the log exists
+   in the log. The tree root is given, along with the elements needed to
+   recreate the missing nodes for the root.
+
+   The consistency proof is used to verify that the log is operating as an
+   append-only log in a correct manner. This proof requires two things. A
+   previous merkle tree root, and the number of leafs present at the time of
+   this tree root. The returned path is the number of subroots needed to
+   recreate the path from the root, until the new root.
 
 
 
 \section{Development}\label{sec:development} 
+In this section we will take a look at the tools used to develop this project.
+
     \subsection*{Python}
     \subsection*{sqlalchemy}
     \subsection*{Panda and matplotlib}
