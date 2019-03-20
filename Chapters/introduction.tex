@@ -22,8 +22,7 @@ and software authors to provide bit-for-bit identical binaries. We will extend
 this concept and provide servers that takes these packages, and rebuilds them to
 provide additional attestation to the user whether or not a package is
 reproducible. The build attestations will be using build metadata as defined
-from the reproducible builds project, along with in-toto metadata to help
-validate the supply chain.
+from the reproducible builds project.
 
 We introduce an append-only package transparency log, closely resembling
 certificate transparency logs, where we commit build attestations from the
@@ -31,7 +30,7 @@ rebuilders. This lets users easily verify rebuild attestations, along with
 enabling the possible discovery of attacks against the distribution
 supply-chain.
 
-The verification step of downloading packages will be preformed by the Debian
+The verification step of downloading packages will be performed by the Debian
 package manager, apt, by providing a new package transport that checks against a
 transparency log.
 
@@ -59,6 +58,7 @@ refined API for the apt transport used to verify packages.
 \begin{itemize}
     \item Does a package transparency log provide any additional security guarantees?
     \item RQ2
+    \item RQ3
 \end{itemize}
 
 \section{Organization of the thesis}\label{sec:organization}

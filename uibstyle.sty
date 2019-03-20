@@ -8,9 +8,9 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{url}
-\usepackage{csquotes}
 \usepackage{dirtytalk}
-% \usepackage[cache=false]{minted}
+\usepackage[cache=false]{minted}
+\usepackage{csquotes}
 \usepackage[style=numeric, backend=biber]{biblatex}
 \usepackage{setspace}
 \linespread{1.2} %Changed from 1.5
@@ -20,13 +20,14 @@
 \usepackage[colorlinks=true, pdfstartview=FitV,
 linkcolor=black, citecolor=black, urlcolor=blue, breaklinks]{hyperref}
 \pdfcompresslevel=9
+% \pretolerance=150
+\hsize=2in
+\tolerance=1600 
+\usemintedstyle{friendly}
+\AtBeginEnvironment{minted}{
+	\renewcommand{\fcolorbox}[4][]{#4}}
 
-% \usepackage[cache=false]{minted}
-% \usemintedstyle{friendly}
-% \AtBeginEnvironment{minted}{%
-% 	\renewcommand{\fcolorbox}[4][]{#4}}
-
-% \renewcommand\listoflistingscaption{List of source codes}
+\renewcommand\listoflistingscaption{List of source codes}
 
 \usepackage{subfiles}
 
