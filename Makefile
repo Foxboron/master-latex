@@ -11,7 +11,7 @@ commit:
 	git add .
 	git c -m "$(shell date +%Y-%m-%d)"
 	git push
-	papis add .
+	papis git add .
 	papis git c -m "$(shell date +%Y-%m-%d)"
 	papis git push
 	git --work-tree=/home/fox/Notes add .
