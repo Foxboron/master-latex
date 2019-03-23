@@ -14,9 +14,9 @@ commit:
 	papis git add .
 	papis git c -m "$(shell date +%Y-%m-%d)"
 	papis git push
-	git --work-tree=/home/fox/Notes add .
-	git --work-tree=/home/fox/Notes c -m "$(shell date +%Y-%m-%d)"
-	git --work-tree=/home/fox/Notes push
+	git --work-tree=/home/fox/Notes --git-dir=/home/fox/Notes/.git add .
+	git --work-tree=/home/fox/Notes --git-dir=/home/fox/Notes/.git c -m "$(shell date +%Y-%m-%d)"
+	git --work-tree=/home/fox/Notes --git-dir=/home/fox/Notes/.git push
 
 refs:
 	papis export --bibtex -a "tags = master" > refs.bib
