@@ -9,7 +9,7 @@ $(PROJNAME).pdf: $(PROJNAME).tex
 
 commit:
 	git add .
-	git c -m "$(shell date +%Y-%m-%d)"
+	git c -m "$(shell date +%Y-%m-%d)" || true
 	git push
 	papis git add .
 	papis git c -m "$(shell date +%Y-%m-%d)"
