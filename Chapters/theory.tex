@@ -198,20 +198,75 @@ all specified artifacts'' \cite{reproducible-builds-2019-definitions}.
 % TODO: Tor project
 
 \subsection*{Source Date Epoch}
+One of the most common offenders for undeterministic builds is the embedding of
+when something was built. On the surface this looks like a completely sane thing
+to do for most builds, but this creates problems when the produced artifact in
+turns become undeterministic because we built it at another point in time.
 
-% TODO: SOURCE_DATE_EPOCH source
+The reproducible builds project defines an environment variable called
+``SOURCE\_DATE\_EPOCH'' which is an means to solve this dilemma
+\cite{reproducible-builds-2019-source-date-epoch}. The variable enables software
+distributors to build artifacts with an embedded time, but it also helps to
+specify the time in a manner that enables reproducible builds as we can set the
+date arbitrarily.
+
+% TODO: Skrive mer
+The requirement is that this variable is exported in the build system used to
+create the package. 
 
 \subsection*{Buildinfo}
-To record build time values, such as ``SOURCE\_DATE\_EPOCH'', the reproducible
-builds project has identified a need to record the build environment used to
-create artifacts.
+% TODO: Kanskje nevne økosystemer bedre?
+One of the main issues with reproducible builds is that is hard to make
+everything universally reproducible. Producing the same binary package on
+multiple different linux distributions is close to impossible and unmanageable
+for most software. Thus we need to specify the environment being utilized with
+all of the requirements and idiosyncrasies.
 
-% TODO: Forklare de forskjellige tingene som blir skrevet ned.
-% TODO: Refferer til BOM - Bill of Material - fra 1999 paper
+This is not a new discovery.
+\citeauthor{r.-torres-cabrera-and-bonnie-lee-appleton-1999} in their paper
+\citetitle{r.-torres-cabrera-and-bonnie-lee-appleton-1999} from 1999, they
+defined a ``Bill of Material'', or a ``BOM'' for short.
 
-This format is mostly unique for each ecosystem as the available tools have
-different parsers available. Currently there JVM, Arch Linux and Debian record
-this using different formats \cite{reproducible-builds-2019}.
+\begin{quotation}
+``Document all of the components that contributed to the build in a list, i.e.,
+a bill of materials (BOM). The BOM may contain the names, versions, and
+directory paths of operating systems, libraries, compilers, linkers, make-files,
+build scripts, etc The BOM may be manually created, but many configuration
+management tools generate it as a by- product of the build'' \cite{r.-torres-cabrera-and-bonnie-lee-appleton-1999}.
+\end{quotation}
+
+Such a file would contain all the requirements to recreate the environment the
+artifact was built inn. Because of the previously mentioned restrictions, one
+there needs to exist multiple formats to define the requirements. Currently
+there are around 5 different formats for different ecosystems on the
+reproducible builds website \cite{reproducible-builds-2019}.
+
+% TODO: Legg til source på deb-buildinfo
+
+The debian format encompasses a wide array of values ``Format'' defines
+the expected fields in the format and gets incremented with any changes.
+``Source'' and ``Binary'' defines the source package used to produce this, and
+the corresponding binary package it outputs. The ``Architecture'' fields defines
+which architecture the product is compiled towards. Debian supports a wide array
+of CPU architectures from ARM to AMD 64 bit. High-level languages usually does
+not compile, there for ``all'' is used to denote this.
+
+The ``Build-'' variables denotes the build environment used to create the
+artifact in the debian ecosystem. Since debian has a slew of derivative and
+closely related distributions, ``Build-Origin'' is used to denote this
+distribution.  ``Build-Architecture'' denotes the architecture of the build
+server being used.  ``Build-Kernel-Version'' denotes the explicit  version of
+the kernel used. This is commonly fetched with the command ``uname -a''.
+``Build-Date'' refers to the ISO compatible date when the process took place.
+``Build-Path'' is the location where the build took place.
+``Installed-Build-Depends'' contains list of all packages present during the
+packaging of this artefact. This s an important list to keep track of as it
+enables the complete recreation of the environment at a later point.
+
+Linux has several variables that sets the locale, language and timestamp format,
+that can affect the build process. ``Environment'' encompasses all of these.
+Most importantly the variable ``SOURCE\_DATE\_EPOCH'' is stored here to make sure
+timestamps are deterministic.
 
 \begin{minted}[]{text}
 Format: 1.0
@@ -239,7 +294,17 @@ LC_ALL="POSIX"
 SOURCE_DATE_EPOCH="1543231660"
 \end{minted}
 
-\subsection*{Rebuilders}%\label{sec:rebuilders} 
+\section{Rebuilders}\label{sec:rebuilders} 
+One of the main ideals with reproducible builds is the ability to let the users
+recreate distributed artifacts. This is achievable with the correct tooling, and
+a ``BUILDINFO'' file as specified in the previous section. However,building all
+distributed packages is an unwieldy task. The appeal of linux distributions is
+the ability to download pre-compiled packages to save the effort of building all
+the software one intend to use.
+
+One of the ideas from the 204 reproducible builds summit is to provide
+infrastructure that rebuilds the packages distributed by the linux distribution.
+
 
 % TODO: Attestation sharing source
 % TODO: Source - planned in 2014/2-16 by the project
