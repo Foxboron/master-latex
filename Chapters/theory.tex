@@ -9,6 +9,7 @@
 In this section we will take a closer look at the theory surrounding
 supply chains, reproducible builds, transparency logs and rebuilders.
 
+
 \section{Supply Chains}\label{sec:supply_chain}
 \subsection*{The Supply Chain}
 %  \say{Traditionally, supply chains have also been linked to the movement of
@@ -110,13 +111,17 @@ Linux is free and open-source kernel. It was first developed by Linus Torvalds
 in the early 1990 and has grown into the largest open-source project today. It
 is commonly used in everything from firmware modules on a computer, to the every
 increasing field of Internet of Thing, along with servers and on personal
-computers.
+computers. The development of Linux is distributed and has spawned the
+``Open-Source'' method of developing software.
 
 Linux is accompanied by a suit of tools and environment that is commonly
 referred to as a ``distribution'' and defines an operating system based on
 Linux. These are created by companies as commercial products, as well as groups
-of volunteers as a hobby for free. A lot of open-source development is done
-with, and for, Linux.
+of volunteers as a hobby for free. The tooling of these distributions, along
+with organization and the inherent supply chain to deliver artifacts to the
+users, are unique to each project. Some are ``source''-distributions, and only
+distribute build recipes, and some distributed pre-compiled binary packages.
+
 
 \subsection*{Debian}
 Debian was one of the first operating systems based on Linux, and was created by
@@ -143,6 +148,8 @@ system.
 % TODO: Usikker på struktur.
 % Skal seksjonen hete reproducible builds? 
 
+% TODO: En seksjon ang "trust"?
+
 \subsection*{Trusting trust}
 In a paper from Ken Thompson in 1984, after he won the Turing Award for his work
 on the UNIX operating system, \citetitle{ken-thompson-1984}, Thompson as a
@@ -167,15 +174,17 @@ pre-compiled and provided to us by different vendors.
 % TODO: Move into diverse compilation. Reprobuilds an extension
 
 But there are possible ways to counter this problem.  David A. Wheeler in his
-dissertation \citetitle{david-a.-wheeler-2009} from 2009 details a possible
-solution to the ``trusting trust''-problem. It involves what he call diverse
-``diverse compilation'' where the source is compiled with one trusted compiler,
-and any subsequent compilers to detect any flaws or malicious code.
+dissertation \citetitle{david-a.-wheeler-2009} details a possible solution to
+the ``trusting trust''-problem. It involves what he call diverse ``diverse
+compilation'' \cite{david-a.-wheeler-2009}.
 
-It has some caveat; 
+``Diverse double-compilation'', or ``DCC'', is the act of using two compilers to
+detect any difference in the resulting artifact. The first compilation is done
+with a secondary compiler, then again with the primary compiler. The idea is
+that the secondary compiler is a minimal implementation of the compiler, and can
+be trusted.
 
-
-Reproducible builds is in many ways a different take on the same problem.
+% TODO: Skrive mer
 
 \subsection*{Reproducible builds}
 Reproducible builds is a set of practices for how to achieve deterministic
@@ -185,17 +194,49 @@ for malicious actors to try compromise the chain. This is not a theoretical
 threat. There has been an increase in attacks on parts of supply chains in
 recent years. They are high impact and affect users as well as developers.
 
-According to the definition of reproducible build;
+According to the definition of reproducible builds;
 
 \begin{quotation}
 ``A build is reproducible if given the same source code, build environment
 and build instructions, any party can recreate bit-by-bit identical copies of
-all specified artifacts'' \cite{reproducible-builds-2019-definitions}.
+all specified artifacts''~\cite{reproducible-builds-2019-definitions}.
 \end{quotation}
 
+One of the earliest open-source projects to promote reproducible builds is the
+Tor project. The Tor project develops the ``Tor network'' which is anonymity
+network compromised volunteer run network nodes that effectively anonymize the
+network of the user. This is heavily used by dissidents in oppressive regimes
+where the internet connection is filtered, or partially blocked. To help giving
+access to this network, they develop a variant of the web browser firefox called
+``Tor browser''.
+
+% TODO: Add sources
+
+This browser is configured to utilize the tor network for an anonymous browsing
+session. This has been a very important software used by marginalized
+protesters. Because of this, the supply chain and distribution of this software
+is important. Receiving a malicious version of this software could in many cases
+result in prison of life threatening danger to people. Mike Perry highlighted
+this concern when discussing the testing of the ``Tor browser''.
+
+\begin{quotation}
+``This means that software development has to evolve beyond the simple models of
+"Trust my gpg-signed apt archive from my trusted build machine", or even
+projects like Debian going to end up distributing state-sponsored malware in
+short order''~\cite{mike-perry-2013}.
+\end{quotation}
+
+% TODO: Gitain
+
+The result of this concern is the move to support reproducible builds. Allowing
+users, and multiple independent builders, to recreate the distributed artifact
+bit-for-bit ~\cite{unknown-2014}. This is done by utilizing ``Gitain'' which
+builds, and packages the software on self-contained virtual machines. This
+enables the project to distribute the same build instructions as used to package
+the software in the first place, and allows users to easily verify if the
+distributed artifact matches the self-produced one.
 
 % TODO: Bitcoin
-% TODO: Tor project
 
 \subsection*{Source Date Epoch}
 One of the most common offenders for undeterministic builds is the embedding of
@@ -268,6 +309,11 @@ that can affect the build process. ``Environment'' encompasses all of these.
 Most importantly the variable ``SOURCE\_DATE\_EPOCH'' is stored here to make sure
 timestamps are deterministic.
 
+% TODO: Lenke til buildinfo.debian.net
+This file can then be distributed along side the package, or provided through
+other means. Debian archives all buildinfo-files on a centralized webpage where
+they can be queried and retrieved.
+
 \begin{minted}[]{text}
 Format: 1.0
 Source: dh-make
@@ -323,7 +369,7 @@ node, and then hash each of the steps together.
 \subsubsection*{Certificate transparency log}
 Certificate transparency logs uses merkle trees to give organization issuing
 TLS certificates, as used in HTTP, a log of who and what issues
-log.\cite{b.-laurie-a.-langley-e.kaster-google-2013} This is used to detect
+log \cite{b.-laurie-a.-langley-e.kaster-google-2013}. This is used to detect
 cases where certificate issue keys have been compromised, or if certificates
 have been issued for domains as a form of misuse.
 
@@ -337,7 +383,6 @@ There are three features needed to implement a transparency log.
 
 \begin{itemize}
 \item Audit proof
-\item Inclusion proof
 \item Consistency proof
 \end{itemize}
 
@@ -355,6 +400,27 @@ append-only log in a correct manner. This proof requires two things. A
 previous merkle tree root, and the number of leafs present at the time of
 this tree root. The returned path is the number of subroots needed to
 recreate the path from the root, until the new root.
+
+\begin{figure}
+\centering
+\subfloat[audit proof for ``d5'']{\begin{tikzpicture}
+\Tree
+[ .\node[root]{r};
+[ .m   [ .i d1 d2 ]  [ .j d3 d4 ]  ]
+[ .n  [ .k \node[proof]{d5}; d6 ]  [ .l d7 d8 ]  ]
+]
+\end{tikzpicture}}%
+\qquad
+\subfloat[needed roots for audit proof]{\begin{tikzpicture}
+\Tree
+[ .\node[root]{r};
+[ .\node[roots]{m};   [ .i d1 d2 ]  [ .j d3 d4 ]  ]
+[ .n  [ .k \node[proof]{d5}; \node[roots]{d6}; ]  [ .\node[roots]{l}; d7 d8 ]  ]
+]
+\end{tikzpicture}}%
+\caption{Audit proof}
+\label{fig:audit}
+\end{figure}
 
 \section{Development}\label{sec:development} 
 In this section we will take a look at the language and libraries used to

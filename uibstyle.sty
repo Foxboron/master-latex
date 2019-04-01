@@ -12,7 +12,19 @@
 \usepackage[cache=false]{minted}
 \usepackage{csquotes}
 \usepackage[style=numeric, backend=biber]{biblatex}
+\usepackage{subfig}
 \usepackage{setspace}
+\usepackage{tikz}
+\usepackage{tikz-qtree}
+\usetikzlibrary{graphs,arrows.meta}
+\tikzset{every tree node/.style={minimum size=2em,inner sep=1,draw,circle},
+         blank/.style={draw=none},
+         root/.style={draw=red,fill=red},
+         proof/.style={draw=cyan,fill=cyan},
+         roots/.style={draw=yellow,fill=yellow},
+         edge from parent/.style={draw, edge from parent path={(\tikzparentnode) -- (\tikzchildnode)}},
+         level distance=1cm}
+
 \linespread{1.2} %Changed from 1.5
 \newenvironment{remark}{\par\mbox{}\par\noindent{\bfseries \emph{Remark}\/}:\normalfont}{\par}
 \newenvironment{defin}{\par\mbox{}\par\noindent\bfseries \emph{\Pointinghand\ }\normalfont}{\par}
@@ -20,7 +32,7 @@
 \usepackage[colorlinks=true, pdfstartview=FitV,
 linkcolor=black, citecolor=black, urlcolor=blue, breaklinks]{hyperref}
 \pdfcompresslevel=9
-% \pretolerance=150
+\pretolerance=150
 \hsize=2in
 \tolerance=1600 
 \usemintedstyle{friendly}
