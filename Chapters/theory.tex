@@ -12,30 +12,67 @@ supply chains, reproducible builds, transparency logs and rebuilders.
 
 \section{Supply Chains}\label{sec:supply_chain}
 \subsection*{The Supply Chain}
-%  \say{Traditionally, supply chains have also been linked to the movement of
-%  raw materials and subcomponents through a manufacturing process for
-%  consumer products such as automobiles and appliances.}
-
 Most of the software today are developed through a series of steps. This is
-traditionally called ``The Software Supply Chain'' and encompasses the
-development of the software, all the way to the delivery of the project to the
-end-user \cite{rj-ellison-2010}.
-
-Software projects today go through development, building, testing, staging and
-in the end production, with slight variations between 
+traditionally called ``The Software Supply Chain''. Software projects today go
+through development, building, testing, staging and in the end production, with
+slight variations between them. This is largely done with self-hosted solutions,
+or outsourced to external hosting solution.
 
 In the world of open-source the software delivery are usually done by Linux
 distributions, or other similar methods of distributions. The supply chain in
 this regard is the complete steps from developers getting the source code for
 the project, until it is delivered as a compiled artifact to the end-user. This
 also includes the wider network of packages that are needed for the distribution
-of the project. This is broader then looking at it as a ``software delivery
-lifecycle'' which only encompasses the release of the project.
+of the project. To get understand the wider problem of delivering secure
+software, we will contrast ``Software Supply Chain'' with the more commonly
+thought of ``Software Delivery Lifecycle'' to understand what the supply chain
+encompasses.
+
+\citeauthor{10.1109CSAC.2004.41} in~\citetitle{10.1109CSAC.2004.41} outlines the
+``Software Delivery Lifecycle'' as a development model on how to deliver secure
+software~\cite{10.1109CSAC.2004.41}. This is done with the following steps;
+
+\begin{itemize}
+    \item Requirements
+    \item Design
+    \item Implementation
+    \item Verification 
+    \item Release
+    \item Deployment
+    \item Response
+\end{itemize}
+
+For each of these steps there are adequate security measures assigned. The
+``Requirements'' step would need the developers to assess the security
+requirements of the process, and to make sure any milestones are met. The
+``Release'' step would for instance include a penetration testing, where an
+active party attempts to hack or compromise the given software, and have a
+threat model reviewed where the security concerns are addressed and in some case
+justified.
+
+This model only encompasses the development and the code written by the authors
+and is fairly similar to a traditional software models when the security aspects
+of it is removed. However, we are lacking a few considerations from this model;
+distributions and the wider ecosystem that is involved writing and producing
+software. \citeauthor{rj-ellison-2010} in \citetitle{rj-ellison-2010} they
+analyze how the United states Department of Defense handles software acquisition
+in a very high secure environment. 
+
+
+In the context of the military ``[\dots] supply chains typically
+involve the movement of materials from home base to troops in theater. The
+responsibility for managing these supply chains falls to the acquisition and
+logistics experts''~\cite{rj-ellison-2010}. In this case, the DoD is not
+producing any software. Their only concern is to get the software developed,
+tested, shipped and updated in a secure fashion. In all of these steps they
+might relay on outside contractors and thus have to safeguard themselves from
+any risks. This in turns makes the supply chain far larger, and far more
+encompassing then a development model like the software lifecycle looked upon
+earlier.
 
 In this thesis we will focus on how package managers work as a supply chain for
-the Linux distribution Debian.
+distributing software in a secure manner.
 
-% TODO: Software Delivery Lifecycle
 
 \subsubsection*{in-toto}
 in-toto is a framework to verify the integrity of a supply chain. It defines a
@@ -58,6 +95,7 @@ the corresponding step should be. Evaluating the specification along with the
 link metadata lets the users, or the organization, verify that the supply chain
 has not been tampered with. 
 
+\begin{figure}
 \begin{minted}[]{json}
 {"signatures": [],
  "signed": {
@@ -89,7 +127,11 @@ has not been tampered with.
         "threshold": 1}]
 }}
 \end{minted}
+\caption{Example in-toto schema}
+\label{fig:in-toto-schema}
+\end{figure}
 
+\begin{figure}
 \begin{minted}[]{json}
 {"signatures": [
   {"keyid": "918b19596...",
@@ -103,7 +145,9 @@ has not been tampered with.
    "python3-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8234484139..."}}
 }}
 \end{minted}
-
+\caption{Example linkmetadata file}
+\label{fig:linkmetadata}
+\end{figure}
 
 \section{Linux Distributions}\label{sec:linux_distributions}
 \subsection*{Linux}
@@ -314,6 +358,7 @@ This file can then be distributed along side the package, or provided through
 other means. Debian archives all buildinfo-files on a centralized webpage where
 they can be queried and retrieved.
 
+\begin{figure}
 \begin{minted}[]{text}
 Format: 1.0
 Source: dh-make
@@ -339,18 +384,20 @@ LANG="C"
 LC_ALL="POSIX"
 SOURCE_DATE_EPOCH="1543231660"
 \end{minted}
+\caption{Example buildinfo file}
+\label{fig:buildinfo}
+\end{figure}
 
 \section{Rebuilders}\label{sec:rebuilders} 
 One of the main ideals with reproducible builds is the ability to let the users
 recreate distributed artifacts. This is achievable with the correct tooling, and
 a ``BUILDINFO'' file as specified in the previous section. However,building all
-distributed packages is an unwieldy task. The appeal of linux distributions is
+distributed packages is an unwieldy task. The appeal of Linux distributions is
 the ability to download pre-compiled packages to save the effort of building all
 the software one intend to use.
 
-One of the ideas from the 204 reproducible builds summit is to provide
-infrastructure that rebuilds the packages distributed by the linux distribution.
-
+The reproducible builds effort has yearly summit where the participants from the
+project come together and discuss issues and problem in the project
 
 % TODO: Attestation sharing source
 % TODO: Source - planned in 2014/2-16 by the project
@@ -422,43 +469,10 @@ recreate the path from the root, until the new root.
 \label{fig:audit}
 \end{figure}
 
-\section{Development}\label{sec:development} 
-In this section we will take a look at the language and libraries used to
-develop this project.
-
-\subsection*{Python}
-Python is a general purpose programming language created by Gudio van Rossum in
-1994. It's dynamically typed language, with a terse syntax and a wide selection
-of built-in libraries for developers. It's well suited for prototyping
-technologies and has several well developed libraries.
-
-\subsection*{flask}
-Flask is a web framework for Python. It was created in 2010 by Armin Ronacher,
-and is one of the two most widely popular web frameworks in python. It enabled
-developers to easily create REST APIs with good debugging capabilities.
-
-\subsection*{postgresql}
-postgresql is a open-source relational database. It supports a wide number of
-abstract datatypes, such as native support for JSON, along with good support for
-concurrent operation. This enables easier development, along higher workloads
-and scalability.
-
-\subsection*{sqlalchemy}
-sqlalchemy is a widely used object relation mapping library for python. It
-support a wide selection of database backends and translates the raw database
-data into usable python objects for easier interopability.
-
-\subsection*{Panda and matplotlib}
-For graphing we will be using pandas and matplotlib. Both used a lot when it
-comes to scientific computing with python. It enables powerful graphing
-capabilities over simply dataformats, such as CSV, and are tightly integrated
-into one another.
-
 \section*{Summary}\label{sec:summary-theory} 
 In this chapter we have taken a deeper look at the theory surrounding supply
 chains, reproducible builds and merkle trees. In the next chapter we will be
 taking a look at the current research being done towards shared attestation on
 reproducible builds and package transparency logs.
-
 \blankpage
 \end{document}
