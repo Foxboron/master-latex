@@ -95,7 +95,7 @@ the corresponding step should be. Evaluating the specification along with the
 link metadata lets the users, or the organization, verify that the supply chain
 has not been tampered with. 
 
-\begin{figure}
+\begin{figure}[H]
 \begin{minted}[]{json}
 {"signatures": [],
  "signed": {
@@ -131,7 +131,7 @@ has not been tampered with.
 \label{fig:in-toto-schema}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[H]
 \begin{minted}[]{json}
 {"signatures": [
   {"keyid": "918b19596...",
@@ -282,6 +282,12 @@ distributed artifact matches the self-produced one.
 
 % TODO: Bitcoin
 
+% TODO: Kilder
+Around the same time, in 2013, Debian started a push towards reproducible
+builds, and an effort into achieving this for their distributed packages. Since
+then, 22 projects are officially part of the initiative and there has been 4
+conferences has been held to tackle the problem.
+
 \subsection*{Source Date Epoch}
 One of the most common offenders for undeterministic builds is the embedding of
 when something was built. On the surface this looks like a completely sane thing
@@ -319,6 +325,36 @@ directory paths of operating systems, libraries, compilers, linkers, make-files,
 build scripts, etc The BOM may be manually created, but many configuration
 management tools generate it as a by- product of the build'' \cite{r.-torres-cabrera-and-bonnie-lee-appleton-1999}.
 \end{quotation}
+
+\begin{figure}[H]
+\begin{minted}[]{text}
+Format: 1.0
+Source: dh-make
+Binary: dh-make
+Architecture: all
+Version: 2.201802
+Checksums-Sha256:
+22c95094efbe79445336007dd[...] 42360 dh-make_2.201802_all.deb
+Build-Origin: Debian
+Build-Architecture: amd64
+Build-Kernel-Version: 4.9.0-8-amd64 #1 SMP Debian 4.9.110-3 (2018-10-08)
+Build-Date: Thu, 06 Dec 2018 00:04:23 +0000
+Build-Path: /build/dh-make-2.201802
+Installed-Build-Depends:
+autoconf (= 2.69-11),
+automake (= 1:1.16.1-4),
+[...]
+xz-utils (= 5.2.2-1.3),
+zlib1g (= 1:1.2.11.dfsg-1)
+Environment:
+DEB_BUILD_OPTIONS="buildinfo=+all reproducible=+all parallel=16"
+LANG="C"
+LC_ALL="POSIX"
+SOURCE_DATE_EPOCH="1543231660"
+\end{minted}
+\caption{Example buildinfo file}
+\label{fig:buildinfo}
+\end{figure}
 
 Such a file would contain all the requirements to recreate the environment the
 artifact was built inn. Because of the previously mentioned restrictions, one
@@ -358,46 +394,52 @@ This file can then be distributed along side the package, or provided through
 other means. Debian archives all buildinfo-files on a centralized webpage where
 they can be queried and retrieved.
 
-\begin{figure}
-\begin{minted}[]{text}
-Format: 1.0
-Source: dh-make
-Binary: dh-make
-Architecture: all
-Version: 2.201802
-Checksums-Sha256:
-22c95094efbe79445336007dd[...] 42360 dh-make_2.201802_all.deb
-Build-Origin: Debian
-Build-Architecture: amd64
-Build-Kernel-Version: 4.9.0-8-amd64 #1 SMP Debian 4.9.110-3 (2018-10-08)
-Build-Date: Thu, 06 Dec 2018 00:04:23 +0000
-Build-Path: /build/dh-make-2.201802
-Installed-Build-Depends:
-autoconf (= 2.69-11),
-automake (= 1:1.16.1-4),
-[...]
-xz-utils (= 5.2.2-1.3),
-zlib1g (= 1:1.2.11.dfsg-1)
-Environment:
-DEB_BUILD_OPTIONS="buildinfo=+all reproducible=+all parallel=16"
-LANG="C"
-LC_ALL="POSIX"
-SOURCE_DATE_EPOCH="1543231660"
-\end{minted}
-\caption{Example buildinfo file}
-\label{fig:buildinfo}
-\end{figure}
+% TODO: Add disorderfs source
+% TODO: Add diffoscope source
+
+\subsection*{disorderfs}
+When distributing files it is very commonly to do so using file archives. Common
+formats is the ZIP and the TAR format. However, the order in which files appear
+in the archive needs to be consistent for the checksum to match, however this
+can be hard to test in some cases. ``disorderfs'' is a filesystem that lets you
+introduce unexpected and randomized behavior when reading files. This helps find
+sources for non-deterministic artifacts in the build process.
+
+
+\subsection*{diffoscope}
+Diffoscope is a tool to help compare binary formats for differences. It supports
+a lot of binary formats to help find reproducability issues in produced
+artifacts. It enables the user to output reports of the comparison as plain text
+files or HTML files so they can be easily embedded in webpages. The current CI
+system in debian provides the HTML files for easier debugging.
+
+The software is packages and used by a number of distributions and is currently
+a very important tool in debugging reproducability issues.
+
 
 \section{Rebuilders}\label{sec:rebuilders} 
 One of the main ideals with reproducible builds is the ability to let the users
 recreate distributed artifacts. This is achievable with the correct tooling, and
-a ``BUILDINFO'' file as specified in the previous section. However,building all
+k ``BUILDINFO'' file as specified in the previous section. However, building all
 distributed packages is an unwieldy task. The appeal of Linux distributions is
 the ability to download pre-compiled packages to save the effort of building all
 the software one intend to use.
 
-The reproducible builds effort has yearly summit where the participants from the
-project come together and discuss issues and problem in the project
+% TODO: Add CI source
+
+Currently debian has put a great deal of effort into testing packages by setting
+up a ``Continuous Integration'' framework for testing packages. This setup
+compiles all debian packages twice with variations to see if they end up
+reproducible or not. This is a neat approach to find reproducability issues, but
+it does not reproduce any packages produced and distributed by debian developers
+directly. They are merely built twice in their own environment. The real goal is
+to reproduce distributed packages, so the CI solution it self does not fulfill
+this goal.
+
+What is needed is servers which takes packages as distributed, and reproduces
+these. The general idea is that there should be a pool of diverse servers which
+are capable of rebuilding packages in the correct environment. These rebuilders
+should be capable of sharing some sort of attestation for the built package.
 
 % TODO: Attestation sharing source
 % TODO: Source - planned in 2014/2-16 by the project
@@ -411,9 +453,8 @@ inclusion of elements by calculating the path from the given leaf to the root
 node. This can be done by acquiring the missing hashes for each intermediate
 node, and then hash each of the steps together.
 
-% \subsection*{Blockchain}
-
 \subsubsection*{Certificate transparency log}
+
 Certificate transparency logs uses merkle trees to give organization issuing
 TLS certificates, as used in HTTP, a log of who and what issues
 log \cite{b.-laurie-a.-langley-e.kaster-google-2013}. This is used to detect
@@ -433,22 +474,7 @@ There are three features needed to implement a transparency log.
 \item Consistency proof
 \end{itemize}
 
-Each of this proofs are needed to correctly verify that a transparency log
-is correctly operating and can verify this to monitors.  Monitors follow
-these logs to assure consistency and to make sure logs do not misbehave. It
-also allows monitors to verify the append-only property of the log.
-
-The audit proof is used to  verify that the given element in the log exists
-in the log. The tree root is given, along with the elements needed to
-recreate the missing nodes for the root.
-
-The consistency proof is used to verify that the log is operating as an
-append-only log in a correct manner. This proof requires two things. A
-previous merkle tree root, and the number of leafs present at the time of
-this tree root. The returned path is the number of subroots needed to
-recreate the path from the root, until the new root.
-
-\begin{figure}
+\begin{figure}[H]
 \centering
 \subfloat[audit proof for ``d5'']{\begin{tikzpicture}
 \Tree
@@ -468,6 +494,21 @@ recreate the path from the root, until the new root.
 \caption{Audit proof}
 \label{fig:audit}
 \end{figure}
+
+Each of this proofs are needed to correctly verify that a transparency log
+is correctly operating and can verify this to monitors.  Monitors follow
+these logs to assure consistency and to make sure logs do not misbehave. It
+also allows monitors to verify the append-only property of the log.
+
+The audit proof is used to  verify that the given element in the log exists
+in the log. The tree root is given, along with the elements needed to
+recreate the missing nodes for the root.
+
+The consistency proof is used to verify that the log is operating as an
+append-only log in a correct manner. This proof requires two things. A
+previous merkle tree root, and the number of leafs present at the time of
+this tree root. The returned path is the number of subroots needed to
+recreate the path from the root, until the new root.
 
 \section*{Summary}\label{sec:summary-theory} 
 In this chapter we have taken a deeper look at the theory surrounding supply
