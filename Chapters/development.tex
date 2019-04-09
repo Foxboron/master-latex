@@ -5,12 +5,302 @@
 \documentclass[../Main/thesis.tex]{subfiles}
 \begin{document}
 \chapter{Development}\label{ch:development}
-In this chapter we will take a look at the development of the project. We will
-first go through the current system, and how it rebuilds packages. Then we will
-take a look at the 
 
-\section{Rebuilders}\label{sec:development_rebuilders}
-\section{APT Transport}\label{sec:apt_transport}
+\section{Requirements}%
+\label{sec:requirements}
+To establish requirements for the subsequent re-implementation of the
+``visualizer'' component we will take a look at the current implementation, and
+how the system works. The overarching requirements is the development and the
+resulting project being a contribution to the Open-Source community.
+
+\section{Rebuilder}\label{sec:development_rebuilders}
+The purpose of the rebuilder is to watch for new packages, queue them, build the
+package in a clean environment to reproduce the package, and then publish this
+result so we can query them later when installing packages.
+
+To achieve this we need to fulfill a few requirements:
+
+\begin{enumerate}
+    \item \label{itm:published} We need to know when a package is published.
+    \item \label{itm:scheduler} Something needs to schedule the new packages.
+    \item \label{itm:builder} We need to build the package in a clean environment.
+    \item \label{itm:publish} We need to publish results of the built package.
+    \item \label{itm:transport} We need to check the results when installing packages.
+\end{enumerate}
+
+It is important to remember that this system is only targeted Debian as
+supporting is universally would require a lot of engineering effort and handling
+of special cases.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{../Diagrams/architecture.pdf}
+\caption{Rebuilder architecture overview}
+\label{fig:rebuilder_architecture}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{sequencediagram}
+    \newthread{buildinfo}{buildinfo server}{}
+    \newthread{scheduler}{scheduler}{}
+    \newthread{redis}{redis}{}
+    \newthread{builder}{builder}{}
+    \newthread{visualizer}{visualizer}{}
+    \begin{call}{scheduler}{NewBuildinfo()}{buildinfo}{}\end{call}
+
+    \begin{call}{scheduler}{rpush}{redis}{}
+        \postlevel
+    \end{call}
+
+    \prelevel\prelevel
+    \setthreadbias{east}
+
+    \begin{call}{builder}{rpop}{redis}{}
+        \postlevel
+    \end{call}
+
+    \setthreadbias{center}
+    \begin{callself}{builder}{build}{}
+    \end{callself}
+    \begin{messcall}{builder}{publish}{visualizer}{}\end{messcall}
+  \end{sequencediagram}
+\caption{rebuilder sequence diagram}
+\label{lst:rebuilder_sequence_diagram}
+\end{figure}
+
+
+\subsection{buildinfo.debian.net}%
+\label{sub:buildinfo_debian_net}
+The goal is to rebuild packages released by Debian, but getting this information
+directly for a Debian package mirror can be tedious. What we instead do is
+relaying on the buildinfo server created by the Debian project to keep track of
+all published buildinfo files from built packages. This gives us a canonical
+view of all packages built by debian infrastructure.
+
+% TODO: Add refference to pull request
+To utilize this service we need to keep a track of all newly submitted files,
+however the current API does not support this. To get around this we submitted a
+code change so we would be able to get all files submitted after a given
+timestamp. As of writing this code change is not accepted.
+
+The rebuilder system has instead relied on a copy of the server with the code
+change included so we are able to monitor new buildinfo files.
+
+\subsection{scheduler}%
+\label{sub:scheduler}
+The scheduler is a small service which monitors the endpoint and schedules any
+new files found from the buildinfo server. Currently it pushes new package files
+to redis, which is a very simple key value store, to help schedule the builders.
+This enables us to add an arbitrary number of builders. This is important for a
+few reasons. It helps scaling the system if its needed, and it also allows to
+have builders with different architectures to build packages.
+
+Because of builder constraints the current scheduler does not add builds on
+other architectures then ``amd64''.
+
+\subsection{builder}%
+\label{sub:builder}
+The builder consists of a service that queries redis after new items on a timer.
+When new builds are dispatched, the build is done by utilizing the buildinfo
+files as provided by the Debian build server. The build are done with the tool
+``srebuild''.
+
+``srebuild'' is a Perl script used to build packages in a clean environment.
+With this environment the buildinfo is parsed and all missing dependencies are
+acquired to recreate the package. The source packages, which contains the source
+and the build files needed to build the package, is acquired from a mirror and
+the build is done. When the build is done, the results are signed with a
+cryptographic key, to verify that the build server did produce the files, and
+then published to the visualizer.
+
+
+\subsection{visualizer}%
+\label{sub:visualizer}
+The visualizer is the component which displays the rebuilt packages in a web UI.
+The user is also able to fetch the buildinfo and linkmetadata files. The current
+implementation is a short snippet of code backed by a sqlite database to aid in
+displaying the needed webpages. The implemented API as seen in
+\ref{api:old_visualizer} is simplistic and provides the needed features to let
+users verify builds.
+
+\begin{table}[H]
+\footnotesize
+\centering
+\settowidth\tymin{\textbf{Endpoint}}
+\setlength\extrarowheight{2pt}
+\begin{tabulary}{\textwidth}{|l|L|l|L|}
+\hline
+    \textbf{Endpoint} & 
+    \textbf{Type} & 
+    \textbf{Parameters} & 
+    \textbf{Description} \\
+\hline
+    /new\_build & POST & metadata, buildinfo & Submit a new build \\  \hline
+    /sources/<name> & GET & & Gets the available builds for a package \\  \hline
+    /sources/<name>/<version>/buildinfo& GET & & Gets the BUILDINFO file for a build \\  \hline
+    /sources/<name>/<version>/metadata & GET & & Gets the in-toto link metadata from a build \\  \hline
+\end{tabulary}
+\caption{Old visualizer API}
+\label{api:old_visualizer}
+\end{table}
+
+
+\section{Project development}%
+\label{sec:project_development}
+
+
+API entry definitions
+
+\begin{listing}[H]
+\caption{Entry definitions}
+\label{lst:entrydefinitions}
+\begin{minted}{go}
+type Entry {
+    Package string
+    Version string
+} 
+
+type InclusionEntry {
+    Entry
+    Package         string
+    Buildinfo       string
+    Linkmetadata    string
+}
+
+type RevokeEntry {
+    Entry 
+    InclusionHash   string
+    Reason          string
+}
+\end{minted}
+\end{listing}
+
+
+\begin{listing}[H]
+\caption{Initial API request}
+\label{lst:init_request}
+\begin{align*}
+& InitQuery\{Hash, Signature, LeafCount\} \to \\
+& Response\{InclustionProof, ConsistencyProof, CurrentRoot\{ Hash, Signature\} \}
+\end{align*}
+\end{listing}
+
+
+\begin{listing}[H]
+\caption{Package query API request}
+\label{lst:package_query_request}
+\begin{equation*}
+PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
+\end{equation*}
+\end{listing}
+
+
+\begin{listing}[H]
+\caption{JSON for consistency proof}
+\label{lst:consistency proof}
+\begin{minted}{json}
+{}
+\end{minted}
+\end{listing}
+
+
+\begin{listing}[H]
+\caption{JSON for inclusion proof}
+\label{lst:inclusion proof}
+\begin{minted}{json}
+{}
+\end{minted}
+\end{listing}
+
+
+\begin{listing}[H]
+\caption{JSON for audit proof}
+\label{lst:audit proof}
+\begin{minted}{json}
+{}
+\end{minted}
+\end{listing}
+
+
 \section{Visualizer}\label{sec:visualizer}
+
+
+
+
+\begin{table}[hbtp]
+\footnotesize
+\centering
+\settowidth\tymin{\textbf{Description}}
+\setlength\extrarowheight{2pt}
+\begin{tabulary}{1.0\textwidth}{|l|L|l|L|}
+\hline
+    \textbf{Endpoint} & 
+    \textbf{Type} & 
+    \textbf{Parameters} & 
+    \textbf{Description} \\
+\hline
+    /api/log/stats & GET & & Statistics from the current tree \\ \hline
+    /api/log/graphviz & GET & & Outputs the current tree in the dot format \\ \hline
+    /api/log/root & GET & & Gets the latest signed tree root \\ \hline
+    /api/log/tree/append & POST & JSON object & Appends a JSON object to the tree \\ \hline
+    /api/log/tree/id/<id> & GET & & Gets the given Node object from the database with '``id''\\ \hline
+    /api/log/tree/hash/<hash> & GET & & Gets the given Node object from the database with ``hash''\\ \hline
+    /api/log/tree/leaf/<id> & GET & & Gets the given leaf from the database with matching ``leaf\_index''\\ \hline
+    /api/log/tree/validate/id/<id> & GET & & Gets the audit proof for a leaf matching the given ``id''\\ \hline
+    /api/log/tree/validate/hash/<hash> & GET & & Gets the audit proof for a leaf matching the given ``hash''\\ \hline
+    /api/log/tree/inclusion & POST & InclusionQuery & Provides the inclusion proof for the given query \\ \hline
+    /api/log/tree/consistency & POST & ConsistencyQuery & Provides the consistency proof for the given query\\ \hline
+\end{tabulary}
+\caption{Transparency log API}
+\label{api:transparency_log}
+\end{table}
+
+
+\begin{table}[hbtp]
+\footnotesize
+\centering
+\settowidth\tymin{\textbf{Description}}
+\setlength\extrarowheight{2pt}
+\begin{tabulary}{1.0\textwidth}{|l|L|L|L|}
+\hline
+    \textbf{Endpoint} & 
+    \textbf{Type} & 
+    \textbf{Parameters} & 
+    \textbf{Description} \\
+\hline
+    /api/rebuilder/submit & POST$^1$ & metadata, buildinfo& Implements something heyho lets go \\  \hline
+    /api/rebuilder/revoke& POST$^1$ & leaf hash, reason, signature& Revokes the leaf with a reason  \\  \hline
+    /api/rebuilder/fetch/<name>/<version>& GET & & Gets the entries for the given package \\  \hline
+\end{tabulary}
+\footnotesize{$^1$ Behind authentication}\\
+\caption{Overlay API}
+\label{api:Overlay API}
+\end{table}
+
+
+\section{APT Transport}\label{sec:apt_transport}
+\begin{figure}[H]
+  \centering
+  \begin{sequencediagram}
+    \newthread{A}{HTTP client}{}
+    \newinst[1]{B}{intoto}{}
+    \newinst[2]{C}{APT Server}{}
+    \begin{messcall}{A}{100 Capabilities}{C}
+        \begin{messcall}{C}{601 Configuration}{A}\end{messcall}
+        \begin{messcall}{C}{600 URI Acquire}{A}\end{messcall}
+        \begin{messcall}{A}{200 URI Start}{C}\end{messcall}
+            \begin{messcall}{C}{201 URI Done}{B}
+                \begin{sdblock}{Rebuilder verify}{}
+                    \begin{messcall}{B}{201 URI Done}{A}\end{messcall}
+                \end{sdblock}
+            \end{messcall}
+    \end{messcall}
+  \end{sequencediagram}
+\caption{intoto sequence diagram}
+\label{lst:intoto_sequence_diagram}
+\end{figure}
+
+
 \blankpage
 \end{document}

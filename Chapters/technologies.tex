@@ -44,20 +44,21 @@ support a wide selection of database backends and translates the raw database
 data into usable python objects for easier interopability. This helps us to save
 time by not having to map any values to our own data structures as everything is 
 
-\begin{figure}[H]
-\begin{minted}[]{python}
+\begin{listing}[ht]
+\caption{Example sqlalchemy model}
+\label{lst:sqlalchemy}
+\begin{minted}{python}
 class User(db.Model):
     __tablename__ = "user"
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     created = db.Column(db.DateTime, default=datetime.utcnow)
     name = db.Column(db.String(96), index=True)
+    lol
 
     def __repr__(self):
         return "<User: {}>".format(self.name)
 \end{minted}
-\caption{Example sqlalchemy model}
-\label{fig:sqlalchemy}
-\end{figure}
+\end{listing}
 
 
 \subsection*{Panda and matplotlib}
