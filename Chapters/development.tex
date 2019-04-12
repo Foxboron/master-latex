@@ -124,6 +124,7 @@ displaying the needed webpages. The implemented API as seen in
 \ref{api:old_visualizer} is simplistic and provides the needed features to let
 users verify builds.
 
+
 \begin{table}[H]
 \footnotesize
 \centering
@@ -148,6 +149,14 @@ users verify builds.
 
 \section{Project development}%
 \label{sec:project_development}
+
+
+\subsection{Merkle Tree}%
+\label{sub:merkle_tree}
+
+
+
+
 
 
 API entry definitions
@@ -223,7 +232,7 @@ PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
 \end{listing}
 
 
-\section{Visualizer}\label{sec:visualizer}
+\subsection{Visualizer}\label{sec:visualizer}
 
 
 
@@ -279,7 +288,7 @@ PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
 \end{table}
 
 
-\section{APT Transport}\label{sec:apt_transport}
+\subsection{APT Transport}\label{sec:apt_transport}
 \begin{figure}[H]
   \centering
   \begin{sequencediagram}
@@ -300,6 +309,10 @@ PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
 \caption{intoto sequence diagram}
 \label{lst:intoto_sequence_diagram}
 \end{figure}
+
+\section{Testing}%
+\label{sec:testing}
+
 
 
 \blankpage

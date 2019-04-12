@@ -41,6 +41,7 @@ type InitQuery {
     Leafs       int
 }
 
+# Response
 
 # Entries
 

@@ -9,7 +9,7 @@ In this section we will take a look at the technology chosen for this project.
 
 \subsection*{Python}
 Python is a general purpose programming language created by Gudio van Rossum in
-1994. It's dynamically typed language, with a terse syntax and a wide selection
+1994~\cite{python}. It's dynamically typed language, with a terse syntax and a wide selection
 of built-in libraries for developers. Dynamically typed languages lends itself
 nicely for rapid prototyping of experimental projects. A language like Rust or
 Go, which are statically typed gives the developers some more issues prototyping
@@ -24,25 +24,26 @@ this.
 \subsection*{flask}
 Flask is a web framework for Python. It was created in 2010 by Armin Ronacher,
 and is one of the two most widely popular web frameworks in python. It enabled
-developers to easily create REST APIs with good debugging capabilities.
+developers to easily create REST APIs with good debugging capabilities~\cite{flask}.
 
 \subsection*{jinja}
 One of the added features of using flask is that we get access to the templating
 framework jinja which allows us to easily create webpages and interface them
 with python values before being served to users. This allows us to easily create
-webpages with the data used by the application.
+webpages with the data used by the application~\cite{jinja}.
 
 \subsection*{postgresql}
 postgresql is a open-source relational database. It supports a wide number of
 abstract datatypes, such as native support for JSON, along with good support for
 concurrent operation. This enables easier development, along higher workloads
-and scalability.
+and scalability~\cite{pgsql}.
 
 \subsection*{sqlalchemy}
 sqlalchemy is a widely used object relation mapping library for python. It
 support a wide selection of database backends and translates the raw database
 data into usable python objects for easier interopability. This helps us to save
-time by not having to map any values to our own data structures as everything is 
+time by not having to map any values to our own data structures as everything
+are written as native python classes~\cite{sqlalchemy}.
 
 \begin{listing}[ht]
 \caption{Example sqlalchemy model}
@@ -53,7 +54,6 @@ class User(db.Model):
     id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     created = db.Column(db.DateTime, default=datetime.utcnow)
     name = db.Column(db.String(96), index=True)
-    lol
 
     def __repr__(self):
         return "<User: {}>".format(self.name)
@@ -65,7 +65,31 @@ class User(db.Model):
 For graphing we will be using pandas and matplotlib. Both used a lot when it
 comes to scientific computing with python. It enables powerful graphing
 capabilities over simply dataformats, such as CSV, and are tightly integrated
-into one another.
+into one another~\cite{pandas}\cite{matplotlib}.
+
+\subsection*{Git and Github}%
+\label{sub:git_and_github}
+% TODO: Kilde på git
+An important aspect of any project is to keep track of changes. For this project
+the version control system ``git'' was used. It is a well known version control
+system and widely used and deployed on a wide selection of providers. The
+strongest point is being decentralized, where commits and code changes can be
+done without internet access~\cite{git}. The code can also be pushed to multiple
+repositories for backup purposes if any provider goes down during the
+development of the project.
+
+\subsection*{Deployment}%
+\label{sub:deployment}
+% TODO: Legge til source på uh-iaas
+UH-IaaS is a cloud infrastructure provider created for research institution to
+deploy software and build platform. They provide free resources for student
+projects and the rebuilder infrastructure described in this thesis is currently
+deployed on their platform. Extended testing of the implementations of this
+thesis is also done on their platform.
+
+
+
+
 
 \section*{Summary}\label{sec:summary-technologies} 
 In this chapter we have taken a deeper look at the theory surrounding supply
