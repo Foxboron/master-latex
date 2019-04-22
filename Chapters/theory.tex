@@ -84,11 +84,9 @@ step in the supply chain.
 The layout describes what each step of the supply chain should contain. It can
 be any expected commands, something the process should succeed running, any
 expected material, things needed for the step in the chain to proceed, and any
-products, artifacts created by the steps. These are described in a very shallow
-and each language that contains keywords following regular expressions which
-should be satisfied.
-
-These steps can be be ``inspected'' to verify ...
+products, artifacts created by the steps. These are described in a very small
+language that contains keywords following regular expressions which should be
+satisfied.
 
 The link metadata is a JSON file that specifies what the values, and outputs of
 the corresponding step should be. Evaluating the specification along with the
@@ -169,7 +167,7 @@ distribute build recipes, and some distributed pre-compiled binary packages.
 
 \subsection*{Debian}
 Debian was one of the first operating systems based on Linux, and was created by
-Ian Murdock in 1993. One of the main innovations from debian was the creation of
+Ian Murdock in 1993. One of the main innovations from Debian was the creation of
 the very first package manager. Package manager allows users to download
 pre-compiled software from centralized repositories maintained by the Debian
 developers. This allows users to easily fetch, update and remove installed
@@ -180,7 +178,7 @@ maintain the required files to distribute this to the end user. Each maintainer
 has a cryptographic secure singing key they use to fetch, and publish source
 packages to a build server. These source packages contains the needed files,
 patches and package files to compile the project source code to a format
-accepted by the debian package manager, apt.
+accepted by the Debian package manager, apt.
 
 The build server verifies the signatures and compile these source packages to
 the all the supported architectures. It will then sign these packages with its
@@ -248,11 +246,11 @@ all specified artifacts''~\cite{reproducible-builds-2019-definitions}.
 
 One of the earliest open-source projects to promote reproducible builds is the
 Tor project. The Tor project develops the ``Tor network'' which is anonymity
-network compromised volunteer run network nodes that effectively anonymize the
-network of the user~\cite{tor}. This is heavily used by dissidents in oppressive regimes
-where the internet connection is filtered, or partially blocked. To help giving
-access to this network, they develop a variant of the web browser firefox called
-``Tor browser''~\cite{tor-browser}.
+network compromised of volunteer that run network nodes that effectively
+anonymize the network of the user~\cite{tor}. This is heavily used by dissidents
+in oppressive regimes where the internet connection is filtered, or partially
+blocked. To help giving access to this network, they develop a variant of the
+web browser firefox called ``Tor browser''~\cite{tor-browser}.
 
 % TODO: Add sources
 
@@ -357,23 +355,23 @@ SOURCE_DATE_EPOCH="1543231660"
 \end{figure}
 
 Such a file would contain all the requirements to recreate the environment the
-artifact was built inn. Because of the previously mentioned restrictions, one
-there needs to exist multiple formats to define the requirements. Currently
-there are around 5 different formats for different ecosystems on the
-reproducible builds website \cite{reproducible-builds-2019}.
+artifact was built inn. Because of the previously mentioned restrictions, there
+is a need for multiple formats to define the requirements. Currently there are
+around 5 different formats for different ecosystems on the reproducible builds
+website \cite{reproducible-builds-2019}.
 
 % TODO: Legg til source på deb-buildinfo
 
-The debian format encompasses a wide array of values ``Format'' defines
+The Debian format encompasses a wide array of values ``Format'' defines
 the expected fields in the format and gets incremented with any changes.
 ``Source'' and ``Binary'' defines the source package used to produce this, and
 the corresponding binary package it outputs. The ``Architecture'' fields defines
 which architecture the product is compiled towards. Debian supports a wide array
 of CPU architectures from ARM to AMD 64 bit. High-level languages usually does
-not compile, there for ``all'' is used to denote this.
+not compile, therefor ``all'' is used to denote this.
 
 The ``Build-'' variables denotes the build environment used to create the
-artifact in the debian ecosystem. Since debian has a slew of derivative and
+artifact in the Debian ecosystem. Since Debian has a slew of derivative and
 closely related distributions, ``Build-Origin'' is used to denote this
 distribution.  ``Build-Architecture'' denotes the architecture of the build
 server being used.  ``Build-Kernel-Version'' denotes the explicit  version of
@@ -390,7 +388,7 @@ Most importantly the variable ``SOURCE\_DATE\_EPOCH'' is stored here to make sur
 timestamps are deterministic.
 
 % TODO: Lenke til buildinfo.debian.net
-This file can then be distributed along side the package, or provided through
+This file can then be distributed alongside the package, or provided through
 other means. Debian archives all buildinfo-files on a centralized webpage where
 they can be queried and retrieved.
 
@@ -411,9 +409,9 @@ Diffoscope is a tool to help compare binary formats for differences. It supports
 a lot of binary formats to help find reproducability issues in produced
 artifacts. It enables the user to output reports of the comparison as plain text
 files or HTML files so they can be easily embedded in webpages. The current CI
-system in debian provides the HTML files for easier debugging.
+system in Debian provides the HTML files for easier debugging.
 
-The software is packages and used by a number of distributions and is currently
+The software is packaged and used by a number of distributions and is currently
 a very important tool in debugging reproducability issues.
 
 
@@ -427,11 +425,11 @@ the software one intend to use.
 
 % TODO: Add CI source
 
-Currently debian has put a great deal of effort into testing packages by setting
+Currently Debian has put a great deal of effort into testing packages by setting
 up a ``Continuous Integration'' framework for testing packages. This setup
-compiles all debian packages twice with variations to see if they end up
+compiles all Debian packages twice with variations to see if they end up
 reproducible or not. This is a neat approach to find reproducability issues, but
-it does not reproduce any packages produced and distributed by debian developers
+it does not reproduce any packages produced and distributed by Debian developers
 directly. They are merely built twice in their own environment. The real goal is
 to reproduce distributed packages, so the CI solution it self does not fulfill
 this goal.

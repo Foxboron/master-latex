@@ -76,7 +76,7 @@ The goal is to rebuild packages released by Debian, but getting this information
 directly for a Debian package mirror can be tedious. What we instead do is
 relaying on the buildinfo server created by the Debian project to keep track of
 all published buildinfo files from built packages. This gives us a canonical
-view of all packages built by debian infrastructure.
+view of all packages built by Debian infrastructure.
 
 % TODO: Add refference to pull request
 To utilize this service we need to keep a track of all newly submitted files,
@@ -150,59 +150,39 @@ users verify builds.
 \section{Project development}%
 \label{sec:project_development}
 
+\subsection{First Iteration: Visualizer}%
+\label{sec:visualizer}
 
-\subsection{Merkle Tree}%
+\subsection{Second Iteration: Merkle Tree}%
 \label{sub:merkle_tree}
 
-
-
-
-
-
-API entry definitions
-
-\begin{listing}[H]
-\caption{Entry definitions}
-\label{lst:entrydefinitions}
-\begin{minted}{go}
-type Entry {
-    Package string
-    Version string
-} 
-
-type InclusionEntry {
-    Entry
-    Package         string
-    Buildinfo       string
-    Linkmetadata    string
-}
-
-type RevokeEntry {
-    Entry 
-    InclusionHash   string
-    Reason          string
-}
-\end{minted}
-\end{listing}
-
-
-\begin{listing}[H]
-\caption{Initial API request}
-\label{lst:init_request}
-\begin{align*}
-& InitQuery\{Hash, Signature, LeafCount\} \to \\
-& Response\{InclustionProof, ConsistencyProof, CurrentRoot\{ Hash, Signature\} \}
-\end{align*}
-\end{listing}
-
-
-\begin{listing}[H]
-\caption{Package query API request}
-\label{lst:package_query_request}
-\begin{equation*}
-PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
-\end{equation*}
-\end{listing}
+\begin{table}[hbtp]
+\footnotesize
+\centering
+\settowidth\tymin{\textbf{Description}}
+\setlength\extrarowheight{2pt}
+\begin{tabulary}{1.0\textwidth}{|l|L|l|L|}
+\hline
+    \textbf{Endpoint} & 
+    \textbf{Type} & 
+    \textbf{Parameters} & 
+    \textbf{Description} \\
+\hline
+    /api/log/stats & GET & & Statistics from the current tree \\ \hline
+    /api/log/graphviz & GET & & Outputs the current tree in the dot format \\ \hline
+    /api/log/root & GET & & Gets the latest signed tree root \\ \hline
+    /api/log/tree/append & POST & JSON object & Appends a JSON object to the tree \\ \hline
+    /api/log/tree/id/<id> & GET & & Gets the given Node object from the database with '``id''\\ \hline
+    /api/log/tree/hash/<hash> & GET & & Gets the given Node object from the database with ``hash''\\ \hline
+    /api/log/tree/leaf/<id> & GET & & Gets the given leaf from the database with matching ``leaf\_index''\\ \hline
+    /api/log/tree/validate/id/<id> & GET & & Gets the audit proof for a leaf matching the given ``id''\\ \hline
+    /api/log/tree/validate/hash/<hash> & GET & & Gets the audit proof for a leaf matching the given ``hash''\\ \hline
+    /api/log/tree/inclusion & POST & InclusionQuery & Provides the inclusion proof for the given query \\ \hline
+    /api/log/tree/consistency & POST & ConsistencyQuery & Provides the consistency proof for the given query\\ \hline
+\end{tabulary}
+\caption{Second iteration: Transparency log API}
+\label{api:transparency_log}
+\end{table}
 
 
 \begin{listing}[H]
@@ -232,38 +212,35 @@ PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
 \end{listing}
 
 
-\subsection{Visualizer}\label{sec:visualizer}
 
+\subsection{Third Iteration: Transparency log overlay}%
+\label{sub:transparency_overlay}
 
+API entry definitions
 
+\begin{listing}[H]
+\caption{Entry definitions}
+\label{lst:entrydefinitions}
+\begin{minted}{go}
+type Entry {
+    Package string
+    Version string
+} 
 
-\begin{table}[hbtp]
-\footnotesize
-\centering
-\settowidth\tymin{\textbf{Description}}
-\setlength\extrarowheight{2pt}
-\begin{tabulary}{1.0\textwidth}{|l|L|l|L|}
-\hline
-    \textbf{Endpoint} & 
-    \textbf{Type} & 
-    \textbf{Parameters} & 
-    \textbf{Description} \\
-\hline
-    /api/log/stats & GET & & Statistics from the current tree \\ \hline
-    /api/log/graphviz & GET & & Outputs the current tree in the dot format \\ \hline
-    /api/log/root & GET & & Gets the latest signed tree root \\ \hline
-    /api/log/tree/append & POST & JSON object & Appends a JSON object to the tree \\ \hline
-    /api/log/tree/id/<id> & GET & & Gets the given Node object from the database with '``id''\\ \hline
-    /api/log/tree/hash/<hash> & GET & & Gets the given Node object from the database with ``hash''\\ \hline
-    /api/log/tree/leaf/<id> & GET & & Gets the given leaf from the database with matching ``leaf\_index''\\ \hline
-    /api/log/tree/validate/id/<id> & GET & & Gets the audit proof for a leaf matching the given ``id''\\ \hline
-    /api/log/tree/validate/hash/<hash> & GET & & Gets the audit proof for a leaf matching the given ``hash''\\ \hline
-    /api/log/tree/inclusion & POST & InclusionQuery & Provides the inclusion proof for the given query \\ \hline
-    /api/log/tree/consistency & POST & ConsistencyQuery & Provides the consistency proof for the given query\\ \hline
-\end{tabulary}
-\caption{Transparency log API}
-\label{api:transparency_log}
-\end{table}
+type InclusionEntry {
+    Entry
+    Package         string
+    Buildinfo       string
+    Linkmetadata    string
+}
+
+type RevokeEntry {
+    Entry 
+    InclusionHash   string
+    Reason          string
+}
+\end{minted}
+\end{listing}
 
 
 \begin{table}[hbtp]
@@ -288,7 +265,8 @@ PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
 \end{table}
 
 
-\subsection{APT Transport}\label{sec:apt_transport}
+\subsection{APT Transport integration}\label{sec:apt_transport}
+
 \begin{figure}[H]
   \centering
   \begin{sequencediagram}
@@ -309,6 +287,25 @@ PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
 \caption{intoto sequence diagram}
 \label{lst:intoto_sequence_diagram}
 \end{figure}
+
+\begin{listing}[H]
+\caption{Initial API request}
+\label{lst:init_request}
+\begin{align*}
+& InitQuery\{Hash, Signature, LeafCount\} \to \\
+& Response\{InclustionProof, ConsistencyProof, CurrentRoot\{ Hash, Signature\} \}
+\end{align*}
+\end{listing}
+
+
+\begin{listing}[H]
+\caption{Package query API request}
+\label{lst:package_query_request}
+\begin{equation*}
+PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
+\end{equation*}
+\end{listing}
+
 
 \section{Testing}%
 \label{sec:testing}
