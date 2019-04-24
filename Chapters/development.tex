@@ -33,13 +33,6 @@ supporting is universally would require a lot of engineering effort and handling
 of special cases.
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=0.5\textwidth]{../Diagrams/architecture.pdf}
-\caption{Rebuilder architecture overview}
-\label{fig:rebuilder_architecture}
-\end{figure}
-
-\begin{figure}[H]
   \centering
   \begin{sequencediagram}
     \newthread{buildinfo}{buildinfo server}{}
@@ -137,11 +130,12 @@ users verify builds.
     \textbf{Parameters} & 
     \textbf{Description} \\
 \hline
-    /new\_build & POST & metadata, buildinfo & Submit a new build \\  \hline
+    /new\_build & POST$^1$ & metadata, buildinfo & Submit a new build \\  \hline
     /sources/<name> & GET & & Gets the available builds for a package \\  \hline
     /sources/<name>/<version>/buildinfo& GET & & Gets the BUILDINFO file for a build \\  \hline
     /sources/<name>/<version>/metadata & GET & & Gets the in-toto link metadata from a build \\  \hline
 \end{tabulary}
+\footnotesize{$^1$ Behind authentication}\\
 \caption{Old visualizer API}
 \label{api:old_visualizer}
 \end{table}
@@ -149,14 +143,264 @@ users verify builds.
 
 \section{Project development}%
 \label{sec:project_development}
+We have now taken a look at the current implementation of the rebuilder system,
+and how it integrates with the current iteration of the visualizer. In the next
+session we will explain the development of the system for this thesis. It's
+structured in 3 iterations of the visualizer, and an integration with the
+existing APT transport written for the initial rebuilder system. We will in the
+first iteration tackle the problem of maintaining compatibility with the current
+system. The second iteration will be focusing on the implementation of the raw
+merkle tree needed for transparency log. The third iteration will be the
+abstracted logic on top of the transparency log, which the APT transport will be
+utilizing when validating packages for the users.
 
 \subsection{First Iteration: Visualizer}%
 \label{sec:visualizer}
+The first iteration is largely focused on recreating the functionality of the
+current visualizer. The purpose of this component is to accept new rebuilds, the
+in-toto link metadata file and buildinfo file produced by the rebuilder. This
+needs to be displayed in a simple webpage and introduce no new features to
+remain compatible.
+
+In practice the visualizer only accepts two files, and displays an index of
+these files. There are no processing being done except to figure the given
+package name and version. The goal of this rewrite is to create a robust
+foundation where we can improve on the current design, and in later iterations
+build the needed data structures.
+
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    EMP/.style={% Style for empatized boxes
+        rectangle, line width =1pt,
+        anchor=west,
+        underline, % new property
+        align=center,
+        text=Black,
+        minimum height=.8cm,
+        text height=1.5ex,
+            text depth=.25ex,
+        fill=EMP,
+        draw=black,
+        },
+    NOR/.style={% Style for normal boxes.
+        rectangle, 
+        line width =1pt,
+        anchor=west,
+        align=left,
+        minimum height=.6cm,
+        text height=1.5ex,
+            text depth=.25ex,
+            text=white,
+        fill=NOR,
+        draw=black,
+        inner ysep=5pt
+        },
+    underline/.append style={% define new style property
+        execute at begin node={%
+            \setbox\ubox=\hbox\bgroup
+            },
+            execute at end node={%
+                \egroup\uline{\box\ubox}%
+                }
+             },
+    ] % Uff that is all the configuration for tickzpicture xD
+
+ \def\Frame(#1)#2[#3]#4{%
+  \begin{scope}[shift={(#1)}] 
+      \node[font=\bf, anchor=west] (Title) at (-0.2,0.7) {#3}; 
+       \edef\k{0}
+       \edef\x{0}% Variable for named coordinate centering - below box
+       \foreach \id/\style in {#4} {%enter sub frame data Name/Boxtype ,Name2/Boxtype | An space before Boxtype is needed 
+            \node[\style] (h) at (\k pt,0) {\id}; %  % Draw a node depending on the variables.
+            \pgfmathparse{\k+0.5*width{"\id"}+3.4pt} % Uses the textwidth to calculate named coordinate  
+            \xdef\x{\pgfmathresult} % The resul is saved in the variable \x
+            \draw (\x pt,-0.4) coordinate (\id#2); %Create a named coordinate concatenated: "sub frame data Name"+"identifier"
+            \pgfmathparse{\k+width{"\id"}+6.8pt}% Calculate positión for each subframe box.       
+        \xdef\k{\pgfmathresult}% Save the value to be added to the next iteration value.
+       }    
+  \end{scope}
+}
+ \Frame(0,0){1}[BUILDINFO]{%first frame identified as 1 named EMPLOYEE
+    Id/NOR,% see that it is necessary to add a space
+    Created/NOR,
+    Text/NOR,
+    UUID/NOR,
+    VersionId/EMP}; 
+
+ \Frame(0,-2.5){2}[LINKMETADATA]{
+    Id/NOR,
+    Created/NOR,
+    Text/NOR,
+    UUID/NOR,
+    VersionId/EMP}; 
+
+ \Frame(0,-5){3}[VERSION]{
+    Id/NOR,
+    Created/NOR,
+    Version/NOR,
+    PackageId/EMP};
+
+  \Frame(0,-7.5){4}[PACKAGE]{
+    Id/NOR,
+    Created/NOR,
+    Name/NOR}; 
+
+     \draw[thick,->,thick,>=latex]
+        (PackageId3) -- ++(0,-.5) -- ++(0,0) coordinate (inter) 
+        -- (Id4 -| inter) -- ++(0,-0.4) coordinate (inter)
+        -- (Id4 |- inter) -- ++(0,0.5); %
+
+     \draw[thick,->,thick,>=latex]
+        (VersionId2) -- ++(0,-0.85) -- ++(.8,0) coordinate (inter) 
+        -- (Id3 -| inter) -- ++(0,-0.2) coordinate (inter) 
+        -- (Id3 |- inter) -- ++(0,0.3); %
+
+     \draw[thick,->,thick,>=latex]
+        (VersionId1) -- ++(0,-0.85) -- ++(1.5,0) coordinate (inter) 
+        -- (Id3 -| inter) -- ++(0,-0.4) coordinate (inter) 
+        -- (Id3 |- inter) -- ++(-.15,0) -- ++(0,0.5); %
+
+\end{tikzpicture}
+\caption{Database schema}
+\label{fig:schema}
+\end{figure}
+
+The first step is to make sure the database format is correctly represented. The
+previous iteration had a strict dependency on sqlite, which is a very simple
+database stored in a single file. This works well for point of concept
+implementations and where the database does not grow exceedingly large.
+
+In the rewrite we will be utilizing an ORM for python, the sqlalchemy library.
+This will allow us to define data models and instantiate them on top of
+different database engines. The database structure itself closely copies the one
+from the original implementation. The schema as displayed on~\ref{fig:schema},
+page~\pageref{fig:schema}, represent the implemented model in the ORM.
+
+The schema implements the model as follows; ``package'' can have multiple
+``versions''. The models that belong to ``linkmetadata`` and ``buildinfo`` is
+the tables containing the data itself. In the previous iteration these where
+stored as plain text files, which is a less portable way of dealing with the
+data. There can be multiple submissions for each version, so this relation is a
+``One-to-Many`` relationship where one ``version'' can have multiple submissions
+from rebuilders.
+
+The ``UUID'' field found in the ``linkmetadata'' and ``buildinfo'' model is
+mostly a hack. The main issue was to find the pairs of submissions without
+over-complicating the database structure. One solution would be to create a new
+table to associate the submissions. This would enable us to properly group them
+later on an find the individual pairs. However, because of some time
+constraints, and because the implementation of a new model would take some time,
+the addition of an unique ``UUID'' for each submission is an easier alternative
+that is simple to implement. This allows us to group the submissions for the
+frontend later on.
+
+It should be noted that the ORM handles the One-to-many and many-to-many
+relationships. They are not explicitly included in the modeled schema for on 
+for the sake of brevity.
+
+% TODO: Forklar sqlalchemy implementasjon
+
+
+\begin{figure}[H]
+\begin{minted}[]{python}
+class Version(db.Model):
+    __tablename__ = "version"
+    id = db.Column(
+            db.Integer(),
+            index=True, unique=True, 
+            primary_key=True, autoincrement=True
+        )
+
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    version = db.Column(db.String(64), nullable=False)
+
+    buildinfo = db.relationship("Buildinfo", back_populates="version")
+    linkmetadata = db.relationship("LinkMetadata", back_populates="version")
+
+    package_id = db.Column(db.Integer, db.ForeignKey("package.id"))
+    package = db.relationship("Package", back_populates="version")
+
+    def __repr__(self):
+        return "<Version: {}>".format(self.version)
+\end{minted}
+\caption{Sqlalchemy code for Version model}
+\label{fig:version-model}
+\end{figure}
+
+\subsection{API and Frontend}%
+\label{sub:api_and_frontend}
+
+To reimplement the API as can be seen in table~\ref{api:old_visualizer} on
+page~\pageref{api:old_visualizer}, we need to create the needed routes for the
+web service. This is being done by Flask, which is a webserver framework for
+python. The same framework was utilized in the original implementation and
+enables us to mainly substitute the code from the old database implementation,
+to the one utilizing the ORM. There are two parts to this, one part needs to
+return the plain-text elements for the APT transport, and one part needs to
+render HTML webpages for the user too browse.
+
+
+\begin{figure}[H]
+\begin{minted}[]{python}
+@app.route("/sources/<name>/<version>")
+def all_sources_version(name, version):
+    entries = (
+        db.session.query(Version, Buildinfo, LinkMetadata)
+        .filter(Package.name == name)
+        .filter(Version.version == version)
+        .filter(Buildinfo.uuid == LinkMetadata.uuid)
+    ).all()
+    return render_template("source.html", package=name, entries=entries)
+\end{minted}
+\caption{Python code for source.html}
+\label{fig:python-source}
+\end{figure}
+
+\begin{figure}[H]
+\begin{minted}[]{jinja}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> {{ package }} </title>
+  </head>
+  <body>
+    <table>
+      <tr>
+        <th> Version </th>
+        <th> Timestamp </th>
+        <th> Buildinfo </th>
+        <th> in-toto metadata </th>
+      </tr>
+      {% for entry in entries %}
+      <tr>
+        <td> {{ package }}-{{ entry[0].version }}</td>
+        <td> {{entry[1].created }} </td>
+        <td> 
+            <a href="/sources/{{package}}/{{entry[0].version}}/buildinfo"> Link </a>
+        </td>
+        <td> 
+            <a href="/sources/{{package}}/{{entry[0].version}}/metadata"> Link </a>
+            </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
+
+\end{minted}
+\caption{jinja2 template for source.html}
+\label{fig:jinja-source}
+\end{figure}
+
+
+
 
 \subsection{Second Iteration: Merkle Tree}%
 \label{sub:merkle_tree}
 
-\begin{table}[hbtp]
+\begin{table}[H]
 \footnotesize
 \centering
 \settowidth\tymin{\textbf{Description}}
@@ -177,7 +421,7 @@ users verify builds.
     /api/log/tree/leaf/<id> & GET & & Gets the given leaf from the database with matching ``leaf\_index''\\ \hline
     /api/log/tree/validate/id/<id> & GET & & Gets the audit proof for a leaf matching the given ``id''\\ \hline
     /api/log/tree/validate/hash/<hash> & GET & & Gets the audit proof for a leaf matching the given ``hash''\\ \hline
-    /api/log/tree/inclusion & POST & InclusionQuery & Provides the inclusion proof for the given query \\ \hline
+    %/api/log/tree/inclusion & POST & InclusionQuery & Provides the inclusion proof for the given query \\ \hline
     /api/log/tree/consistency & POST & ConsistencyQuery & Provides the consistency proof for the given query\\ \hline
 \end{tabulary}
 \caption{Second iteration: Transparency log API}
@@ -192,16 +436,6 @@ users verify builds.
 {}
 \end{minted}
 \end{listing}
-
-
-\begin{listing}[H]
-\caption{JSON for inclusion proof}
-\label{lst:inclusion proof}
-\begin{minted}{json}
-{}
-\end{minted}
-\end{listing}
-
 
 \begin{listing}[H]
 \caption{JSON for audit proof}

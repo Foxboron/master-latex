@@ -1,5 +1,5 @@
-Rebuilder + Transparency Log
-============================
+Rebuilder + Transparency Log Overlay
+====================================
 
 # Session
 
@@ -28,8 +28,34 @@ PkgQuery{Package, Version}
 // rebuilds of this package.
 
 
+// ConsistencyProof (gjennskaper angitt tree root)
+// AuditProof
+
 # Queries
 
+type InclusionQuery{
+   Hash string 
+}
+
+type ConsistencyQuery {
+    Hash        string
+    Signature   string
+    Leafs       int
+}
+
+# Response
+
+type Response {
+}
+
+type AuditResponse {
+}
+
+type ConsistencyRepsonse {
+}
+
+
+# Overlay Queries
 type PkgQuery {
     Package string
     Version string
@@ -41,7 +67,6 @@ type InitQuery {
     Leafs       int
 }
 
-# Response
 
 # Entries
 

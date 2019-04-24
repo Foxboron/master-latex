@@ -21,6 +21,7 @@
 \usepackage{tabulary}
 \usepackage{threeparttable}
 \usepackage{pgf-umlsd}
+\usepackage[usenames,dvipsnames]{xcolor}
 \usetikzlibrary{graphs,arrows.meta}
 \tikzset{every tree node/.style={minimum size=2em,inner sep=1,draw,circle},
          blank/.style={draw=none},
@@ -29,6 +30,12 @@
          roots/.style={draw=yellow,fill=yellow},
          edge from parent/.style={draw, edge from parent path={(\tikzparentnode) -- (\tikzchildnode)}},
          level distance=1cm}
+\usetikzlibrary{calc} 
+\usetikzlibrary{arrows, decorations.markings,positioning,backgrounds,shapes}
+\definecolor{EMP}{HTML}{77DD77} % Green1
+\definecolor{NOR}{HTML}{06500C} % Green2
+\usepackage{ulem}
+\renewcommand{\ULdepth}{3pt}
 
 \linespread{1.2} %Changed from 1.5
 \newenvironment{remark}{\par\mbox{}\par\noindent{\bfseries \emph{Remark}\/}:\normalfont}{\par}
