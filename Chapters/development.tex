@@ -62,6 +62,10 @@ of special cases.
 \label{lst:rebuilder_sequence_diagram}
 \end{figure}
 
+The overlying architecture is displayed in~\ref{lst:rebuilder_sequence_diagram} as
+a sequence diagram. It gives a quick overview how the different parts interact
+with each other in sequence for one successful package rebuild.
+
 
 \subsection{buildinfo.debian.net}%
 \label{sub:buildinfo_debian_net}
@@ -300,9 +304,6 @@ It should be noted that the ORM handles the One-to-many and many-to-many
 relationships. They are not explicitly included in the modeled schema for on 
 for the sake of brevity.
 
-% TODO: Forklar sqlalchemy implementasjon
-
-
 \begin{figure}[H]
 \begin{minted}[]{python}
 class Version(db.Model):
@@ -310,8 +311,7 @@ class Version(db.Model):
     id = db.Column(
             db.Integer(),
             index=True, unique=True, 
-            primary_key=True, autoincrement=True
-        )
+            primary_key=True, autoincrement=True)
 
     created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     version = db.Column(db.String(64), nullable=False)
@@ -328,6 +328,13 @@ class Version(db.Model):
 \caption{Sqlalchemy code for Version model}
 \label{fig:version-model}
 \end{figure}
+
+The sqlalchemy library enables us to define database models as native Python
+classes. As can be seen in~\ref{fig:version-model} we are able to represent the
+needed files, and relationships for the ``Version'' model. In total the
+implementation consists of 4 classes which we are able to query, create and
+update. This lets us avoid having to implement the transition from the database
+format to the correct data representation in the project.
 
 \subsection{API and Frontend}%
 \label{sub:api_and_frontend}
@@ -358,13 +365,20 @@ def all_sources_version(name, version):
 \label{fig:python-source}
 \end{figure}
 
+The figure seen in~\ref{fig:python-source} is a simple example of a route
+written in Python. It calls out to the needed models, and does an implicit join
+between them to get the needed relationships in place. The results of this is a
+webpage containing all the rebuilder submissions from the builder. Similar
+endpoints are written to provide rest of the functionality as described
+in~\ref{api:old_visualizer}. The input for this route is the name of the package
+and the version of the given package.
+
+
 \begin{figure}[H]
 \begin{minted}[]{jinja}
 <!DOCTYPE html>
 <html>
-  <head>
-    <title> {{ package }} </title>
-  </head>
+  <head><title> {{package}} </title></head>
   <body>
     <table>
       <tr>
@@ -375,27 +389,51 @@ def all_sources_version(name, version):
       </tr>
       {% for entry in entries %}
       <tr>
-        <td> {{ package }}-{{ entry[0].version }}</td>
+        <td> {{package}}-{{entry[0].version}}</td>
         <td> {{entry[1].created }} </td>
         <td> 
-            <a href="/sources/{{package}}/{{entry[0].version}}/buildinfo"> Link </a>
+            <a href="/sources/{{package}}/{{entry[0].version}}/buildinfo">Link</a>
         </td>
         <td> 
-            <a href="/sources/{{package}}/{{entry[0].version}}/metadata"> Link </a>
-            </td>
+            <a href="/sources/{{package}}/{{entry[0].version}}/metadata">Link</a>
+        </td>
       </tr>
       {% endfor %}
     </table>
   </body>
 </html>
-
 \end{minted}
 \caption{jinja2 template for source.html}
 \label{fig:jinja-source}
 \end{figure}
 
+To display these results, we are utilizing jinja2 templates that lets us compose
+HTML and Python code to generate webpages on the fly. The code as shown on
+Figure~\ref{fig:jinja-source} is how we render the results of
+Figure~\ref{fig:python-source} which contains all the submissions given a
+package and version.
 
+The resulting API is a mirror of the previous visualizer implementation. The
+main requirement is to be able to query the last submitted buildinfo and
+linkmetadata file. The fact that it only is capable of querying the last
+submission is a design choice from the first revisions as it only stored the
+last submitted files. For compatibility reasons this is kept in the rewrite.
 
+\begin{figure}[H]
+\center{\includegraphics[]{../Pictures/overview.png}}
+\caption{Overview of rebuild packages}%
+\label{fig:rebuild-overview} 
+\end{figure}
+
+\begin{figure}[H]
+\center{\includegraphics[width=\textwidth]{../Pictures/sources-view.png}}
+\caption{Overview of the rebuild submissions}%
+\label{fig:submission-overview} 
+\end{figure}
+
+The website as shown on Figure~\ref{fig:rebuild-overview} and
+Figure~\ref{fig:submission-overview} displays the finished webserver for the
+initial rewrite of the visualizer.
 
 \subsection{Second Iteration: Merkle Tree}%
 \label{sub:merkle_tree}
