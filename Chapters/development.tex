@@ -160,11 +160,31 @@ utilizing when validating packages for the users.
 
 \subsection{First Iteration: Visualizer}%
 \label{sec:visualizer}
+
+\subsection*{Goals}%
+\label{sub:first_iteration_goals}
 The first iteration is largely focused on recreating the functionality of the
 current visualizer. The purpose of this component is to accept new rebuilds, the
 in-toto link metadata file and buildinfo file produced by the rebuilder. This
 needs to be displayed in a simple webpage and introduce no new features to
 remain compatible.
+
+Thus the goals for this iteration is as follows;
+
+\begin{itemize}
+    \item Maintain compatibility with the old visualizer
+    \item Accept new build submissions
+    \item Display packages with build submissions
+    \item Display the submission files given a package name and version
+\end{itemize}
+
+\subsection*{Development}%
+\label{sub:first_iteration_development}
+The initial task for this project was figuring out a structure that was flexible
+and made sense for the further development. The structure that was aimed upon
+was to separate database models in its own directory, templates in its own
+directory and views in it's own. When this setup was done we could continue with
+the development of the visualizer.
 
 In practice the visualizer only accepts two files, and displays an index of
 these files. There are no processing being done except to figure the given
@@ -181,7 +201,7 @@ build the needed data structures.
         anchor=west,
         underline, % new property
         align=center,
-        text=Black,
+        text=black,
         minimum height=.8cm,
         text height=1.5ex,
             text depth=.25ex,
@@ -325,7 +345,7 @@ class Version(db.Model):
     def __repr__(self):
         return "<Version: {}>".format(self.version)
 \end{minted}
-\caption{Sqlalchemy code for Version model}
+\caption{Sqlalchemy code for the Version model}
 \label{fig:version-model}
 \end{figure}
 
@@ -336,7 +356,7 @@ implementation consists of 4 classes which we are able to query, create and
 update. This lets us avoid having to implement the transition from the database
 format to the correct data representation in the project.
 
-\subsection{API and Frontend}%
+\subsection*{API and Frontend}%
 \label{sub:api_and_frontend}
 
 To reimplement the API as can be seen in table~\ref{api:old_visualizer} on
@@ -351,15 +371,16 @@ render HTML webpages for the user too browse.
 
 \begin{figure}[H]
 \begin{minted}[]{python}
-@app.route("/sources/<name>/<version>")
-def all_sources_version(name, version):
+@app.route("/sources/<pkgname>")
+def all_sources_pkg(pkgname):
     entries = (
-        db.session.query(Version, Buildinfo, LinkMetadata)
-        .filter(Package.name == name)
-        .filter(Version.version == version)
-        .filter(Buildinfo.uuid == LinkMetadata.uuid)
+        db.session.query(Package, Version, LinkMetadata, Buildinfo)
+        .join(Version, Version.package_id == Package.id)
+        .filter(Package.name == pkgname)
+        .filter(LinkMetadata.version_id == Version.id)
+        .filter(LinkMetadata.uuid == Buildinfo.uuid)
     ).all()
-    return render_template("source.html", package=name, entries=entries)
+    return render_template("source.html", package=pkgname, entries=entries)
 \end{minted}
 \caption{Python code for source.html}
 \label{fig:python-source}
@@ -413,11 +434,15 @@ Figure~\ref{fig:jinja-source} is how we render the results of
 Figure~\ref{fig:python-source} which contains all the submissions given a
 package and version.
 
-The resulting API is a mirror of the previous visualizer implementation. The
-main requirement is to be able to query the last submitted buildinfo and
-linkmetadata file. The fact that it only is capable of querying the last
-submission is a design choice from the first revisions as it only stored the
-last submitted files. For compatibility reasons this is kept in the rewrite.
+\subsection*{Results}%
+\label{sub:first_iteration_results}
+
+The result of this development is a mirror of the previous visualizer
+implementation. The main requirement is to be able to query the last submitted
+buildinfo and linkmetadata file. The fact that it only is capable of querying
+the last submission is a design choice from the first revisions as it only
+stored the last submitted files. For compatibility reasons this is kept in the
+rewrite.
 
 \begin{figure}[H]
 \center{\includegraphics[]{../Pictures/overview.png}}
@@ -433,10 +458,167 @@ last submitted files. For compatibility reasons this is kept in the rewrite.
 
 The website as shown on Figure~\ref{fig:rebuild-overview} and
 Figure~\ref{fig:submission-overview} displays the finished webserver for the
-initial rewrite of the visualizer.
+initial rewrite of the visualizer. The resulting code and webpage maintains
+compatibility of the existing visualizer and enables us to continue implementing
+further improvements on the API.
 
 \subsection{Second Iteration: Merkle Tree}%
 \label{sub:merkle_tree}
+The second iteration focuses on implementing merkle trees into the visualizer.
+These will create the foundation of the transparency log in the upcoming
+iterations for this project.
+
+These will be implemented along side of the reimplementation of the visualizer,
+and the current structure of the code. We will take a look at the challenges of
+implementing this correctly along with making sure the proofs are correctly
+implemented to support a transparency log.
+
+\subsection*{Goals}%
+\label{sub:second_iteration_goals}
+The goals of this iteration is as to make sure the merkle tree operated
+properly. For this to happen there needs to be validated proofs and a proper
+tree generated when new items are added.
+
+\begin{itemize}
+    \item Implement the needed database models for the datastructure
+    \item New items should be appended to the tree
+    \item The tree should not be rebuilt for each append
+    \item Audit proofs should be implemented
+    \item Consistency proofs should be implemented
+    \item Graph the tree
+\end{itemize}
+
+
+\subsection*{Development}%
+\label{sub:second_iteration_development}
+The main challenge in this iteration is getting the underlying data model
+correct. What we are trying to achieve is to implement a tree structure where
+the hash of the leafs is hashed together to form a chain of checksums all the
+way up to the tree root. The following algorithm to achieve this is described
+below.
+
+\begin{enumerate}
+    \item If there is an odd number of nodes, take the last node and promote to
+        next iteration
+    \item Pop two nodes from the current level
+    \item Hash both nodes, concatenate them and append node to next iteration
+    \item Repeat from 1.
+\end{enumerate}
+
+Along with making sure the elements are hashed together, we need to keep some
+track of which node is the child of which nodes as we do need to traverse
+this tree later when reconstructing audit and consistency paths. The 
+
+
+\subsection*{Database}%
+\label{sub:database}
+Since we have implemented the visualizer with ``sqlalchemy'', the idea is to
+utilize the SQL backend to store the tree. This gives a few challenges on how to
+structure the model when it comes with relationships.
+
+\subsection*{Construct tree}%
+\label{sub:construct_tree}
+
+
+
+\begin{listing}[H]
+\caption{Node hashing strategy}
+\label{lst:node_hashing_strategy}
+\begin{equation*}
+H\{\text{NodeType},\ \text{LeftNode},\ \text{RightNode}\}
+\end{equation*}
+\end{listing}
+
+\subsection*{Graphviz}%
+\label{sub:graph_merkle_tree}
+To validate that we are getting the correct association and relationships when
+appending new elements, one of the important things to get is a visualization of
+the currently constructed merkle tree. To aid the discovery of problematic nodes
+the first 10 letters of the hash is printed with the node to easily find the
+affected node and aid debugging.
+
+To do this we loop through all of the nodes in the tree. We print out the left,
+and right parent of the node in a format that is compatible with the graphviz
+tool to generate pictures. The output found in~\ref{lst:graphviz-test} enables
+us to produce the PDF picture in~\ref{fig:graphviz_pdf} by supplying the output
+to ``dot -Tpdf''.
+
+It should be noted that when trees get sufficiently large, the graph it self is
+of less value when debugging. It is hard to get a good overview when the tree
+reaches around 60 nodes as the generated trees are spacious. Not enough time was
+invested trying to fiddle with the style got a proper display when the trees
+grow large enough. However, they did aid in early debugging when trees where
+sparse.
+
+\begin{listing}[htpb]
+\caption{Example graph of a generated tree}
+\label{lst:graphviz-test}
+\begin{minted}{bash}
+$ curl 127.0.0.1:5000/api/log/tree/graphviz                        
+graph graphname {
+labelloc="t";
+label="Nodes: 4";
+"9A565DAB05" -- "B439C9F4B0";
+"9A565DAB05" -- "730212F389";
+"B439C9F4B0" -- "47A2AB3D2E";
+"B439C9F4B0" -- "648D1817A3";
+"730212F389" -- "92EF30AD83";
+"730212F389" -- "1E94F9FDE4";
+}
+\end{minted}
+\end{listing}
+
+\begin{figure}[htpb]
+\centering
+\includegraphics[width=\textwidth]{../Diagrams/graph.pdf}
+\caption{Graphviz visualization}
+\label{fig:graphviz_pdf}
+\end{figure}
+
+\subsection*{Audit proof}%
+\label{sub:audit_proof_implementation}
+
+\subsection*{Consistency proof}%
+\label{sub:consistency_proof_implementation}
+
+\subsection*{Consistency proof}%
+\label{sub:consistency_proof_implementation}
+
+\begin{listing}[H]
+\begin{minted}{python}
+class Node(db.Model):
+    __tablename__ = "node"
+    id = db.Column(
+        db.Integer(), index=True, unique=True, primary_key=True, autoincrement=True
+    )
+    leaf_index = db.Column(db.Integer(), default=0)
+    type = db.Column(db.String(10), nullable=False)
+    hash = db.Column(db.String(128))
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    data = db.Column(JSONB)
+    height = db.Column(db.Integer(), default=0)
+    children_right_id = db.Column(db.Integer, db.ForeignKey("node.id"))
+    children_left_id = db.Column(db.Integer, db.ForeignKey("node.id"))
+
+    right = db.relationship("Node",
+            foreign_keys='Node.children_right_id',
+            uselist=False,
+            backref=db.backref('children_right', remote_side=[id]))
+
+    left = db.relationship("Node", 
+            foreign_keys='Node.children_left_id',
+            uselist=False,
+            backref=db.backref('children_left', remote_side=[id]))
+
+    children_id = db.Column(db.Integer, db.ForeignKey("node.id"))
+\end{minted}
+\caption{Node sqlalchemy model}
+\label{lst:node_model}
+\end{listing}
+
+\subsection*{Results}%
+\label{sub:second_iteration_results}
+
 
 \begin{table}[H]
 \footnotesize
@@ -452,7 +634,7 @@ initial rewrite of the visualizer.
 \hline
     /api/log/stats & GET & & Statistics from the current tree \\ \hline
     /api/log/graphviz & GET & & Outputs the current tree in the dot format \\ \hline
-    /api/log/root & GET & & Gets the latest signed tree root \\ \hline
+    /api/log/root & GET & & Gets the latest tree root \\ \hline
     /api/log/tree/append & POST & JSON object & Appends a JSON object to the tree \\ \hline
     /api/log/tree/id/<id> & GET & & Gets the given Node object from the database with '``id''\\ \hline
     /api/log/tree/hash/<hash> & GET & & Gets the given Node object from the database with ``hash''\\ \hline
@@ -484,9 +666,200 @@ initial rewrite of the visualizer.
 \end{listing}
 
 
+\subsection{Third Iteration: Tree root signing}%
+\label{sub:tree_root_signing}
+One essential part of merkle trees as implemented
+by~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} in certificate
+transparency logs is the ability to have tree-roots
+signed~\cite{b.-laurie-a.-langley-e.kaster-google-2013}. This lets us verify
+with public key cryptography that the tree-root was created by the given
+transparency log. In this chapter we will go through how this implemented.
 
-\subsection{Third Iteration: Transparency log overlay}%
+\subsection*{Goals}%
+\label{sub:third_iteration_goals}
+
+The goals of this iteration is to create the needed code to create and verify
+signatures on tree nodes.
+
+\begin{itemize}
+    \item Initialize signing keys
+    \item Sign every tree root created by the log
+    \item Verify the signature
+\end{itemize}
+
+\subsection*{Development}%
+\label{sub:third_iteration_development}
+For the development of this feature we are utilizing the ``securesystemslib'' from
+New York University's' secure systems lab. It's a library with a collection of
+easy-to-use primitives to deal with encryption, decryption and signature
+verification on data for python. Utilizing this library makes it trivial to
+implement the needed signature functionality in a short concise manner.
+
+\begin{listing}[H]
+\caption{Glue code for ``securesystemslib''}
+\label{lst:securesystemslib_glue}
+\begin{minted}{python}
+PASSWORD = "123"
+KEY_NAME = "ed25519_key"
+
+def init_keys():
+    if not os.path.isfile(KEY_NAME):
+        generate_and_write_ed25519_keypair(KEY_NAME, password=PASSWORD)
+
+def get_private_key():
+    if not os.path.isfile(KEY_NAME):
+        init_keys()
+    return import_ed25519_privatekey_from_file(KEY_NAME, password=PASSWORD)
+
+def get_public_key():
+    if not os.path.isfile(KEY_NAME):
+        init_keys()
+    return import_ed25519_publickey_from_file(KEY_NAME+'.pub')
+
+def sign_data(data):
+    return create_signature(get_private_key(), data)
+
+def verify_data(signature, data):
+    return verify_signature(get_private_key(), signature, data)
+\end{minted}
+\end{listing}
+
+The implementation itself consists of a file for the needed code to ease the key
+creation for the rebuilder. For the sake of ease, we don't consider problems
+such as password strength for the signing key as the main focus is on the
+transparency log implementation, so in this implementation the password is
+hard coded to ``123'', which is admittedly a poor password. For the
+cryptography, elliptic curves are used instead of the traditional RSA algorithm.
+The choice behind this is because elliptic curves needs less bits to produce
+equally strong keys. We then end up with faster and smaller signatures.
+
+These auxiliary functions makes it trivial to further implement the tree root
+signing in the model.
+
+\begin{listing}[H]
+\caption{Additions to the Node model}
+\label{lst:node_tree_root_signature}
+\begin{minted}{diff}
+@@ -21,10 +22,10 @@ class Node(db.Model):
+     leaf_index = db.Column(db.Integer(), default=0)
+     type = db.Column(db.String(10), nullable=False)
+     hash = db.Column(db.String(128))
++    signature = db.Column(db.String(128))
+     created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+     data = db.Column(JSONB)
+     height = db.Column(db.Integer(), default=0)
+\end{minted}
+\end{listing}
+
+In Listing~\ref{lst:node_tree_root_signature} we can see the additions to the
+``Node'' model from Listing~\ref{lst:node_model} page~\pageref{lst:node_model}.
+This enables us to store the signature string in the database model for future
+use when creating tree roots.
+
+\begin{listing}[H]
+\caption{Additions to the append function}
+\label{lst:append_tree_root_signing}
+\begin{minted}{diff}
+@@ -166,7 +168,9 @@ def append(data):
+     for node in reversed(subtrees):
+         new_parent = create_level_node(node, new_node)
+         new_node = new_parent
++    signature = sign_data(new_node.hash)
++    new_node.signature = signature["sig"]
+     db.session.commit()
+     return ret
+\end{minted}
+\end{listing}
+
+Listing~\ref{lst:append_tree_root_signing} shows the additions made to the
+``append'' function to support signed tree roots. Since the last ``new\_node'' is
+the new tree root, we only sign the hash of this node. This is enough to
+implement tree root signing in the current implementation of the visualizer.
+
+\subsection*{Results}%
+\label{sub:third_iteration_results}
+
+The results of this iteration is 2 new endpoints and some new code to help with
+signing tree roots in the transparency log. The resulting API endpoints can be
+found in Table~\ref{api:crypto_api} which shows the newly created endpoints.
+
+\begin{table}[H]
+\footnotesize
+\centering
+\settowidth\tymin{\textbf{Description}}
+\setlength\extrarowheight{2pt}
+\begin{tabulary}{1.0\textwidth}{|l|L|l|L|}
+\hline
+    \textbf{Endpoint} & 
+    \textbf{Type} & 
+    \textbf{Parameters} & 
+    \textbf{Description} \\
+\hline
+    /api/crypto/key & GET & & Outputs the key object used by the library \\ \hline
+    /api/crypto/validate & POST & Tree root & Validates the tree root to the public key \\ \hline
+\end{tabulary}
+\caption{Third Iteration: Crypto API }
+\label{api:crypto_api}
+\end{table}
+
+The usage of the endpoints is fairly straight forward. We can call the generated
+signing key with ``/api/crypto/key'' as shown
+in~\ref{lst:display-generated-public-key}. Which enables us to verify the
+signature on the client side instead of on the server side if we need to do
+that.
+
+\begin{listing}[H]
+\caption{Display generated public key}
+\label{lst:display-generated-public-key}
+\begin{minted}{bash}
+$ curl 127.0.0.1:5000/api/key
+{
+  "keytype": "ed25519",
+  "scheme": "ed25519",
+  "keyid": "25a16bb3a3...",
+  "keyid_hash_algorithms": [
+    "sha256",
+    "sha512"
+  ],
+  "keyval": {
+    "public": "7623ba359c..."
+  }
+}
+\end{minted}
+\end{listing}
+
+To verify a tree root on the server side, we can provide the output from
+``/api/log/tree/root'' from Listing~\ref{api:transparency_log}, and forward this
+to ``/api/crypto/verify''. In the example from
+Listing~\ref{lst:test-verify-endpoint}, we have provided a minimal tree root
+json object to display a successful verification of a tree root on the server
+side.
+
+\begin{listing}[H]
+\caption{Test of the verify endpoint}
+\label{lst:test-verify-endpoint}
+\begin{minted}{bash}
+$ curl --header "Content-Type: application/json" \
+  --request POST \
+  --data '{"hash": "21e0b13a6f...", \
+           "signature": "832510c0188..."}' \
+  127.0.0.1:5000/api/crypto/verify
+{
+  "status": "ok",
+  "verified": true
+}
+\end{minted}
+\end{listing}
+
+
+\subsection{Fourth Iteration: Transparency log overlay}%
 \label{sub:transparency_overlay}
+
+\subsection*{Goals}%
+\label{sub:fourth_iteration_goals}
+
+\subsection*{Development}%
+\label{sub:fourth_iteration_development}
 
 API entry definitions
 
@@ -501,7 +874,6 @@ type Entry {
 
 type InclusionEntry {
     Entry
-    Package         string
     Buildinfo       string
     Linkmetadata    string
 }
@@ -536,6 +908,9 @@ type RevokeEntry {
 \label{api:Overlay API}
 \end{table}
 
+\subsection*{Results}%
+\label{sub:fourth_iteration_results}
+
 
 \subsection{APT Transport integration}\label{sec:apt_transport}
 
@@ -564,8 +939,8 @@ type RevokeEntry {
 \caption{Initial API request}
 \label{lst:init_request}
 \begin{align*}
-& InitQuery\{Hash, Signature, LeafCount\} \to \\
-& Response\{InclustionProof, ConsistencyProof, CurrentRoot\{ Hash, Signature\} \}
+& \text{InitQuery}\{\text{Hash},\ \text{Signature},\ \text{LeafCount}\} \to \\
+& \text{Response}\{\text{ConsistencyProof},\ \text{CurrentRoot}\{\text{Hash},\ \text{Signature}\} \}
 \end{align*}
 \end{listing}
 
@@ -574,7 +949,7 @@ type RevokeEntry {
 \caption{Package query API request}
 \label{lst:package_query_request}
 \begin{equation*}
-PkgQuery\{Package, Version\} \to Response\{InclusionEntry, Entry\dots \}
+    \text{PkgQuery}\{\text{Package},\ \text{Version}\} \to \text{Response}\{\text{InclusionEntry},\ \text{Entry}\dots \}
 \end{equation*}
 \end{listing}
 
