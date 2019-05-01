@@ -324,8 +324,8 @@ It should be noted that the ORM handles the One-to-many and many-to-many
 relationships. They are not explicitly included in the modeled schema for on 
 for the sake of brevity.
 
-\begin{figure}[H]
-\begin{minted}[]{python}
+\begin{listing}[H]
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
 class Version(db.Model):
     __tablename__ = "version"
     id = db.Column(
@@ -346,11 +346,11 @@ class Version(db.Model):
         return "<Version: {}>".format(self.version)
 \end{minted}
 \caption{Sqlalchemy code for the Version model}
-\label{fig:version-model}
-\end{figure}
+\label{lst:version-model}
+\end{listing}
 
 The sqlalchemy library enables us to define database models as native Python
-classes. As can be seen in~\ref{fig:version-model} we are able to represent the
+classes. As can be seen in~\ref{lst:version-model} we are able to represent the
 needed files, and relationships for the ``Version'' model. In total the
 implementation consists of 4 classes which we are able to query, create and
 update. This lets us avoid having to implement the transition from the database
@@ -369,8 +369,8 @@ return the plain-text elements for the APT transport, and one part needs to
 render HTML webpages for the user too browse.
 
 
-\begin{figure}[H]
-\begin{minted}[]{python}
+\begin{listing}[htpb]
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
 @app.route("/sources/<pkgname>")
 def all_sources_pkg(pkgname):
     entries = (
@@ -383,10 +383,10 @@ def all_sources_pkg(pkgname):
     return render_template("source.html", package=pkgname, entries=entries)
 \end{minted}
 \caption{Python code for source.html}
-\label{fig:python-source}
-\end{figure}
+\label{lst:python-source}
+\end{listing}
 
-The figure seen in~\ref{fig:python-source} is a simple example of a route
+The listing seen in~\ref{lst:python-source} is a simple example of a route
 written in Python. It calls out to the needed models, and does an implicit join
 between them to get the needed relationships in place. The results of this is a
 webpage containing all the rebuilder submissions from the builder. Similar
@@ -395,8 +395,8 @@ in~\ref{api:old_visualizer}. The input for this route is the name of the package
 and the version of the given package.
 
 
-\begin{figure}[H]
-\begin{minted}[]{jinja}
+\begin{listing}[H]
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{jinja}
 <!DOCTYPE html>
 <html>
   <head><title> {{package}} </title></head>
@@ -425,14 +425,83 @@ and the version of the given package.
 </html>
 \end{minted}
 \caption{jinja2 template for source.html}
-\label{fig:jinja-source}
-\end{figure}
+\label{lst:jinja-source}
+\end{listing}
 
 To display these results, we are utilizing jinja2 templates that lets us compose
 HTML and Python code to generate webpages on the fly. The code as shown on
-Figure~\ref{fig:jinja-source} is how we render the results of
-Figure~\ref{fig:python-source} which contains all the submissions given a
+Listing~\ref{lst:jinja-source} is how we render the results of
+Listing~\ref{lst:python-source} which contains all the submissions given a
 package and version.
+
+\subsection*{REST API Considerations}%
+\label{sub:api_considerations}
+The models we create heavily rely on relationships to properly store the
+information across several tables. Since we also back-reference across models,
+we end up in a peculiar situation. When we turn the models to a JSON structure
+to properly, or attempt to debug them with the relationships enabled, they will
+recurs until the global stack limiter in python is hit. This makes it somewhat
+impossible to output the models in a good manner when debugging and developing
+the models.
+
+For debugging and development purposes, there was a simple REST API developed to
+inspect the created objects when submitting new rebuilds. These would recurse
+indefinitely and crash the application. To counter this we wrote a simple hack
+to make sure the models would not indefinitely recurse and crash. Since we are
+capable of inspecting the stack in python, we write a simple wrapper to the
+functions prone to the recurse problem.
+
+\begin{listing}
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
+def recurse(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        if len(inspect.stack()) > 25:
+            return None
+        return func(*args, **kwargs)
+    return wrapped
+\end{minted}
+\caption{Python recurse limiter}
+\label{lst:recurse_limiter}
+\end{listing}
+
+\begin{listing}
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
+class Package(db.Model):
+    __tablename__ = "package"
+
+    @recurse
+    def to_json(self):
+        j = OrderedDict()
+        j["id"] = self.id
+        j["date"] = self.created
+        j["name"] = self.name
+        j["versions"] = list(map(lambda x: x.to_json(), self.version))
+        return j
+
+\end{minted}
+\caption{Python recurse limiter usage}
+\label{lst:recurse_limiter_usage}
+\end{listing}
+
+Listing~\ref{lst:recurse_limiter} is a short and simple which inspects the stack
+for every function it is wrapping. We are using the python syntax sugar for
+decorators. They are functions which wrap around another function, with an added
+syntax for the sake of clarity. This will be invoked before the function it is
+wrapping gets called. Here we simply check if the stack is larger then 25, in
+which case we stop calling the functions an return. This is a slight hack, but
+it works to limit the depth of the objects when outputting the raw models.
+
+Listing~\ref{lst:recurse_limiter_usage} shows how we create the JSON objects.
+Since we want consistency, we utilize `OrderedDict` which is a dictionary
+reimplementation keeping insertion order of the items. This enables us to output
+the objects in a consistent manner.
+
+The current visualizer doesn't utilize any sort of API, this was created to aid
+in debugging and lay down the ground work for the future REST API
+implementation. This approached worked wonderful in the next iterations of the
+project for debugging and API purposes.
+
 
 \subsection*{Results}%
 \label{sub:first_iteration_results}
@@ -507,8 +576,7 @@ below.
 
 Along with making sure the elements are hashed together, we need to keep some
 track of which node is the child of which nodes as we do need to traverse
-this tree later when reconstructing audit and consistency paths. The 
-
+this tree later when reconstructing audit and consistency paths.
 
 \subsection*{Database}%
 \label{sub:database}
@@ -516,10 +584,84 @@ Since we have implemented the visualizer with ``sqlalchemy'', the idea is to
 utilize the SQL backend to store the tree. This gives a few challenges on how to
 structure the model when it comes with relationships.
 
+\begin{listing}[H]
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
+class Node(db.Model):
+    __tablename__ = "node"
+    id = db.Column(
+        db.Integer(), index=True, unique=True, primary_key=True, autoincrement=True
+    )
+    leaf_index = db.Column(db.Integer(), default=0)
+    type = db.Column(db.String(10), nullable=False)
+    hash = db.Column(db.String(128))
+    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    data = db.Column(JSONB)
+    height = db.Column(db.Integer(), default=0)
+    children_right_id = db.Column(db.Integer, db.ForeignKey("node.id"))
+    children_left_id = db.Column(db.Integer, db.ForeignKey("node.id"))
+
+    right = db.relationship("Node",
+            foreign_keys='Node.children_right_id',
+            uselist=False,
+            backref=db.backref('children_right', remote_side=[id]))
+
+    left = db.relationship("Node", 
+            foreign_keys='Node.children_left_id',
+            uselist=False,
+            backref=db.backref('children_left', remote_side=[id]))
+
+    children_id = db.Column(db.Integer, db.ForeignKey("node.id"))
+\end{minted}
+\caption{Node sqlalchemy model}
+\label{lst:node_model}
+\end{listing}
+
+Listing~\ref{lst:node_model} shows the model that was settled on. Each of the
+fields serve a purpose in the current model. ``leaf\_index'' keeps track of what
+position as leaf node it is. This is important when we start constructing proofs
+as some of the lookups needs to know what leaf number 16 is. ``type'' denotes
+one of two things, ``data'' or ``level''. ``data'' is a leaf node that has the
+``data'' field filled with JSON. ``level'' has no ``data'' field, but does have
+both ``left'' and ``right'' filled with the appropriate child node. ``hash''
+contains the hash of the ``data'' JSON object.
+
+Apart from the values, we are keeping everything in the same table with the same
+model. There is no inherent distinction between leafs, levels and root nodes in
+this implementation when it comes to the model.
+
+
 \subsection*{Construct tree}%
 \label{sub:construct_tree}
+We now have the database model we can build the tree with. Since this system is
+suppose to run over time, and might target thousands of nodes, we need to be
+able to append to the tree without re building the entire tree. This is a
+tedious process and could very well take quite a while if the number of nodes
+grow large enough.
+
+The algorithm for this involves figuring out all the loose subroots of the tree.
+To do this we take the count of all leafs in the tree and use them to calculate
+the largest complete subtree in the merkle tree, and remove this from the count.
+What we are left with are all the nodes in surplus on the right hand side of
+the tree.
+
+We can then walk down the tree on the left side, append the current node on the
+path, and then do the same calculation with the nodes in surplus. We then know
+the next complete subtree in the chain, remove them from the count, append the
+node and walk down. We continue this until we reach 0 loose nodes, in which case
+we are at the node we are suppose to append the new node with. The chain of
+appended nodes upwards is the list of nodes we need to append with to rehash all
+of the interior nodes of the tree.
 
 
+\subsection*{Cryptographic attack mitigation}%
+\label{sub:mitigate_attack}
+To the nodes we need to consider the two sources of information we are
+essentially hashing. If the node is a ``leaf'' we need to hash the JSON
+data structure. This is done by taking the keys and values in the JSON structure
+and hashing them together in order. If the node is a ``level'', this step is
+omitted and the hash consists of the hash of the left and right nodes as shown
+in Listing~\ref{lst:node_hashing_strategy}. The result of this is the
+appropriate hash for the node.
 
 \begin{listing}[H]
 \caption{Node hashing strategy}
@@ -528,6 +670,21 @@ structure the model when it comes with relationships.
 H\{\text{NodeType},\ \text{LeftNode},\ \text{RightNode}\}
 \end{equation*}
 \end{listing}
+
+There are a few attacks on can do in practice on any data structure that uses
+cryptographic hashes. Since the same output always returns the same value, they
+are prone to what is called a ``second preimage'' attack~\cite{rfc4270}. If the
+attacker know the input, they can re append the values, and create the same hash
+in the tree.  This can allow the construction of malicious data or open up for
+other venues of attack.
+
+To mitigate this, certificate transparency log append a null byte value for
+leafs, and a 1 byte value for levels in the tree. This makes sure that we can't
+replay previous data as there is always some values being appended. In our
+implementation we append ``data'' and ``level'' as the prefix in the hashed
+value. This serves the same purpose as the certificate transparency logs.
+
+
 
 \subsection*{Graphviz}%
 \label{sub:graph_merkle_tree}
@@ -539,9 +696,9 @@ affected node and aid debugging.
 
 To do this we loop through all of the nodes in the tree. We print out the left,
 and right parent of the node in a format that is compatible with the graphviz
-tool to generate pictures. The output found in~\ref{lst:graphviz-test} enables
-us to produce the PDF picture in~\ref{fig:graphviz_pdf} by supplying the output
-to ``dot -Tpdf''.
+tool to generate pictures. The output found in Listing~\ref{lst:graphviz-test}
+enables us to produce the PDF picture in Figure~\ref{fig:graphviz_pdf} by
+supplying the output to ``dot -Tpdf''.
 
 It should be noted that when trees get sufficiently large, the graph it self is
 of less value when debugging. It is hard to get a good overview when the tree
@@ -575,46 +732,13 @@ label="Nodes: 4";
 \label{fig:graphviz_pdf}
 \end{figure}
 
+
 \subsection*{Audit proof}%
 \label{sub:audit_proof_implementation}
 
 \subsection*{Consistency proof}%
 \label{sub:consistency_proof_implementation}
 
-\subsection*{Consistency proof}%
-\label{sub:consistency_proof_implementation}
-
-\begin{listing}[H]
-\begin{minted}{python}
-class Node(db.Model):
-    __tablename__ = "node"
-    id = db.Column(
-        db.Integer(), index=True, unique=True, primary_key=True, autoincrement=True
-    )
-    leaf_index = db.Column(db.Integer(), default=0)
-    type = db.Column(db.String(10), nullable=False)
-    hash = db.Column(db.String(128))
-    created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    data = db.Column(JSONB)
-    height = db.Column(db.Integer(), default=0)
-    children_right_id = db.Column(db.Integer, db.ForeignKey("node.id"))
-    children_left_id = db.Column(db.Integer, db.ForeignKey("node.id"))
-
-    right = db.relationship("Node",
-            foreign_keys='Node.children_right_id',
-            uselist=False,
-            backref=db.backref('children_right', remote_side=[id]))
-
-    left = db.relationship("Node", 
-            foreign_keys='Node.children_left_id',
-            uselist=False,
-            backref=db.backref('children_left', remote_side=[id]))
-
-    children_id = db.Column(db.Integer, db.ForeignKey("node.id"))
-\end{minted}
-\caption{Node sqlalchemy model}
-\label{lst:node_model}
-\end{listing}
 
 \subsection*{Results}%
 \label{sub:second_iteration_results}
@@ -698,7 +822,7 @@ implement the needed signature functionality in a short concise manner.
 \begin{listing}[H]
 \caption{Glue code for ``securesystemslib''}
 \label{lst:securesystemslib_glue}
-\begin{minted}{python}
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
 PASSWORD = "123"
 KEY_NAME = "ed25519_key"
 
@@ -707,13 +831,11 @@ def init_keys():
         generate_and_write_ed25519_keypair(KEY_NAME, password=PASSWORD)
 
 def get_private_key():
-    if not os.path.isfile(KEY_NAME):
-        init_keys()
+    init_keys()
     return import_ed25519_privatekey_from_file(KEY_NAME, password=PASSWORD)
 
 def get_public_key():
-    if not os.path.isfile(KEY_NAME):
-        init_keys()
+    init_keys()
     return import_ed25519_publickey_from_file(KEY_NAME+'.pub')
 
 def sign_data(data):
@@ -866,7 +988,7 @@ API entry definitions
 \begin{listing}[H]
 \caption{Entry definitions}
 \label{lst:entrydefinitions}
-\begin{minted}{go}
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{go}
 type Entry {
     Package string
     Version string
