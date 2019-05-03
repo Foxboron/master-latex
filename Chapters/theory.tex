@@ -93,7 +93,7 @@ the corresponding step should be. Evaluating the specification along with the
 link metadata lets the users, or the organization, verify that the supply chain
 has not been tampered with. 
 
-\begin{figure}[H]
+\begin{listing}[H]
 \begin{minted}[]{json}
 {"signatures": [],
  "signed": {
@@ -126,10 +126,10 @@ has not been tampered with.
 }}
 \end{minted}
 \caption{Example in-toto schema}
-\label{fig:in-toto-schema}
-\end{figure}
+\label{lst:in-toto-schema}
+\end{listing}
 
-\begin{figure}[H]
+\begin{listing}[H]
 \begin{minted}[]{json}
 {"signatures": [
   {"keyid": "918b19596...",
@@ -144,8 +144,8 @@ has not been tampered with.
 }}
 \end{minted}
 \caption{Example linkmetadata file}
-\label{fig:linkmetadata}
-\end{figure}
+\label{lst:linkmetadata}
+\end{listing}
 
 \section{Linux Distributions}\label{sec:linux_distributions}
 \subsection*{Linux}
@@ -442,7 +442,9 @@ should be capable of sharing some sort of attestation for the built package.
 % TODO: Attestation sharing source
 % TODO: Source - planned in 2014/2-16 by the project
 
-\section{Merkle Trees}
+\section{Merkle Trees}%
+\label{sec:merkle_trees}
+
 Merkle Trees is a tree structure based on cryptographic secure hashing function
 \cite{ralph-c.-merkle-1998}. It creates a binary tree where each leaf is hashed,
 and combined two and two. The top node of this tree is reffed to as a ''root
@@ -451,7 +453,9 @@ inclusion of elements by calculating the path from the given leaf to the root
 node. This can be done by acquiring the missing hashes for each intermediate
 node, and then hash each of the steps together.
 
-\subsubsection*{Certificate transparency log}
+\subsubsection*{Certificate transparency log}%
+\label{sub:certificate_transparency_log}
+
 
 Certificate transparency logs uses merkle trees to give organization issuing
 TLS certificates, as used in HTTP, a log of who and what issues

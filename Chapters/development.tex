@@ -438,18 +438,17 @@ package and version.
 \label{sub:api_considerations}
 The models we create heavily rely on relationships to properly store the
 information across several tables. Since we also back-reference across models,
-we end up in a peculiar situation. When we turn the models to a JSON structure
-to properly, or attempt to debug them with the relationships enabled, they will
-recurs until the global stack limiter in python is hit. This makes it somewhat
-impossible to output the models in a good manner when debugging and developing
-the models.
+we end up in a peculiar situation. When we turn the models to a JSON structure,
+or attempt to debug them with the relationships enabled, they will recurse until
+the global stack limiter in python is hit. This makes it somewhat impossible to
+output the models in a good manner when debugging and developing the models.
 
 For debugging and development purposes, there was a simple REST API developed to
 inspect the created objects when submitting new rebuilds. These would recurse
 indefinitely and crash the application. To counter this we wrote a simple hack
-to make sure the models would not indefinitely recurse and crash. Since we are
-capable of inspecting the stack in python, we write a simple wrapper to the
-functions prone to the recurse problem.
+to make sure the models would not indefinitely recurse. Since we are capable of
+inspecting the stack in python, we write a simple wrapper to the functions prone
+to the recurse problem.
 
 \begin{listing}
 \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
@@ -497,8 +496,8 @@ Since we want consistency, we utilize `OrderedDict` which is a dictionary
 reimplementation keeping insertion order of the items. This enables us to output
 the objects in a consistent manner.
 
-The current visualizer doesn't utilize any sort of API, this was created to aid
-in debugging and lay down the ground work for the future REST API
+The current visualizer doesn't utilize any sort of REST API, this was created to
+aid in debugging and lay down the ground work for the future REST API
 implementation. This approached worked wonderful in the next iterations of the
 project for debugging and API purposes.
 
@@ -566,23 +565,26 @@ the hash of the leafs is hashed together to form a chain of checksums all the
 way up to the tree root. The following algorithm to achieve this is described
 below.
 
-\begin{enumerate}
-    \item If there is an odd number of nodes, take the last node and promote to
-        next iteration
-    \item Pop two nodes from the current level
-    \item Hash both nodes, concatenate them and append node to next iteration
-    \item Repeat from 1.
-\end{enumerate}
+The development of this project will be done in a few stages. First we will take
+a look at the underlying database model needed to construct the trees. Next up
+is how to construct merkel trees without rebuilding all interior nodes. We need
+to have a way to append new nodes by rehashing the least amount of interior
+hashes.
 
-Along with making sure the elements are hashed together, we need to keep some
-track of which node is the child of which nodes as we do need to traverse
-this tree later when reconstructing audit and consistency paths.
+The next development challenge in this iteration is to make sure the proofs are
+working. Without appropriate proofs, mainly audit proofs and consistency proofs
+as described in subsection~\ref{sub:certificate_transparency_log}. We will go
+through the development of these features and make sure they are working before
+moving on for the next iteration.
+
 
 \subsection*{Database}%
 \label{sub:database}
 Since we have implemented the visualizer with ``sqlalchemy'', the idea is to
 utilize the SQL backend to store the tree. This gives a few challenges on how to
-structure the model when it comes with relationships.
+structure the model when it comes with relationships. We need to traverse the
+tree for the proofs developed later on, so there should be easy rely on and
+construct when constructing new nodes.
 
 \begin{listing}[H]
 \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
@@ -620,15 +622,46 @@ Listing~\ref{lst:node_model} shows the model that was settled on. Each of the
 fields serve a purpose in the current model. ``leaf\_index'' keeps track of what
 position as leaf node it is. This is important when we start constructing proofs
 as some of the lookups needs to know what leaf number 16 is. ``type'' denotes
-one of two things, ``data'' or ``level''. ``data'' is a leaf node that has the
-``data'' field filled with JSON. ``level'' has no ``data'' field, but does have
-both ``left'' and ``right'' filled with the appropriate child node. ``hash''
-contains the hash of the ``data'' JSON object.
+one of two things, ``data'' for leaf nodes or ``level'' for interior nodes.
+``data'' is a leaf node that has the ``data'' field filled with JSON. ``level''
+has no ``data'' field, but does have both ``left'' and ``right'' filled with the
+appropriate child node. ``hash'' contains the hash of the ``data'' JSON object.
 
-Apart from the values, we are keeping everything in the same table with the same
-model. There is no inherent distinction between leafs, levels and root nodes in
-this implementation when it comes to the model.
+The relationship modeled was a bit difficult to get correctly modeled in SQL.
+The intentions was to have one foreign key to bind the left and right
+relationships to, but this turned out to be difficult to implement. The solution
+was to have the ``left'' relationship bind to ``children\_left\_id'' and
+``right'' bind to ``children\_right\_id''. This solves the problem of having the
+relationship correctly modeled, however to find the correct child node for the
+leaf and interior node, we need to check both left and right to find the correct
+node.
 
+\begin{figure}[hbst]
+\centering
+\begin{tikzpicture}
+\Tree
+[ .r
+[ .n1   [ .l ]  [ .r ]  ]
+[ .n2 ]
+]
+\end{tikzpicture}
+\caption{Example for relationships}
+\label{fig:relationship_example}
+\end{figure}
+
+In the example node relationship in Figure~\ref{fig:relationship_example} we can
+demonstrate what the ORM described in Listing~\ref{lst:node_model} would end up
+looking like. If we sit with the appropriate model for ``N1'' we have a interior
+node with a parent, left and right relationship. The parent node ``r'' where
+we can peak at the values ``children\_left'' and ``children\_right'' values to
+find the correct node. To find the ``l'' and ``r'' leaf nodes in this example we
+only have to check the ``left'' and ``right'' relationships respectively.
+
+We are keeping everything in the same table with the same model. There is no
+inherent distinction between leafs, interior nodes and root nodes in this
+implementation when it comes to the model except for what is specified in the
+``types'' direction. To find the root node in this implementation we only have
+to look for the last inserted ``level'' node.
 
 \subsection*{Construct tree}%
 \label{sub:construct_tree}
@@ -638,11 +671,25 @@ able to append to the tree without re building the entire tree. This is a
 tedious process and could very well take quite a while if the number of nodes
 grow large enough.
 
+The algorithm to build a tree, where all the interior nodes are hashed for every
+new insertion involves counting the number of nodes to be hashed. If this is an
+odd number, promote the last node in this list to the next step. Now we take two
+and two nodes and hash them together, left to right. This creates interior nodes
+we call ``levels''. When this is done, we start from the beginning and the
+current set of interior nodes are the nodes we operate on.
+
+This is a tedious process and does not scale very well over time. What we do
+need is an algorithm that only rehash the changed interior nodes.
+
 The algorithm for this involves figuring out all the loose subroots of the tree.
-To do this we take the count of all leafs in the tree and use them to calculate
-the largest complete subtree in the merkle tree, and remove this from the count.
-What we are left with are all the nodes in surplus on the right hand side of
-the tree.
+This approach to append new notes has been described in the original paper
+by~\citeauthor{182788} where they calculate frozen subroots down on the left
+Side of the tree until the appropriate subroot is reached~\cite{182788}.
+
+Our implementation is as follows; we take the count of all leafs in the tree and
+use them to calculate the largest complete subtree in the merkle tree, and
+remove this from the count.  What we are left with are all the nodes in surplus
+on the right hand side of the tree.
 
 We can then walk down the tree on the left side, append the current node on the
 path, and then do the same calculation with the nodes in surplus. We then know
@@ -652,13 +699,18 @@ we are at the node we are suppose to append the new node with. The chain of
 appended nodes upwards is the list of nodes we need to append with to rehash all
 of the interior nodes of the tree.
 
+The resulting code takes the new node that is going to be appended and hashes it
+in the with the lowest node going up. This only rehashes the interior nodes of
+the tree that needs to be rehashed. This lets us very easily reach a fast
+append-only merkel-tree implementation backed by a SQL database.
+
 
 \subsection*{Cryptographic attack mitigation}%
 \label{sub:mitigate_attack}
 To the nodes we need to consider the two sources of information we are
-essentially hashing. If the node is a ``leaf'' we need to hash the JSON
-data structure. This is done by taking the keys and values in the JSON structure
-and hashing them together in order. If the node is a ``level'', this step is
+essentially hashing. If the node is a leaf we need to hash the JSON data
+structure. This is done by taking the keys and values in the JSON structure and
+hashing them together in order. If the node is a interior node, this step is
 omitted and the hash consists of the hash of the left and right nodes as shown
 in Listing~\ref{lst:node_hashing_strategy}. The result of this is the
 appropriate hash for the node.
@@ -685,7 +737,6 @@ implementation we append ``data'' and ``level'' as the prefix in the hashed
 value. This serves the same purpose as the certificate transparency logs.
 
 
-
 \subsection*{Graphviz}%
 \label{sub:graph_merkle_tree}
 To validate that we are getting the correct association and relationships when
@@ -707,7 +758,7 @@ invested trying to fiddle with the style got a proper display when the trees
 grow large enough. However, they did aid in early debugging when trees where
 sparse.
 
-\begin{listing}[htpb]
+\begin{listing}[H]
 \caption{Example graph of a generated tree}
 \label{lst:graphviz-test}
 \begin{minted}{bash}
@@ -725,7 +776,7 @@ label="Nodes: 4";
 \end{minted}
 \end{listing}
 
-\begin{figure}[htpb]
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{../Diagrams/graph.pdf}
 \caption{Graphviz visualization}
@@ -735,10 +786,101 @@ label="Nodes: 4";
 
 \subsection*{Audit proof}%
 \label{sub:audit_proof_implementation}
+Audits proofs are important as they prove whether or not a given leaf is part of
+the tree. They are used to validate that the data on the leaf is actually part
+of a merkle tree. The implementation of this is fairly straight forward as we
+have implemented the database structure in a succinct manner.
+
+The audit proof needs the id, or the hash of the node that should have the audit
+proof generated. When we have the node, we essentially traverse the children of
+the node. We then check on what side of the child the parent node is on. If it's
+on the left side, we fetch the right node on the next children. This node is
+appended to the list with the keyword ``RIGHT''. If it's on the right side, we
+fetch the left node on the next children side. This node is appended to the list
+with the keyword ``LEFT''. We then traverse to the next child and continue the
+path upwards until the root node is reached, which has no child node.
+
+When all the nodes are appended to a list, with the correct side expressed we
+have a complete list of all the nodes needed. We can then append the current
+root node to the response and let users hash the path and recreate the current
+root node.
+
+The appropriate JSON response for an example tree can be found in
+Listing~\ref{lst:audit proof}. For the sake of being terse, some auxiliary
+fields have been omitted in this example. In this case, to recreate the root
+found in the top of the JSON output, we would just have to hash the ``path'' as
+given and append the hash on the correct side of the previous hash.
+
+\begin{listing}[htpb]
+\caption{JSON for audit proof}
+\label{lst:audit proof}
+\begin{minted}{json}
+$ curl 127.0.0.1:5000/api/log/tree/validate/id/1
+{"root": {
+    "id": 8,
+    "type": "level",
+    "hash": "9a565dab05",
+    "right": "730212f389",
+    "left": "b439c9f4b0" },
+  "path": [
+      ["LEFT", {
+        "id": 1,
+        "type": "data",
+        "hash": "47a2ab3d2e",
+        "parent": "b439c9f4b0",
+        "data": { ... }}],
+    ["RIGHT", {
+        "id": 2,
+        "type": "data",
+        "hash": "648d1817a3",
+        "parent": "b439c9f4b0",
+        "data": { ... }}],
+    ["RIGHT", {
+        "id": 7,
+        "type": "level",
+        "hash": "730212f389",
+        "right": "1e94f9fde4",
+        "left": "92ef30ad83",
+        "parent": "9a565dab05"}]],
+  "validation": true}
+\end{minted}
+\end{listing}
+
 
 \subsection*{Consistency proof}%
 \label{sub:consistency_proof_implementation}
 
+
+\begin{listing}[H]
+\caption{JSON for consistency proof}
+\label{lst:consistency proof}
+\begin{minted}{json}
+{"root": {
+    "id": 8,
+    "type": "level",
+    "hash": "9a565dab05",
+    "right": "730212f389",
+    "left": "b439c9f4b0"},
+  "path": [
+      ["LEFT", {
+        "id": 3,
+        "type": "level",
+        "hash": "b439c9f4b0",
+        "right": "648d1817a3",
+        "left": "47a2ab3d2e",
+        "parent": "9a565dab05"}],
+      ["RIGHT", {
+        "id": 7,
+        "type": "level",
+        "hash": "730212f389",
+        "right": "1e94f9fde4",
+        "left": "92ef30ad83",
+        "parent": "9a565dab05",
+        "data": {}}]],
+  "inclusion": true,
+  "consistency": true}
+\end{minted}
+\end{listing}
 
 \subsection*{Results}%
 \label{sub:second_iteration_results}
@@ -772,22 +914,6 @@ label="Nodes: 4";
 \label{api:transparency_log}
 \end{table}
 
-
-\begin{listing}[H]
-\caption{JSON for consistency proof}
-\label{lst:consistency proof}
-\begin{minted}{json}
-{}
-\end{minted}
-\end{listing}
-
-\begin{listing}[H]
-\caption{JSON for audit proof}
-\label{lst:audit proof}
-\begin{minted}{json}
-{}
-\end{minted}
-\end{listing}
 
 
 \subsection{Third Iteration: Tree root signing}%
@@ -1078,7 +1204,6 @@ type RevokeEntry {
 
 \section{Testing}%
 \label{sec:testing}
-
 
 
 \blankpage
