@@ -216,9 +216,9 @@ pre-compiled and provided to us by different vendors.
 % TODO: Move into diverse compilation. Reprobuilds an extension
 
 But there are possible ways to counter this problem.  David A. Wheeler in his
-dissertation \citetitle{david-a.-wheeler-2009} details a possible solution to
+dissertation \citetitle{Wheeler:2005:CTT:1106778.1106809} details a possible solution to
 the ``trusting trust''-problem. It involves what he call diverse ``diverse
-compilation'' \cite{david-a.-wheeler-2009}.
+compilation'' \cite{Wheeler:2005:CTT:1106778.1106809}.
 
 ``Diverse double-compilation'', or ``DCC'', is the act of using two compilers to
 detect any difference in the resulting artifact. The first compilation is done
@@ -299,9 +299,9 @@ distributors to build artifacts with an embedded time, but it also helps to
 specify the time in a manner that enables reproducible builds as we can set the
 date arbitrarily.
 
-% TODO: Skrive mer
 The requirement is that this variable is exported in the build system used to
-create the package. 
+create the package. It also needs to take the current date time if no
+``SOURCE\_DATE\_EPOCH'' is provided.
 
 \subsection*{Buildinfo}
 % TODO: Kanskje nevne økosystemer bedre?
@@ -453,15 +453,19 @@ inclusion of elements by calculating the path from the given leaf to the root
 node. This can be done by acquiring the missing hashes for each intermediate
 node, and then hash each of the steps together.
 
-\subsubsection*{Certificate transparency log}%
+\subsubsection{Transparency logs}%
 \label{sub:certificate_transparency_log}
+Transparency logs is a use case of merkle-trees by~\citeauthor{182788} and
+describes how merkle-trees can be used to achieve tamper evident
+logging~\cite{182788}. Certificate transparency logs
+from~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013}is an implementation
+of transparency logs~\cite{b.-laurie-a.-langley-e.kaster-google-2013}.
 
-
-Certificate transparency logs uses merkle trees to give organization issuing
-TLS certificates, as used in HTTP, a log of who and what issues
-log \cite{b.-laurie-a.-langley-e.kaster-google-2013}. This is used to detect
-cases where certificate issue keys have been compromised, or if certificates
-have been issued for domains as a form of misuse.
+Certificate transparency logs helps organizations issuing HTTPS certificates an
+audit log of all certificates issued, and by whom. It allows the discoverability
+of when abuse, and malicious issuing of certificates backwards in time, and also
+allows organizations to see who issues certificates for what domains. This can
+aid in detecting compromise early.
 
 Proofs in the context of transparency logs are tuple pairs where the first
 element describes the position, and the second element includes the hash of
@@ -469,8 +473,7 @@ the given object. Given the correct order of hashing, the product of this
 should be some merkle tree root the log is either currently using, or have
 used in the past.
 
-There are three features needed to implement a transparency log.
-
+The proofs needed to implement a transparency log is as follows;
 \begin{itemize}
 \item Audit proof
 \item Consistency proof
@@ -478,7 +481,7 @@ There are three features needed to implement a transparency log.
 
 \begin{figure}[H]
 \centering
-\subfloat[audit proof for ``d5'']{\begin{tikzpicture}
+\subfloat[Merkle tree with leaf ``d5'' highlighted]{\begin{tikzpicture}
 \Tree
 [ .\node[root]{r};
 [ .m   [ .i d1 d2 ]  [ .j d3 d4 ]  ]
@@ -486,7 +489,7 @@ There are three features needed to implement a transparency log.
 ]
 \end{tikzpicture}}%
 \qquad
-\subfloat[needed roots for audit proof]{\begin{tikzpicture}
+\subfloat[needed roots for audit proof of ``d5'']{\begin{tikzpicture}
 \Tree
 [ .\node[root]{r};
 [ .\node[roots]{m};   [ .i d1 d2 ]  [ .j d3 d4 ]  ]
@@ -502,9 +505,14 @@ is correctly operating and can verify this to monitors.  Monitors follow
 these logs to assure consistency and to make sure logs do not misbehave. It
 also allows monitors to verify the append-only property of the log.
 
-The audit proof is used to  verify that the given element in the log exists
+The audit proof is used to verify that the given element in the log exists
 in the log. The tree root is given, along with the elements needed to
-recreate the missing nodes for the root.
+recreate the missing nodes for the root. In the Figure~\ref{fig:audit} we can
+see the representation of a merkle tree. For the proof that the node $ d5 $ is
+part of the merkle tree represented with the signed tree root $ r $ the needed
+tree roots are $ r = \{ d5, d6, l, m \} $. If they are hashed together
+appropriatly, such as $ r = H( m, H( H(d5, d6), l)) $, we will arrive at the
+same value for and thus the proof is validated.
 
 The consistency proof is used to verify that the log is operating as an
 append-only log in a correct manner. This proof requires two things. A
@@ -512,6 +520,36 @@ previous merkle tree root, and the number of leafs present at the time of
 this tree root. The returned path is the number of subroots needed to
 recreate the path from the root, until the new root.
 
+To have a correctly vetted tamper-evident log, there needs to be monitor server.
+
+Monitor servers watch new entries from log servers and verify them. They
+collect the current signed tree root, and makes sure they match up with the
+currently fetched server. They are important to make sure that the log
+collecting server behaves properly.
+
+\subsection*{Transparency Log Overlays}%
+\label{sub:transparency_log_overlays}
+For our system we will add some semantic meaning to the leafs we add to the
+merkle tree. This will be explained in greater details in the development of
+this in Section~\ref{sub:fourth_iteration_development} on
+page~\pageref{sub:fourth_iteration_development}, however we will go into some of
+the underlying concepts.
+
+\citeauthor{10.11452976749.2978404} describes
+in~\citetitle{10.11452976749.2978404} a concept of adding transparencies on top
+of existing processes to achieve transparency and tamper-evident
+events~\cite{10.11452976749.2978404}. They create a system greatly inspired by
+the work of both~\citeauthor{182788}, in transparency logs~\cite{182788},
+and~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} in certificate
+transparency logs~\cite{b.-laurie-a.-langley-e.kaster-google-2013}, and builds
+on top of these concepts.
+
+The idea of this approach is to log the everyday events of systems on a
+transparency log to make sure the events are tamper-evident. The values of these
+commitments on the log can be arbitrary and aid in providing some semantic
+meaning to the underlying application. In our project, we will utilize this idea
+to provide rebuild attestation, but also the ability to revoke such attestations
+on the merkle tree.
 
 \section*{Summary}\label{sec:summary-theory} 
 In this chapter we have taken a deeper look at the theory surrounding supply

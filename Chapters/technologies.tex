@@ -21,6 +21,16 @@ libraries that we can utilize for our project. Python is commonly used for
 back-end development and web services inn general and has good libraries for
 this.
 
+\subsection*{Transparency Log}%
+\label{sub:transparency_log_library}
+The development of the transparency log requires some effort to properly
+implement a merkle tree with the appropriate proofs to so the implementation can
+be useful. To do this we lifted some code from the library
+by~\citeauthor{pymerkeltools} to aid in the development~\cite{pymerkeltools}.
+Parts of the algorithms has been changed to accommodate the development goals of
+this project. It was easier to lift code then find a suitable merkle tree
+library to integrate with to provide the needed features.
+
 \subsection*{flask}
 Flask is a web framework for Python. It was created in 2010 by Armin Ronacher,
 and is one of the two most widely popular web frameworks in Python. It enabled
@@ -78,6 +88,21 @@ done without internet access~\cite{git}. The code can also be pushed to multiple
 repositories for backup purposes if any provider goes down during the
 development of the project.
 
+
+\subsection*{Docker and containers}%
+\label{sub:docker_and_containers}
+One of the goals of this project is to make sure the testing is done in a
+reproducible manner. To do this we need to make sure the environments are
+consistent between testing, and that they can be reproducible rebuilt after the
+testing is complete and into the future. To do this the development is done in
+containers, namely a technology called Docker~\cite{docker}. Docker enables
+reproducible containers with a given linux distribution and dependencies. They
+can be versioned and recreate environments across machines.
+
+We will be utilizing this technology for extended testing for deployment, and
+data structure testing in this thesis. Scripts and code to recreate these
+containers after the thesis is done will also be done.
+
 \subsection*{Deployment}%
 \label{sub:deployment}
 % TODO: Legge til source på uh-iaas
@@ -86,9 +111,6 @@ deploy software and build platform. They provide free resources for student
 projects and the rebuilder infrastructure described in this thesis is currently
 deployed on their platform. Extended testing of the implementations of this
 thesis is also done on their platform.
-
-
-
 
 
 \section*{Summary}\label{sec:summary-technologies} 

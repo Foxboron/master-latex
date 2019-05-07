@@ -577,6 +577,16 @@ as described in subsection~\ref{sub:certificate_transparency_log}. We will go
 through the development of these features and make sure they are working before
 moving on for the next iteration.
 
+As noted in Subsection~\ref{sub:transparency_log_library} on
+page~\pageref{sub:transparency_log_library}, we are utilizing the pymerkle 
+library written by~\citeauthor{pymerkeltools} to aid in the creation of the
+transparency log proof algorithms~\cite{pymerkeltools}. It should be noted that
+this library does not provide a persistence storage outside of just storing the
+plain text tree as a JSON structure in a file. Our goal is to reuse portions of
+the library code, and adapt them to a tree structure backed by postgresql to
+provide the transparency log features. This allows us to have a proper backend
+storage for the merkle tree.
+
 
 \subsection*{Database}%
 \label{sub:database}
@@ -810,6 +820,25 @@ Listing~\ref{lst:audit proof}. For the sake of being terse, some auxiliary
 fields have been omitted in this example. In this case, to recreate the root
 found in the top of the JSON output, we would just have to hash the ``path'' as
 given and append the hash on the correct side of the previous hash.
+
+% \begin{listing}[htpb]
+% \caption{Example python code for audit path}
+% \label{lst:audit_path_algorithm}
+% \begin{minted}{python}
+% def audit_path(node):
+%     side = lambda x: "RIGHT" if x.is_right() else "LEFT"
+%     path = [(side(node), node.to_json())]
+%     while node.get_child() is not None:
+%         if node.is_left():
+%             path.append(("RIGHT", node.get_child().right.to_json()))
+%         elif node.is_right():
+%             path.append(("LEFT", node.get_child().left.to_json()))
+%         node = node.get_child()
+%     return path
+% \end{minted}
+% \end{listing}
+
+
 
 \begin{listing}[htpb]
 \caption{JSON for audit proof}
