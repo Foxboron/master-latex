@@ -839,8 +839,80 @@ given and append the hash on the correct side of the previous hash.
 % \end{listing}
 
 
+\subsection*{Consistency proof}%
+\label{sub:consistency_proof_implementation}
+Consistency proofs are very similar to audit proof, however they carry another
+important property. They allow us to follow the path from a given known signed
+merkle tree root to the current new one. They are important to make sure we are
+capable of tracing a path from the last known tree root we have, and to the
+current one. 
 
-\begin{listing}[htpb]
+To achieve this we need in practice two things; a known signed tree root and the
+number of leafs present at this tree root. The current algorithm does this in
+two steps. Procure the subroots needed to recreate the previous signed tree
+root, then use these to recreate a path to the current tree root. 
+
+The way to do this is to take the number of leaf nodes present in the input we
+are given. We can use this to figure out all the expected complete subtrees in
+the binary tree. These are represented as the expected heights of the given
+roots. We can then take the heights, and start from the first leaf, move up the
+tree until the root of the largest complete subtree is found. Then we know how
+many leafs we have to move forward until we can start to climb the next subtree.
+
+Once this is done with all the founds heights, we have all the needed roots to
+recreate the previous merkle tree root. This can be checked by taking the
+previous tree root which is given as the input and do at the same hash
+concatenation as we do with the audit proof. If this value is as expected, we
+can continue recreating the path to the current tree root.
+
+Here we take each of the previous subroots and move up the tree until we reach
+the current tree root. We end up with two paths. One consisting of the previous
+subroots, and one of the remaining interior nodes we need to complete the path
+to the merkle tree root.
+
+
+
+\subsection*{Results}%
+\label{sub:second_iteration_results}
+The second iteration was all about finishing up the merkle tree approach so we
+can construct a transparency log. The result has been a great deal of code to
+make sure the tree works, and the properties and paths are generated correctly.
+We have also made some debug utilities to make sure we have generated a well
+formed binary tree, and no nodes are generating poor relationships.
+
+The Listing~\ref{api:transparency_log} shows the complete API that was designed
+to along with the code base. This API lets us add arbitrary JSON objects to the
+merkle tree, and to inspect these nodes and verify them with an audit proof or
+consistency proof.
+
+\begin{table}[H]
+\footnotesize
+\centering
+\settowidth\tymin{\textbf{Description}}
+\setlength\extrarowheight{2pt}
+\begin{tabulary}{1.0\textwidth}{|l|L|l|L|}
+\hline
+    \textbf{Endpoint} & 
+    \textbf{Type} & 
+    \textbf{Parameters} & 
+    \textbf{Description} \\
+\hline
+    /api/log/stats & GET & & Statistics from the current tree \\ \hline
+    /api/log/graphviz & GET & & Outputs the current tree in the dot format \\ \hline
+    /api/log/root & GET & & Gets the latest tree root \\ \hline
+    /api/log/tree/append & POST & JSON object & Appends a JSON object to the tree \\ \hline
+    /api/log/tree/id/<id> & GET & & Gets the given Node object from the database with '``id''\\ \hline
+    /api/log/tree/hash/<hash> & GET & & Gets the given Node object from the database with ``hash''\\ \hline
+    /api/log/tree/leaf/<id> & GET & & Gets the given leaf from the database with matching ``leaf\_index''\\ \hline
+    /api/log/tree/validate/id/<id> & GET & & Gets the audit proof for a leaf matching the given ``id''\\ \hline
+    /api/log/tree/validate/hash/<hash> & GET & & Gets the audit proof for a leaf matching the given ``hash''\\ \hline
+    /api/log/tree/consistency & POST & ConsistencyQuery & Provides the consistency proof for the given query\\ \hline
+\end{tabulary}
+\caption{Second iteration: Transparency log API}
+\label{api:transparency_log}
+\end{table}
+
+\begin{listing}[H]
 \caption{JSON for audit proof}
 \label{lst:audit proof}
 \begin{minted}{json}
@@ -875,11 +947,6 @@ $ curl 127.0.0.1:5000/api/log/tree/validate/id/1
 \end{minted}
 \end{listing}
 
-
-\subsection*{Consistency proof}%
-\label{sub:consistency_proof_implementation}
-
-
 \begin{listing}[H]
 \caption{JSON for consistency proof}
 \label{lst:consistency proof}
@@ -910,40 +977,6 @@ $ curl 127.0.0.1:5000/api/log/tree/validate/id/1
   "consistency": true}
 \end{minted}
 \end{listing}
-
-\subsection*{Results}%
-\label{sub:second_iteration_results}
-
-
-\begin{table}[H]
-\footnotesize
-\centering
-\settowidth\tymin{\textbf{Description}}
-\setlength\extrarowheight{2pt}
-\begin{tabulary}{1.0\textwidth}{|l|L|l|L|}
-\hline
-    \textbf{Endpoint} & 
-    \textbf{Type} & 
-    \textbf{Parameters} & 
-    \textbf{Description} \\
-\hline
-    /api/log/stats & GET & & Statistics from the current tree \\ \hline
-    /api/log/graphviz & GET & & Outputs the current tree in the dot format \\ \hline
-    /api/log/root & GET & & Gets the latest tree root \\ \hline
-    /api/log/tree/append & POST & JSON object & Appends a JSON object to the tree \\ \hline
-    /api/log/tree/id/<id> & GET & & Gets the given Node object from the database with '``id''\\ \hline
-    /api/log/tree/hash/<hash> & GET & & Gets the given Node object from the database with ``hash''\\ \hline
-    /api/log/tree/leaf/<id> & GET & & Gets the given leaf from the database with matching ``leaf\_index''\\ \hline
-    /api/log/tree/validate/id/<id> & GET & & Gets the audit proof for a leaf matching the given ``id''\\ \hline
-    /api/log/tree/validate/hash/<hash> & GET & & Gets the audit proof for a leaf matching the given ``hash''\\ \hline
-    %/api/log/tree/inclusion & POST & InclusionQuery & Provides the inclusion proof for the given query \\ \hline
-    /api/log/tree/consistency & POST & ConsistencyQuery & Provides the consistency proof for the given query\\ \hline
-\end{tabulary}
-\caption{Second iteration: Transparency log API}
-\label{api:transparency_log}
-\end{table}
-
-
 
 \subsection{Third Iteration: Tree root signing}%
 \label{sub:tree_root_signing}
@@ -1073,9 +1106,9 @@ found in Table~\ref{api:crypto_api} which shows the newly created endpoints.
     \textbf{Description} \\
 \hline
     /api/crypto/key & GET & & Outputs the key object used by the library \\ \hline
-    /api/crypto/validate & POST & Tree root & Validates the tree root to the public key \\ \hline
+    /api/crypto/validate & POST & Tree root hash and signature & Validates the tree root to the public key \\ \hline
 \end{tabulary}
-\caption{Third Iteration: Crypto API }
+\caption{Third Iteration: Crypto API}
 \label{api:crypto_api}
 \end{table}
 
@@ -1216,7 +1249,7 @@ type RevokeEntry {
 \caption{Initial API request}
 \label{lst:init_request}
 \begin{align*}
-& \text{InitQuery}\{\text{Hash},\ \text{Signature},\ \text{LeafCount}\} \to \\
+& \text{InitQuery}\{\text{Hash},\ \text{LeafCount}\} \to \\
 & \text{Response}\{\text{ConsistencyProof},\ \text{CurrentRoot}\{\text{Hash},\ \text{Signature}\} \}
 \end{align*}
 \end{listing}
