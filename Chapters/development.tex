@@ -912,71 +912,219 @@ consistency proof.
 \label{api:transparency_log}
 \end{table}
 
+The API allows for inspection of the tree with graphviz, along with also
+inspecting individual interior nodes and leafs. It gives endpoints for the most
+important features, namely the audit proof and the consistency proof.
+
+The goals stated in the beginning of this iteration have been met. 
+
+An appropriate database model has been constructed, and given us the needed
+relationships between nodes to form a tree, and effectively port the needed
+algorithms to this tree structure. By lifting some code from the ``pymerkle''
+library we are able to create append-only trees without having to rehash all
+interior nodes of the merkle tree.
+
+We are also capable of visualizing the created tree with graphviz for easier
+debugging when dealing with the merkle tree and detecting poor relationship
+building and find other issues in the data structure.
+
+To test this we are going to take a look at creating merkle trees, issue audit
+proofs, consistency proof and use the hashing scheme earlier to recreate root
+hashes. This will help us prove a well functioning transparency log can be
+achieved.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{../Diagrams/4_tree.pdf}
+\caption{Graphviz visualization of tree}
+\label{fig:graph}
+\end{figure}
+
+
+Figure~\ref{fig:graph} shows the constructed merkle tree. The first level is the
+hash of all the leaf nodes which is currently some simple mock data in the JSON
+structure for testing purposes. There is a total of 3 interior nodes, where the
+top one is the merkle tree root. Our goal is to test the appropriate proofs and
+make sure we are getting back the appropriate nodes for the sake of 
+
+\begin{figure}[H]
+\centering
+\subfloat[Validation proof nodes]{
+\label{fig:validate_proof_tree}%
+\includegraphics[width=0.46\textwidth]{../Diagrams/4_tree_validate.pdf}
+}
+\qquad
+\subfloat[Consistency proof nodes]{
+\label{fig:consistency_proof_tree}%
+\includegraphics[width=0.46\textwidth]{../Diagrams/4_tree_consistency.pdf}
+}
+\caption{Proof nodes}
+\label{fig:test_proof}
+\end{figure}
+
+Figure~\ref{fig:test_proof} shows the needed nodes for the different proofs.
+They have been artificially colored in red after being fetched from our graphviz
+API endpoint. The red color marks the needed nodes to construct the tree node
+for each appropriate proof. 
+
+It should be noted that while annotating the output graphs I discovered that the graphviz
+output as displayed in subsection~\ref{sub:graph_merkle_tree} is inherently
+unordered, at least for complete subtrees. Incomplete subtrees would always be
+outputed on the right hand side of the graph, but graphviz does not guarantee
+any ordering of the internal subtrees. That means the graph as shown in these
+examples does not completely represent the ordering of the internal tree, but
+this has no bearing on the result of the generating paths at all. It's mostly a
+minor inconvenience.
+
+The proofs in Figure~\ref{fig:test_proof} are focused on leaf number two, in the
+displayed graph leaf number three. A bit hard to follow, but we will endure!
+
+\begin{listing}[H]
+\caption{Path structure}
+\label{lst:Path structure}
+\begin{equation*}
+    [(\text{Side},\ \text{NodeObject}),\ (\text{Side},\ \text{NodeObject})\ \dots]
+\end{equation*}
+\end{listing}
+
+The way the path proofs are structure is a JSON object in a structure like
+Listing~\ref{lst:Path structure}. We have tuples with two elements. The first
+specifies the side which the hash should be concatenated on, this can either be
+``LEFT'' or ``RIGHT''. The node object is the JSON structure we get from the
+Node object as defined in the ORM model.
+
+\begin{listing}[H]
+\caption{Code for validating path}
+\label{lst:hashing algorithm}
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
+def validate_chain(root, chain):
+    if not chain:
+        return True
+    chain = chain[:]
+    s = chain.pop(0)[1]["hash"]
+    for node in chain:
+        h = hashlib.sha512()
+        if node[0] == "LEFT":
+            h.update(("level"+node[1]["hash"]+s).encode('utf-8'))
+        if node[0] == "RIGHT":
+            h.update(("level"+s+node[1]["hash"]).encode('utf-8'))
+        s = h.hexdigest()
+    return root["hash"] == s
+\end{minted}
+\end{listing}
+
+To concatenate so we achieve the present root node, we need a function to hash
+each of the tuples on the correct side. The Listing~\ref{lst:hashing algorithm}
+displays this algorithm used in this project. There are a few important points.
+
+The lines 2 and 3 deal with the possible issue of having an empty chain behind
+hashed. This is more of a short circuit in the case we are dealing with empty
+paths. Line 4 explicitly deals with the fact that Python is designed to be
+``pass-by-reference''. Any modifications on the path when we pop off items to
+create the hash will affect any code holding the reference. We thus copy the
+list to make sure no references are modified. Rest of the code is all about
+concatenating the strings on the correct side of the nodes to create the hash.
+
+
 \begin{listing}[H]
 \caption{JSON for audit proof}
 \label{lst:audit proof}
-\begin{minted}{json}
-$ curl 127.0.0.1:5000/api/log/tree/validate/id/1
+\begin{minted}[numbersep=5pt,frame=lines,framesep=2mm]{json}
+$ curl 127.0.0.1:5000/api/log/tree/validate/id/2
 {"root": {
     "id": 8,
     "type": "level",
-    "hash": "9a565dab05",
-    "right": "730212f389",
-    "left": "b439c9f4b0" },
+    "hash": "f9c955f75e...",
+    "right": "ffcd54e492...",
+    "left": "b9464656e8..."},
   "path": [
-      ["LEFT", {
-        "id": 1,
-        "type": "data",
-        "hash": "47a2ab3d2e",
-        "parent": "b439c9f4b0",
-        "data": { ... }}],
     ["RIGHT", {
         "id": 2,
         "type": "data",
-        "hash": "648d1817a3",
-        "parent": "b439c9f4b0",
-        "data": { ... }}],
+        "hash": "04f757137e...",
+        "parent": "b9464656e8...",
+        "data": {"data": "Datablock-1", "name": "Name-1"}}],
+    ["LEFT", {
+        "id": 1,
+        "type": "data",
+        "hash": "6375bda107...",
+        "signature": "8acfc7f730...",
+        "parent": "b9464656e8...",
+        "data": {"data": "Datablock-0", "name": "Name-0"}}],
     ["RIGHT", {
         "id": 7,
         "type": "level",
-        "hash": "730212f389",
-        "right": "1e94f9fde4",
-        "left": "92ef30ad83",
-        "parent": "9a565dab05"}]],
+        "hash": "ffcd54e492...",
+        "right": "74a7004f39...",
+        "left": "2ba5b40dbe...",
+        "parent": "f9c955f75e..."}]],
   "validation": true}
 \end{minted}
 \end{listing}
 
+Listing~\ref{lst:audit proof} is the audit proof we need for leaf number 2 when
+calling the API. It should be noted that we do validate the path on the server
+side and return the result in the ``validation'' field, but clients shouldn't
+trust this value blindly. This do make for easy debugging when we are running
+this locally. We are also abbreviating some of the structure and hashes for the
+sake of keeping things terse.
+
+The figure~\ref{fig:validate_proof_tree} on page
+\pageref{fig:validate_proof_tree} is the audit tree with the appropriately
+highlighted nodes, and the same nodes are found by the audit endpoint and a path
+to the root node is correctly generated, this can be verified running the given
+structure with the previously mentioned hash function.
+
+In our case we can also trust the initial validation done by the server, as it
+uses the same function to hash and compare the root node. However our client
+implementation should not rely on this.
+
+
 \begin{listing}[H]
 \caption{JSON for consistency proof}
 \label{lst:consistency proof}
-\begin{minted}{json}
+\begin{minted}[numbersep=5pt,frame=lines,framesep=2mm]{json}
+$ curl 127.0.0.1:5000/api/log/tree/consistency/2
 {"root": {
     "id": 8,
     "type": "level",
-    "hash": "9a565dab05",
-    "right": "730212f389",
-    "left": "b439c9f4b0"},
+    "hash": "f9c955f75e...",
+    "right": "ffcd54e492...",
+    "left": "b9464656e8..."},
+  "leaf nodes": 4,
+  "inclusion": true,
+  "consistency": true,
   "path": [
-      ["LEFT", {
-        "id": 3,
-        "type": "level",
-        "hash": "b439c9f4b0",
-        "right": "648d1817a3",
-        "left": "47a2ab3d2e",
-        "parent": "9a565dab05"}],
-      ["RIGHT", {
+    ["RIGHT", {
         "id": 7,
         "type": "level",
-        "hash": "730212f389",
-        "right": "1e94f9fde4",
-        "left": "92ef30ad83",
-        "parent": "9a565dab05",
-        "data": {}}]],
-  "inclusion": true,
-  "consistency": true}
+        "hash": "ffcd54e492...",
+        "right": "74a7004f39...",
+        "left": "2ba5b40dbe...",
+        "parent": "f9c955f75e..."}],
+    ["LEFT", {
+        "id": 3,
+        "type": "level",
+        "hash": "b9464656e8...",
+        "right": "04f757137e...",
+        "left": "6375bda107...",
+        "parent": "f9c955f75e..." }]]}
 \end{minted}
 \end{listing}
+
+Listing~\ref{lst:consistency proof} displays the consistency proof. It is
+considerably smaller then the audit proof as we are only dealing with the
+subroots. Since we are dealing with a rather small tree, it is not the best
+situation to show off a consistency proof, as one subroot of the two is a
+previous merkle tree root, thus we are only getting two in return we need to
+hash together. 
+
+However, as shown on~\ref{fig:consistency_proof_tree} on
+page~\pageref{fig:consistency_proof_tree} we are returned the correct tree roots
+for the proof and thus we have implemented the needed proofs.
+
+In Section~\ref{sec:testing} on page~\pageref{sec:testing} we are going to
+investigate and test the transparency log implementation further.
 
 \subsection{Third Iteration: Tree root signing}%
 \label{sub:tree_root_signing}
@@ -1164,14 +1312,40 @@ $ curl --header "Content-Type: application/json" \
 
 \subsection{Fourth Iteration: Transparency log overlay}%
 \label{sub:transparency_overlay}
+In this section we are going to create an abstraction over the values we insert
+into the merkle tree. So far the only been using mock values to test the
+correctness of the tree. But we are after all going to record the submissions
+from the rebuilder and append them to the log. We also need to expose a new API
+to the apt transport which we need to integrate with at a later point.
+
+We want to have some enforced properties to see how we can implement
+abstractions on the values. We can't remove entries once they are on the
+transparency log, but we might want to retain the property of revoking package
+submissions. This could be because of build environment compromises, or security
+advisories from the parent distribution.
 
 \subsection*{Goals}%
 \label{sub:fourth_iteration_goals}
 
+The goals for this iteration is as follows;
+
+\begin{itemize}
+    \item We should have well defined objects to return
+    \item We should be able to find package submissions
+    \item We should be able to revoke package submissions
+\end{itemize}
+
 \subsection*{Development}%
 \label{sub:fourth_iteration_development}
+First we need to figure out what data we are dealing with. Lets start off by
+defining one item appended on the tree as an "Entry". An entry should always
+contain two key pieces of information, namely package name and version. This is
+important to retrieve them at a later point.
 
-API entry definitions
+Once we have established this we need to figure out what sort of entries we are
+dealing with. We are going to deal with namely two actions, accepting
+submissions from the rebuilder, which we will call ``inclusions'', and
+revocations of said submissions. 
 
 \begin{listing}[H]
 \caption{Entry definitions}
@@ -1196,6 +1370,13 @@ type RevokeEntry {
 \end{minted}
 \end{listing}
 
+Listing~\ref{lst:entrydefinitions} displays the fields in a sort of structure
+with some type information. ``InclusionEntry'' and ``RevokeEntry'' are both
+composite structures from the main ``Entry'' definition. This
+
+
+\subsection*{Results}%
+\label{sub:fourth_iteration_results}
 
 \begin{table}[hbtp]
 \footnotesize
@@ -1217,10 +1398,6 @@ type RevokeEntry {
 \caption{Overlay API}
 \label{api:Overlay API}
 \end{table}
-
-\subsection*{Results}%
-\label{sub:fourth_iteration_results}
-
 
 \subsection{APT Transport integration}\label{sec:apt_transport}
 
