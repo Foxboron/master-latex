@@ -1350,33 +1350,82 @@ revocations of said submissions.
 \begin{listing}[H]
 \caption{Entry definitions}
 \label{lst:entrydefinitions}
-\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{go}
-type Entry {
-    Package string
-    Version string
-} 
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
+inclusion = {"type": "inclusion",
+             "package": pkg_name,
+             "version": version,
+             "linkmetadata": metadata.read().decode("utf-8"),
+             "buildinfo": buildinfo.read().decode("utf-8")}
 
-type InclusionEntry {
-    Entry
-    Buildinfo       string
-    Linkmetadata    string
-}
-
-type RevokeEntry {
-    Entry 
-    InclusionHash   string
-    Reason          string
-}
+revoke = {"type": "revoke",
+          "package": pkg_name,
+          "version": version,
+          "hash": hash,
+          "reason": reason}
 \end{minted}
 \end{listing}
 
-Listing~\ref{lst:entrydefinitions} displays the fields in a sort of structure
-with some type information. ``InclusionEntry'' and ``RevokeEntry'' are both
-composite structures from the main ``Entry'' definition. This
+Listing~\ref{lst:entrydefinitions} displays some Python code to illustrate the
+two entries we are going to be dealing with on this transparency log. We have
+the ``inclusion'' entry which lists the package name and version, this is a
+common field assumed for all entries, along with the appropriate files that
+contain the buildinfo, which contains the record for the build environment, and
+the linkmetadata, which is the in-toto metadata needed for the client
+verification later on. This denotes that the package and the files has been
+rebuilt and is a submission.
 
+The other entry we will be dealing with is a ``revoke'' entry. This denotes an
+inclusion which has been marked as bad. We will be using these entries to mask
+inclusion entries on the client side. This contains two fields. The ``hash''
+fields denotes the hash of the merkle tree object containing an inclusion entry.
+The next field is ``reason'' which can contain an optional message as to why the
+given inclusion has been revoked.
+
+To implement support for this we are going to take the submission endpoint from
+the first iteration on subsection~\ref{sub:first_iteration_development} on
+page~\pageref{sub:first_iteration_development}.
+
+Extending the previous ``/new\_build'' endpoint, where we are creating the
+needed ``Package'' and ``Version'' models for database insertion, we now also
+append the relevant information to the transparency log. This is fairly straight
+forward as we only need to construct the ``inclusion'' dictionary and insert it
+as JSON on to the database.
+
+\begin{listing}[H]
+\caption{Fetch entries}
+\label{lst:fetch_entries}
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
+@app.route("/api/rebuilder/fetch/<name>/<version>")
+@json_response
+def rebuilder_fetch(name, version):
+    records = (db.session.query(Node)
+            .filter(Node.data.op('->>')('package') == name)
+            .filter(Node.data.op('->>')('version') == version)
+            .order_by(Node.created.desc())
+            ).all()
+    return records
+\end{minted}
+\end{listing}
+
+We also need to fetch all entries on the database given a package name and
+version. PostgreSQL has dedicated JSON support in their database, which our
+model defined on listing~\ref{lst:node_model} on page~\pageref{lst:node_model}
+has implemented for the data field. What we can now do is use native postgresql
+filters on the JSON as seen on listing~\ref{lst:fetch_entries}. This allows us
+to easily filter through all entries and return them easily for the REST API.
+
+When it comes to having an ``revoke'' entry, we need to have a few
+considerations in place. As input we need the hash of an node on the merkle
+tree with a ``inclusion'' entry. Currently we don't want to publish revocations
+of any objects, as future entries could be implemented in the future. What we do
+is that we look up the hash, get the object and verify the type of the entry
+before submitting the revoke entry on the object.
 
 \subsection*{Results}%
 \label{sub:fourth_iteration_results}
+The results of this iteration is the last and final API. This iteration
+completes the work on the rewrite of the visualizer and provides us with a new
+API that will be used for the upcoming APT integration.
 
 \begin{table}[hbtp]
 \footnotesize
@@ -1398,6 +1447,55 @@ composite structures from the main ``Entry'' definition. This
 \caption{Overlay API}
 \label{api:Overlay API}
 \end{table}
+
+The API as listed in~\ref{api:Overlay API} gives us the ability to submit new
+rebuilds, and at a later point revoke them. All of this is stored on an
+abstracted API where we don't have to deal with the transparency log directly.
+
+\begin{listing}[H]
+\caption{Example of rebuild submission with curl}
+\label{lst:rebuild_submission_curl}
+\begin{minted}{bash}
+$ curl -F "metadata=@metadata" -F "buildinfo=@buildinfo" \
+  127.0.0.1:5000/api/rebuilder/submit
+{"status": "ok",
+  "node": {
+    "id": 1,
+    "hash": "9432b4df00...",
+   ...}}
+$ curl 127.0.0.1:5000/api/log/tree/leaf/index/1
+{"id": 1,
+  "hash": "9432b4df00...",
+  ...}
+\end{minted}
+\end{listing}
+
+Listing~\ref{lst:rebuild_submission_curl} shows how
+
+
+\begin{listing}[H]
+\caption{Example of rebuild revoke with curl}
+\label{lst:rebuild_revoke_curl}
+\begin{minted}{bash}
+$ curl -XPOST --header "Content-Type: application/json" \
+  --data '{"hash":"9432b4df00...","reason":"testing"}' \
+  127.0.0.1:5000/api/rebuilder/revoke
+{"status": "ok",
+  "node": {
+    "id": 2,
+    "type": "data",
+    "hash": "d22c2446cb...",
+    "parent": "e5a6599214...",
+    "data": {
+      "hash": "9432b4df00...",
+      "type": "revoke",
+      "reason": "testing",
+      "package": "lostirc",
+      "version": "0.4.6-4.2"
+    }}}
+\end{minted}
+\end{listing}
+
 
 \subsection{APT Transport integration}\label{sec:apt_transport}
 
