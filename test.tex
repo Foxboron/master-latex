@@ -1,0 +1,40 @@
+% !TEX encoding = UTF-8 Unicode
+%!TEX root = Main/thesis.tex
+% !TEX spellcheck = en-US
+%%=========================================
+\documentclass[Main/thesis.tex]{subfiles}
+\begin{document}
+\begin{listing}[H]
+\begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{jinja}
+    <\!DOCTYPE html>
+    <html>
+      <head><title> {{package}} </title></head>
+      <body>
+        <table>
+          <tr>
+            <th> Version </th>
+            <th> Timestamp </th>
+            <th> Buildinfo </th>
+            <th> in-toto metadata </th>
+          </tr>
+          \{% for entry in entries %\}
+          <tr>
+            <td> {{package}}-{{entry[0].version}}</td>
+            <td> {{entry[1].created }} </td>
+            <td> 
+                <a href="/sources/{{package}}/{{entry[0].version}}/buildinfo">Link</a>
+            </td>
+            <td> 
+                <a href="/sources/{{package}}/{{entry[0].version}}/metadata">Link</a>
+            </td>
+          </tr>
+          \{% endfor %\}
+        </table>
+      </body>
+    </html>
+\end{minted}
+\caption{jinja2 template for source.html}
+\label{lst:jinja-source}
+\end{listing}
+\blankpage
+\end{document}

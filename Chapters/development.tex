@@ -395,6 +395,7 @@ in~\ref{api:old_visualizer}. The input for this route is the name of the package
 and the version of the given package.
 
 
+%TC:ignore
 \begin{listing}[H]
 \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{jinja}
 <!DOCTYPE html>
@@ -427,6 +428,7 @@ and the version of the given package.
 \caption{jinja2 template for source.html}
 \label{lst:jinja-source}
 \end{listing}
+%TC:endignore
 
 To display these results, we are utilizing jinja2 templates that lets us compose
 HTML and Python code to generate webpages on the fly. The code as shown on
@@ -768,6 +770,7 @@ invested trying to fiddle with the style got a proper display when the trees
 grow large enough. However, they did aid in early debugging when trees where
 sparse.
 
+%TC:ignore
 \begin{listing}[H]
 \caption{Example graph of a generated tree}
 \label{lst:graphviz-test}
@@ -785,6 +788,7 @@ label="Nodes: 4";
 }
 \end{minted}
 \end{listing}
+%TC:endignore
 
 \begin{figure}[H]
 \centering
@@ -821,24 +825,6 @@ fields have been omitted in this example. In this case, to recreate the root
 found in the top of the JSON output, we would just have to hash the ``path'' as
 given and append the hash on the correct side of the previous hash.
 
-% \begin{listing}[htpb]
-% \caption{Example python code for audit path}
-% \label{lst:audit_path_algorithm}
-% \begin{minted}{python}
-% def audit_path(node):
-%     side = lambda x: "RIGHT" if x.is_right() else "LEFT"
-%     path = [(side(node), node.to_json())]
-%     while node.get_child() is not None:
-%         if node.is_left():
-%             path.append(("RIGHT", node.get_child().right.to_json()))
-%         elif node.is_right():
-%             path.append(("LEFT", node.get_child().left.to_json()))
-%         node = node.get_child()
-%     return path
-% \end{minted}
-% \end{listing}
-
-
 \subsection*{Consistency proof}%
 \label{sub:consistency_proof_implementation}
 Consistency proofs are very similar to audit proof, however they carry another
@@ -869,8 +855,6 @@ Here we take each of the previous subroots and move up the tree until we reach
 the current tree root. We end up with two paths. One consisting of the previous
 subroots, and one of the remaining interior nodes we need to complete the path
 to the merkle tree root.
-
-
 
 \subsection*{Results}%
 \label{sub:second_iteration_results}
@@ -1026,6 +1010,7 @@ list to make sure no references are modified. Rest of the code is all about
 concatenating the strings on the correct side of the nodes to create the hash.
 
 
+%TC:ignore
 \begin{listing}[H]
 \caption{JSON for audit proof}
 \label{lst:audit proof}
@@ -1061,6 +1046,7 @@ $ curl 127.0.0.1:5000/api/log/tree/validate/id/2
   "validation": true}
 \end{minted}
 \end{listing}
+%TC:endignore
 
 Listing~\ref{lst:audit proof} is the audit proof we need for leaf number 2 when
 calling the API. It should be noted that we do validate the path on the server
@@ -1080,6 +1066,7 @@ uses the same function to hash and compare the root node. However our client
 implementation should not rely on this.
 
 
+%TC:ignore
 \begin{listing}[H]
 \caption{JSON for consistency proof}
 \label{lst:consistency proof}
@@ -1111,6 +1098,7 @@ $ curl 127.0.0.1:5000/api/log/tree/consistency/2
         "parent": "f9c955f75e..." }]]}
 \end{minted}
 \end{listing}
+%TC:endignore
 
 Listing~\ref{lst:consistency proof} displays the consistency proof. It is
 considerably smaller then the audit proof as we are only dealing with the
@@ -1266,6 +1254,7 @@ in~\ref{lst:display-generated-public-key}. Which enables us to verify the
 signature on the client side instead of on the server side if we need to do
 that.
 
+%TC:ignore
 \begin{listing}[H]
 \caption{Display generated public key}
 \label{lst:display-generated-public-key}
@@ -1285,6 +1274,7 @@ $ curl 127.0.0.1:5000/api/key
 }
 \end{minted}
 \end{listing}
+%TC:endignore
 
 To verify a tree root on the server side, we can provide the output from
 ``/api/log/tree/root'' from Listing~\ref{api:transparency_log}, and forward this
@@ -1293,6 +1283,7 @@ Listing~\ref{lst:test-verify-endpoint}, we have provided a minimal tree root
 json object to display a successful verification of a tree root on the server
 side.
 
+%TC:ignore
 \begin{listing}[H]
 \caption{Test of the verify endpoint}
 \label{lst:test-verify-endpoint}
@@ -1308,6 +1299,7 @@ $ curl --header "Content-Type: application/json" \
 }
 \end{minted}
 \end{listing}
+%TC:endignore
 
 
 \subsection{Fourth Iteration: Transparency log overlay}%
@@ -1449,11 +1441,12 @@ API that will be used for the upcoming APT integration.
 \end{table}
 
 The API as listed in~\ref{api:Overlay API} gives us the ability to submit new
-rebuilds, and at a later point revoke them. All of this is stored on an
-abstracted API where we don't have to deal with the transparency log directly.
+rebuilds, and at a later point revoke them if needed. All of this is stored on
+an abstracted API where we don't have to deal with the transparency log
+directly.
 
 \begin{listing}[H]
-\caption{Example of rebuild submission with curl}
+\caption{Example of rebuild submission}
 \label{lst:rebuild_submission_curl}
 \begin{minted}{bash}
 $ curl -F "metadata=@metadata" -F "buildinfo=@buildinfo" \
@@ -1463,6 +1456,7 @@ $ curl -F "metadata=@metadata" -F "buildinfo=@buildinfo" \
     "id": 1,
     "hash": "9432b4df00...",
    ...}}
+
 $ curl 127.0.0.1:5000/api/log/tree/leaf/index/1
 {"id": 1,
   "hash": "9432b4df00...",
@@ -1470,11 +1464,14 @@ $ curl 127.0.0.1:5000/api/log/tree/leaf/index/1
 \end{minted}
 \end{listing}
 
-Listing~\ref{lst:rebuild_submission_curl} shows how
+Listing~\ref{lst:rebuild_submission_curl} shows how we can submit a rebuild,
+consisting of the buildinfo file and the linkmetadata file, to the submit
+endpoint. This will create the appropriate models, and append it to the
+transparency log as shown when we call it with the appropriate index.
 
-
+%TC:ignore
 \begin{listing}[H]
-\caption{Example of rebuild revoke with curl}
+\caption{Example of rebuild revoke}
 \label{lst:rebuild_revoke_curl}
 \begin{minted}{bash}
 $ curl -XPOST --header "Content-Type: application/json" \
@@ -1495,9 +1492,65 @@ $ curl -XPOST --header "Content-Type: application/json" \
     }}}
 \end{minted}
 \end{listing}
+%TC:endignore
+
+Listing~\ref{lst:rebuild_revoke_curl} enables us to revoke the inclusion on the
+tree and also allows us to state the reason for the revocation of the inclusion.
+This evidently works fine and allows us to fetch all of the entries on the test
+package. We are currently using a previous rebuilt package with a corresponding
+linkmetadata file. The package is called ``lostirc'' and the version is
+``0.4.6-4.2''
+
+%TC:ignore
+\begin{listing}[H]
+\caption{Example of fetching entries}
+\label{lst:rebuild_fetch_curl}
+\begin{minted}{bash}
+$ curl 127.0.0.1:5000/api/rebuilder/fetch/lostirc/0.4.6-4.2
+[{"id": 2,
+   "type": "data",
+   "hash": "d22c2446cb...",
+   "data": {
+     "hash": "9432b4df00...",
+     "type": "revoke",
+     "reason": "testing",
+     "package": "lostirc",
+     "version": "0.4.6-4.2"}},
+  {"id": 1,
+   "type": "data",
+   "hash": "9432b4df00...",
+   "data": {
+     "type": "inclusion",
+     "package": "lostirc",
+     "version": "0.4.6-4.2"
+     ...}}]
+\end{minted}
+\end{listing}
+%TC:endignore
+
+Listing~\ref{lst:rebuild_fetch_curl} shows how entries are gotten in descending
+order of creation. First the revocation entry, then the inclusion entry. This
+allows us to read each entry subsequently in order, and act on the next elements
+according to previous entries. We can also see how we are capable of fetching
+multiple inclusion proofs for the same package as we are only dealing with the
+package name and the package version.
+
+This API is flexible and can be extended to include multiple entries in the
+future. We will now attempt to integrate them into the ``apt'' package handler.
 
 
 \subsection{APT Transport integration}\label{sec:apt_transport}
+
+\subsection*{Introduction}%
+\label{sub:apt_transport_introductionn}
+
+So far we have implemented the server side of this software. Now comes the
+client side which will do the package verification towards the visualizer.
+The current rebuilder system as implemented before this thesis, the was an
+integration with the ``apt'' package manager for debian written for this. The
+purpose of this integration is to have a process which let apt download the
+appropriate package, but in a way where we can do additional verification.
+
 
 \begin{figure}[H]
   \centering
@@ -1517,30 +1570,168 @@ $ curl -XPOST --header "Content-Type: application/json" \
     \end{messcall}
   \end{sequencediagram}
 \caption{intoto sequence diagram}
-\label{lst:intoto_sequence_diagram}
+\label{fig:intoto_sequence_diagram}
 \end{figure}
 
+The sequence diagram in Figure~\ref{fig:intoto_sequence_diagram} shows the idea
+behind this. When apt communicated with a package repository it will use a
+binary for the communication between the client and the server. What we have is
+an ``intoto'' client which can be used as a drop-in replacement of the ``http''
+one. We only forward between the client and the apt server until we see that a
+package has been acquired, this is recognized when the ``201 URI Done'' message
+is passed. This implies we have downloaded the package locally. We
+man-in-the-middle this message and begin our verification process.
+
+This process involves having configured one or more rebuilders we should be
+communicating with in an configuration file. We will then request each of the
+rebuilders on this list for the linkmetadata file. The verification step is
+implemented with ``in-toto''. This involves a layout from in-toto which
+describes the expected keys and the threshold that needs to be met for the
+process to succeed. If the validation with the linkmetadata is approved, which
+means the downloaded package has the same checksum as the signed layout says it
+has, we will forward the ``201 URI Done'' message to the client apt and the
+package will be installed.
+
+The development in this section is to move the current implementation away from
+the old API, which is a very simple file listing, to the transparency log
+implementation.
+
+
+\subsection*{Goals}%
+\label{sub:apt_transport_goals}
+For this integration we need to move the old API interactions to the new one. To
+do this we need to implement a few thing.
+
+\begin{itemize}
+    \item We need to store rebuilder tree roots
+    \item We need to verify any signatures
+    \item We need to verify the consistency proof
+    \item Parse available entries
+    \item Validate with available metadata
+\end{itemize}
+
+This should be validated locally and inherently no need to trust the output of
+the rebuilders.
+
+\subsection*{Development}%
+\label{sub:apt_transport_development}
+To validate the downloaded packages against available linkmetadata, we need to
+implement and support a few states. We can't just ask for the given entries, we
+also need to validate the state of the merkle tree with the consistency proof
+from the merkle tree. All of this should be done locally.
+
+The steps needed are
+\begin{enumerate}
+    \item Have previous known merkle tree state
+    \item Fetch consistency proof and validate this
+    \item Store new tree root in place of old tree root
+    \item Fetch available entries on package
+    \item Validate package with any valid inclusion entries
+\end{enumerate}
+
+It should be noted that any validation step on tree nodes need to attempt to
+recreate the hash appropriately. We also need to validate any signatures on
+merkle tree roots. Thus our additions to the ``intoto'' transport amounts to 5
+functions.
+
+\begin{itemize}
+    \item compare\_hash
+    \item validate\_chain
+    \item verify\_consistency
+    \item store\_new\_tree\_root
+    \item fetch\_rebuild
+\end{itemize}
+
+``compare\_hash'' will be our function making sure the node hash is correct. It
+will take the parents and data directive as appropriate and calculate the hash
+as a boolean value.  ``validate\_chain'' will utilize the ``compare\_hash''
+function and make sure the given path for audit proofs and consistency proofs
+are correct.  ``verify\_consistency'' will request the consistency proof and
+build on top the previous functions. It will take the rebuilder, leaf count and
+previous root and make sure the proof with the current tree root is signed along
+with the path validating.
+
+Once this is done we can store the new tree root locally with
+``store\_new\_tree\_root''. This leaves us with fetching the current entries of
+the given package and version which will be done with ``fetch\_rebuild''. It
+will loop over any given entry, and mask any hashes where we have a ``revoke''
+entry.
+
+%TC:ignore
 \begin{listing}[H]
-\caption{Initial API request}
-\label{lst:init_request}
-\begin{align*}
-& \text{InitQuery}\{\text{Hash},\ \text{LeafCount}\} \to \\
-& \text{Response}\{\text{ConsistencyProof},\ \text{CurrentRoot}\{\text{Hash},\ \text{Signature}\} \}
-\end{align*}
+\caption{Difference in ``intoto.py'' verification step}
+\label{lst:intoto_changes}
+\begin{minted}{diff}
+@@ -563,21 +649,21 @@ def _intoto_verify(message_data):
+       .format(len(global_info["config"]["Rebuilders"])))
+   # Download link files to verification directory
+   for rebuilder in global_info["config"]["Rebuilders"]:
+-    # Accept rebuilders with and without trailing slash
+-    endpoint = "{rebuilder}/sources/{name}/{version}/metadata".format(
+-        rebuilder=rebuilder.rstrip("/"), name=pkg_name,
+-        version=pkg_version_release)
+-
+-    logger.info("Request in-toto metadata from {}".format(endpoint))
+ 
+     try:
+-      # Fetch metadata
+-      response = requests.get(endpoint)
+-      if not response.status_code == 200:
+-        raise Exception("server response: {}".format(response.status_code))
++      proof = verify_consistency(rebuilder)
++      if not proof:
++        raise Exception("Can't verify consistency on rebuilder {}".format(rebuilder))
++
++      store_new_tree_root(rebuilder, proof)
++
++      rebuild = fetch_rebuild(rebuilder.rstrip("/"), pkg_name, pkg_version_release)
++      if not rebuild:
++        raise Exception("No available rebuild from {}".format(rebuilder))
++
++      link_json = json.loads(rebuild["data"]["linkmetadata"])
+ 
+-      # Decode json
+-      link_json = response.json()
++      logger.info('{}'.format(link_json))
+\end{minted}
 \end{listing}
+%TC:notignore
 
+Listing~\ref{lst:intoto_changes} shows the difference in code for the
+verification step in the transport after the initial implementation. This
+implementation fetches from the new rebuilder API instead of the old one with
+the least amount of intrusive code to the current project.
 
 \begin{listing}[H]
-\caption{Package query API request}
-\label{lst:package_query_request}
-\begin{equation*}
-    \text{PkgQuery}\{\text{Package},\ \text{Version}\} \to \text{Response}\{\text{InclusionEntry},\ \text{Entry}\dots \}
-\end{equation*}
+\caption{File format for storing tree roots}
+\label{lst:tree_root_store}
+\begin{minted}{json}
+{
+    "http://127.0.0.1:5000": {
+        "hash": "78f6bbe2f6...",
+        "signature": "b8d0925acd...",
+        "count": 15
+    }
+}
+\end{minted}
 \end{listing}
+%TC:notignore
 
+We have also included a new option in the configuration file for the apt
+transport. We need a way to store previous tree roots from multiple rebuilders,
+so settled on a fairly simple JSON format which meets our needs fairly well.
+Listing~\ref{lst:tree_root_store} shows the format which is a simple key value
+format where we store the three important pieces of information. The hash of a
+tree root, the signature of the tree root and the number of leafs present when
+this tree root was the current version. We write this file as appropriate when
+new tree roots are gathered.
 
-\section{Testing}%
-\label{sec:testing}
+% TODO: Appendix to apt-transport implementations and commits
+
+\subsection*{APT Transport Testing}%
+\label{sub:apt_transport_testing}
+For the testing part we are going to reuse the test setup written for the 
+
 
 
 \blankpage
