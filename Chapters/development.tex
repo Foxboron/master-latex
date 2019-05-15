@@ -892,7 +892,7 @@ consistency proof.
     /api/log/tree/validate/hash/<hash> & GET & & Gets the audit proof for a leaf matching the given ``hash''\\ \hline
     /api/log/tree/consistency & POST & ConsistencyQuery & Provides the consistency proof for the given query\\ \hline
 \end{tabulary}
-\caption{Second iteration: Transparency log API}
+\caption{Second Iteration: Transparency log API}
 \label{api:transparency_log}
 \end{table}
 
@@ -1436,7 +1436,7 @@ API that will be used for the upcoming APT integration.
     /api/rebuilder/fetch/<name>/<version>& GET & & Gets the entries for the given package \\  \hline
 \end{tabulary}
 \footnotesize{$^1$ Behind authentication}\\
-\caption{Overlay API}
+\caption{Fourth Iteration: Overlay API}
 \label{api:Overlay API}
 \end{table}
 
@@ -1702,6 +1702,7 @@ verification step in the transport after the initial implementation. This
 implementation fetches from the new rebuilder API instead of the old one with
 the least amount of intrusive code to the current project.
 
+%TC:ignore
 \begin{listing}[H]
 \caption{File format for storing tree roots}
 \label{lst:tree_root_store}
@@ -1715,7 +1716,7 @@ the least amount of intrusive code to the current project.
 }
 \end{minted}
 \end{listing}
-%TC:notignore
+%TC:endignore
 
 We have also included a new option in the configuration file for the apt
 transport. We need a way to store previous tree roots from multiple rebuilders,
@@ -1730,8 +1731,41 @@ new tree roots are gathered.
 
 \subsection*{APT Transport Testing}%
 \label{sub:apt_transport_testing}
-For the testing part we are going to reuse the test setup written for the 
+For the testing part we are going to reuse the test setup written for the
+original apt transport and make sure it has everything it needs to test towards
+the new API.
 
+The current test setup heavily relies on mocking three parts of this setup. The
+apt client, the apt server and the rebuilder. All of these are mocked in an
+attempt to only test the ``intoto'' transport. To test our new API we will
+remove the rebuild mocking which the test setup utilizes. This enables us to
+test the new rebuilder directly instead of utilizing a mock of the API.
+
+First we need to modify the in-toto layout used for testing. The in-toto layout
+is used for making sure threshold of available, and good, linkmetadata exists for
+the given package. The current test setup requires two good metadata files to
+exist, this is because they are utilizing the test setup with two rebuilders to
+make sure things work appropriately. In our case we only really care about the
+``intoto'' transport communicating correctly with the new API. We modify the
+linkmetadata for the tests to only account for one valid linkmetadata file, then
+resign it with the correct key used in the setup with the ``in-toto-sign''
+utility.
+
+The next challenge is to make sure we are initializing the consistency proof
+tree root correctly. To do this we make sure we are dealing with a reproducible
+setup so the seeded merkle tree root doesn't change between tests. We do this by
+first initializing a merkle tree with 10 elements. Then we pick one of these
+roots which we will use to start off on our testing, in our case we went with
+the merkle tree root present when there was 4 leaf nodes for no particular
+reason. We make sure we store this file, and copy it to the right location,
+along with making sure the mock apt client has the configuration set to look for
+this file.
+
+The resulting test suite thus passes and we have managed to integrate the apt
+transport with the new API. Appendix~\ref{appendix:apt_testing} on
+page~\pageref{appendix:apt_testing} goes through the test setup of the apt
+transport and the resulting test suite run. This helps make sure the results are
+reproducible.
 
 
 \blankpage

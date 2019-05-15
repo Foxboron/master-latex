@@ -324,7 +324,7 @@ build scripts, etc The BOM may be manually created, but many configuration
 management tools generate it as a by- product of the build'' \cite{r.-torres-cabrera-and-bonnie-lee-appleton-1999}.
 \end{quotation}
 
-\begin{figure}[H]
+\begin{listing}[H]
 \begin{minted}[]{text}
 Format: 1.0
 Source: dh-make
@@ -351,8 +351,8 @@ LC_ALL="POSIX"
 SOURCE_DATE_EPOCH="1543231660"
 \end{minted}
 \caption{Example buildinfo file}
-\label{fig:buildinfo}
-\end{figure}
+\label{lst:buildinfo}
+\end{listing}
 
 Such a file would contain all the requirements to recreate the environment the
 artifact was built inn. Because of the previously mentioned restrictions, there
