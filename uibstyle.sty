@@ -34,8 +34,8 @@
 \usetikzlibrary{arrows, decorations.markings,positioning,backgrounds,shapes}
 \definecolor{EMP}{HTML}{77DD77} % Green1
 \definecolor{NOR}{HTML}{06500C} % Green2
-\usepackage{ulem}
-\renewcommand{\ULdepth}{3pt}
+% \usepackage{ulem}
+% \renewcommand{\ULdepth}{3pt}
 
 \linespread{1.2} %Changed from 1.5
 \newenvironment{remark}{\par\mbox{}\par\noindent{\bfseries \emph{Remark}\/}:\normalfont}{\par}
@@ -44,12 +44,16 @@
 \usepackage[colorlinks=true, pdfstartview=FitV,
 linkcolor=black, citecolor=black, urlcolor=blue, breaklinks]{hyperref}
 \pdfcompresslevel=9
-\pretolerance=150
 \hsize=2in
+\pretolerance=150
 \tolerance=1600 
+\setcounter{biburlnumpenalty}{9000}
+\setcounter{biburlucpenalty}{9000}
+\setcounter{biburllcpenalty}{9000}
 \usemintedstyle{friendly}
 \AtBeginEnvironment{minted}{
 	\renewcommand{\fcolorbox}[4][]{#4}}
+
 
 \renewcommand\listoflistingscaption{List of listings}
 
@@ -60,7 +64,6 @@ linkcolor=black, citecolor=black, urlcolor=blue, breaklinks]{hyperref}
 \setlength{\parskip}{.5em}
 
 \newcommand{\blankpage}{\newpage{}\thispagestyle{empty}\mbox{}\newpage{}}
-
 
 %HEADERS
 \setlength{\headheight}{15pt}

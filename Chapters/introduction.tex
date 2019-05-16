@@ -12,10 +12,25 @@ mirrors where users can get the latest software updates. This enables users to
 get pre-compiled binaries instead of building it by hand locally. But how do we
 know that the downloaded software has not been tampered with?
 
-Packages are accompanied by the signature of the distribution when the users
-fetches update. This enables the user to detect tampering during transit to the
-user, but this gives the user no insight whether or not the package has been
-tampered with during the supply-chain of the distribution.
+Targeted attacks against the software supply chain is an increasing threat.
+The security company Symantec reported in 2018 that there was one supply chain
+attack reported every month in 2017~\cite{symantec-istr-2018}, and in their 2019
+report noted that targeted attacks has gone up 78\% since
+then~\cite{symantec-istr-2019}. There has also been a growing concern among
+security professionals about the dangers of supply chain
+attacks~\cite{crowdstrike-supply-chain-attacks}. Companies are as well
+struggling to protect their software deliveries~\cite{cd-pipelines-case-study}.
+
+There has been a number of explicit attacks against supply chains that surrounds
+Linux Distributions. Inappropriate commit access has been achieved with
+Gentoo~\cite{gentoo-compromise-2018}, Linux~\cite{linux-compromise-2011}, and
+even managed to publish backdoor in an network equipment
+vendor~\cite{Checkoway:2016:SAJ:2976749.2978395}~\cite{juniper-backdoor-advisory},
+
+There has been attempts at breaking package
+managers~\cite{Cappos:2008:LMA:1455770.1455841}, and several other instances of
+attacks against Linux
+distributions~\cite{gentoo-compromise-2003}~\cite{fedora-compromise-2011}~\cite{fedora-compromise-2008}.
 
 In this thesis we will look into how reproducible builds enables distributions
 and software authors to provide bit-for-bit identical binaries. We will extend
@@ -41,6 +56,9 @@ The motivation this research is to see if transparency logs gives the users any
 new security guarantees on top of the rebuilder verification. There has been no
 real-world deployment of publicly accessible rebuilder infrastructure, and the
 integration of transparency logs into user tools has not been investigated 
+
+It should be noted that this research is primarily focused on the technical
+implementation of such a system.
 
 \section{Collaboration with New York University}\label{sec:collab}
 This project has been done in collaboration with Lukas Puhringer and Santiago
@@ -74,8 +92,6 @@ refined API for the apt transport used to verify packages.
 Along with these research questions there is a motivation to contribute
 reproducible research. A lot of the current efforts have no published source
 code.
-
-\section{Organization of the thesis}\label{sec:organization}
 
 \blankpage
 \end{document}

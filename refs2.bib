@@ -29,11 +29,17 @@
 
 @misc{sqlalchemy,
     author  = {{SQLAlchemy authors and contributors}},
-    title   = {{SQLAlchemy: The Python SQL Toolkit and Object Relational Mapper}},
+    title   = {SQLAlchemy: The Python SQL \\Toolkit and Object Relational Mapper},
     url = {https://www.sqlalchemy.org/},
     year    = {2005},
 }
 
+@misc{gitian,
+    author  = {{Miron Cuperman}},
+    title   = {{Gitian: a secure software distribution}},
+    url = {https://gitian.org/},
+    year    = {2009},
+}
 
 @misc{debain,
     title = {{Debian}},
@@ -55,6 +61,29 @@
     year    = {2005},
 }
 
+@misc{curl,
+    author  = {{Daniel Stenberg}},
+    title   = {{Command line tool and library for transferring data with URLs}},
+    url = {https://curl.haxx.se/},
+    year    = {1996},
+}
+
+@misc{uhiaas,
+    author  = {{UH-IaaS}},
+    title   = {{A NORWEGIAN CLOUD INFRASTRUCTURE FOR RESEARCH AND EDUCATION}},
+    url = {http://www.uh-iaas.no/},
+    year    = {2018},
+}
+
+@misc{debian-ci,
+    author  = {{Holger Levsen and many others}},
+    title   = {{Overview of various statistics about reproducible builds}},
+    url = {https://tests.reproducible-builds.org/debian/reproducible.html},
+    year    = {2014},
+}
+
+
+
 @article{matplotlib, 
 author={J. D. {Hunter}}, 
 journal={Computing in Science Engineering}, 
@@ -67,15 +96,6 @@ keywords={computer graphics;mathematics computing;object-oriented programming;so
 doi={10.1109/MCSE.2007.55}, 
 ISSN={1521-9615}, 
 month={May},}
-
-@inproceedings{ pandas,
-  author    = { Wes McKinney },
-  title     = { Data Structures for Statistical Computing in Python },
-  booktitle = { Proceedings of the 9th Python in Science Conference },
-  pages     = { 51 - 56 },
-  year      = { 2010 },
-  editor    = { St\'efan van der Walt and Jarrod Millman }
-}
 
 @inproceedings{tor,
  author = {Dingledine, Roger and Mathewson, Nick and Syverson, Paul},
@@ -105,7 +125,7 @@ month={May},}
 
 @misc{tor-browser,
     author  = {{The Tor Project}},
-    title   = {{The Tor browser}},
+    title   = {{The Tor Browser}},
     url = {https://www.torproject.org/download/},
     year    = {2002},
 }
@@ -150,7 +170,7 @@ month={May},}
 
 @book{Vaishnavi:2015:DSR:2807332,
  author = {Vaishnavi, Vijay K. and Kuechler, William},
- title = {Design Science Research Methods and Patterns: Innovating Information and Communication Technology, 2Nd Edition},
+ title = {Design Science Research Methods and Patterns: \newline Innovating Information and Communication Technology, 2Nd Edition},
  year = {2015},
  isbn = {1498715257, 9781498715256},
  edition = {2nd},
@@ -215,3 +235,180 @@ publisher = {{USENIX}},
  publisher = {IEEE Computer Society},
  address = {Washington, DC, USA},
 } 
+
+@inproceedings{cd-pipelines-case-study,
+author = {Paule, Christina and Düllmann, Thomas and van Hoorn, André},
+year = {2019},
+month = {03},
+pages = {},
+title = {Vulnerabilities in Continuous Delivery Pipelines? A Case Study},
+booktitle = {Proceedings of the 2019 IEEE International Conference on Software Architecture (ICSA 2019)},
+doi = {10.1109/ICSA-C.2019.00026}
+}
+
+
+@book{ pandas,
+  author    = { Wes McKinney },
+  title     = { Data Structures for Statistical Computing in Python },
+  booktitle = { Proceedings of the 9th Python in Science Conference },
+  pages     = { 51 - 56 },
+  year      = { 2010 },
+  editor    = { St\'efan van der Walt and Jarrod Millman }
+}
+
+
+%%%% Kilder på supply chain angrep
+
+@article{shadowhammer,
+ author  = {GReAT, AMR},
+ date    = {2019-04-23},
+ title   = {Operation ShadowHammer: a high-profile supply chain attack},
+ journal = {Securelist},
+ url     = {https://securelist.com/operation-shadowhammer-a-high-profile-supply-chain-attack/90380/},
+ urldate = {2019-05-15}
+}
+
+
+@article{symantec-istr-2018,
+ author  = {Symantec Corporation},
+ date    = {2018-04-01},
+ title   = {Internet threat security report, 2018},
+ journal = {Symantec Corporation},
+ url     = {https://www.symantec.com/content/dam/symantec/docs/reports/istr-23-2018-en.pdf},
+ urldate = {2019-05-15}
+}
+
+@article{symantec-istr-2019,
+ author  = {Symantec Corporation},
+ date    = {2019-02-01},
+ title   = {Internet threat security report, 2019},
+ journal = {Symantec Corporation},
+ url     = {https://www.symantec.com/content/dam/symantec/docs/reports/istr-24-2019-en.pdf},
+ urldate = {2019-05-15}
+}
+
+@article{juniper-backdoor-advisory,
+ author  = {Juniper},
+ date    = {2015-12-17},
+ title   = {2015-12 Out of Cycle Security Bulletin: ScreenOS: Multiple Security issues with ScreenOS (CVE-2015-7755, CVE-2015-7756)},
+ journal = {Juniper},
+ url     = {https://kb.juniper.net/InfoCenter/index?page=content&id=JSA10713},
+ urldate = {2019-05-15}
+}
+
+
+@article{crowdstrike-supply-chain-attacks,
+ author  = {CrowdStrike},
+ date    = {2018-07-01},
+ title   = {Securing the supply chain},
+ journal = {CrowdStrike},
+ url     = {https://www.crowdstrike.com/resources/wp-content/brochures/pr/CrowdStrike-Security-Supply-Chain.pdf},
+ urldate = {2019-05-15}
+}
+
+% Distro attacks
+
+@misc{fedora-compromise-2008,
+    author  = {{Paul W. Frields}},
+    title   = {{Infrastructure report, 2008-08-22 UTC 1200}},
+    url = {https://www.redhat.com/archives/fedora-announce-list/2008-August/msg00012.html},
+    year    = {2008},
+}
+
+@misc{fedora-compromise-2011,
+    author  = {{Jared K. Smith}},
+    title   = {{Security incident on Fedora infrastructure on 23 Jan 2011}},
+    url = {https://lists.fedoraproject.org/pipermail/announce/2011-January/002911.html},
+    year    = {2011},
+}
+
+
+
+@misc{gentoo-compromise-2018,
+    author  = {{Gentoo Linux}},
+    title   = {{Project:Infrastructure/Incident Reports/2018-06-28 Github}},
+    url = {https://wiki.gentoo.org/wiki/Project:Infrastructure/Incident_Reports/2018-06-28_Github},
+    year    = {2018},
+}
+@misc{gentoo-compromise-2003,
+    author  = {{Gentoo Linux}},
+    title   = {{[gentoo-announce] GLSA: rsync.gentoo.org rotation server compromised (200312-01)}},
+    url = {https://archives.gentoo.org/gentoo-announce/message/7b0581416ddd91522c14513cb789f17a},
+    year    = {2003},
+}
+
+@misc{linux-compromise-2011,
+    author  = {{The Linux Foundation}},
+    title   = {{The Cracking of Kernel.org}},
+    url = {https://www.linuxfoundation.org/blog/2011/08/the-cracking-of-kernel-org/},
+    day = {31},
+    month = {08},
+    year    = {2011},
+}
+
+@inproceedings{Checkoway:2016:SAJ:2976749.2978395,
+ author = {Checkoway, Stephen and Maskiewicz, Jacob and Garman, Christina and Fried, Joshua and Cohney, Shaanan and Green, Matthew and Heninger, Nadia and Weinmann, Ralf-Philipp and Rescorla, Eric and Shacham, Hovav},
+ title = {A Systematic Analysis of the Juniper Dual EC Incident},
+ booktitle = {Proceedings of the 2016 ACM SIGSAC Conference on Computer and Communications Security},
+ series = {CCS '16},
+ year = {2016},
+ isbn = {978-1-4503-4139-4},
+ location = {Vienna, Austria},
+ pages = {468--479},
+ numpages = {12},
+ url = {http://doi.acm.org/10.1145/2976749.2978395},
+ doi = {10.1145/2976749.2978395},
+ acmid = {2978395},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {VPN, dual EC DRBG, juniper, pseudorandom number generator},
+} 
+
+
+@inproceedings{Cappos:2008:LMA:1455770.1455841,
+ author = {Cappos, Justin and Samuel, Justin and Baker, Scott and Hartman, John H.},
+ title = {A Look in the Mirror: Attacks on Package Managers},
+ booktitle = {Proceedings of the 15th ACM Conference on Computer and Communications Security},
+ series = {CCS '08},
+ year = {2008},
+ isbn = {978-1-59593-810-7},
+ location = {Alexandria, Virginia, USA},
+ pages = {565--574},
+ numpages = {10},
+ url = {http://doi.acm.org/10.1145/1455770.1455841},
+ doi = {10.1145/1455770.1455841},
+ acmid = {1455841},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {mirrors, package management, replay attack},
+} 
+
+@inproceedings{software-reconstruction-1999,
+  author = { R. Torres Cabrera and Bonnie Lee Appleton },
+  title = { Software Reconstruction: Patterns for Reproducing Software Builds },
+  booktitle = {Proceedings of the 6th Pattern Languages of Programs},
+  series = {PLoP'99}
+  year = { 1999 },
+}
+
+@article{Thompson:1984:RTT:358198.358210,
+ author = {Thompson, Ken},
+ title = {Reflections on Trusting Trust},
+ journal = {Commun. ACM},
+ issue_date = {Aug 1984},
+ volume = {27},
+ number = {8},
+ month = aug,
+ year = {1984},
+ issn = {0001-0782},
+ pages = {761--763},
+ numpages = {3},
+ url = {http://doi.acm.org/10.1145/358198.358210},
+ doi = {10.1145/358198.358210},
+ acmid = {358210},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+} 
+
+
+

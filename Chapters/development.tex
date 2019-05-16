@@ -5,18 +5,27 @@
 \documentclass[../Main/thesis.tex]{subfiles}
 \begin{document}
 \chapter{Development}\label{ch:development}
+In this chapter we will be taking a look at the development in this thesis. The
+first section will be focused on learning what the current rebuilder setup is
+doing, establish the base requirements of the rewrite of the visualizer with the
+goal of improving the design.
 
-\section{Requirements}%
-\label{sec:requirements}
-To establish requirements for the subsequent re-implementation of the
-``visualizer'' component we will take a look at the current implementation, and
-how the system works. The overarching requirements is the development and the
-resulting project being a contribution to the Open-Source community.
+After the first iteration is done we will be implementing the merkle tree
+storage for the rebuild submissions. Then we will be focusing on implementing
+the needed signing of the merkle tree roots. The final iteration will be the
+implementation of the transparency log overlay, which will be the front end for
+the apt client to get rebuild submissions.
+
+The last section deals with the integration between the existing apt transport
+and the new visualizer API. We will be removing the support for the old API and
+connect it with the new rewritten API with support for transparency logs. We
+will then make sure the test suite for the transport completes and everything
+works.
 
 \section{Rebuilder}\label{sec:development_rebuilders}
 The purpose of the rebuilder is to watch for new packages, queue them, build the
 package in a clean environment to reproduce the package, and then publish this
-result so we can query them later when installing packages.
+result so we can query these later when installing packages.
 
 To achieve this we need to fulfill a few requirements:
 
@@ -28,8 +37,8 @@ To achieve this we need to fulfill a few requirements:
     \item \label{itm:transport} We need to check the results when installing packages.
 \end{enumerate}
 
-It is important to remember that this system is only targeted Debian as
-supporting is universally would require a lot of engineering effort and handling
+It is important to remember that this system is only targeted at Debian as
+supporting it universally would require a lot of engineering effort and handling
 of special cases.
 
 \begin{figure}[H]
@@ -62,18 +71,18 @@ of special cases.
 \label{lst:rebuilder_sequence_diagram}
 \end{figure}
 
-The overlying architecture is displayed in~\ref{lst:rebuilder_sequence_diagram} as
-a sequence diagram. It gives a quick overview how the different parts interact
-with each other in sequence for one successful package rebuild.
+The overlying architecture is displayed in~\ref{lst:rebuilder_sequence_diagram}
+as a sequence diagram. It gives a quick overview of how the different parts
+interact with each other in sequence for one successful package rebuild.
 
 
 \subsection{buildinfo.debian.net}%
 \label{sub:buildinfo_debian_net}
 The goal is to rebuild packages released by Debian, but getting this information
 directly for a Debian package mirror can be tedious. What we instead do is
-relaying on the buildinfo server created by the Debian project to keep track of
+relying on the buildinfo server created by the Debian project to keep track of
 all published buildinfo files from built packages. This gives us a canonical
-view of all packages built by Debian infrastructure.
+view of all packages built by the Debian infrastructure.
 
 % TODO: Add refference to pull request
 To utilize this service we need to keep a track of all newly submitted files,
@@ -88,7 +97,7 @@ change included so we are able to monitor new buildinfo files.
 \label{sub:scheduler}
 The scheduler is a small service which monitors the endpoint and schedules any
 new files found from the buildinfo server. Currently it pushes new package files
-to redis, which is a very simple key value store, to help schedule the builders.
+to Redis, which is a very simple key value store, to help schedule the builders.
 This enables us to add an arbitrary number of builders. This is important for a
 few reasons. It helps scaling the system if its needed, and it also allows to
 have builders with different architectures to build packages.
@@ -116,7 +125,7 @@ then published to the visualizer.
 \label{sub:visualizer}
 The visualizer is the component which displays the rebuilt packages in a web UI.
 The user is also able to fetch the buildinfo and linkmetadata files. The current
-implementation is a short snippet of code backed by a sqlite database to aid in
+implementation is a short snippet of code backed by a SQLite database to aid in
 displaying the needed webpages. The implemented API as seen in
 \ref{api:old_visualizer} is simplistic and provides the needed features to let
 users verify builds.
@@ -136,8 +145,8 @@ users verify builds.
 \hline
     /new\_build & POST$^1$ & metadata, buildinfo & Submit a new build \\  \hline
     /sources/<name> & GET & & Gets the available builds for a package \\  \hline
-    /sources/<name>/<version>/buildinfo& GET & & Gets the BUILDINFO file for a build \\  \hline
-    /sources/<name>/<version>/metadata & GET & & Gets the in-toto link metadata from a build \\  \hline
+    /sources/<name>/<version>/buildinfo& GET & & Gets the most recent BUILDINFO file for this version\\  \hline
+    /sources/<name>/<version>/metadata & GET & & Gets the most recent in-toto link metadata for this version \\  \hline
 \end{tabulary}
 \footnotesize{$^1$ Behind authentication}\\
 \caption{Old visualizer API}
@@ -150,11 +159,11 @@ users verify builds.
 We have now taken a look at the current implementation of the rebuilder system,
 and how it integrates with the current iteration of the visualizer. In the next
 session we will explain the development of the system for this thesis. It's
-structured in 3 iterations of the visualizer, and an integration with the
+structured in 4 iterations of the visualizer, and an integration with the
 existing APT transport written for the initial rebuilder system. We will in the
 first iteration tackle the problem of maintaining compatibility with the current
 system. The second iteration will be focusing on the implementation of the raw
-merkle tree needed for transparency log. The third iteration will be the
+Merkle tree needed for transparency log. The third iteration will be the
 abstracted logic on top of the transparency log, which the APT transport will be
 utilizing when validating packages for the users.
 
@@ -169,7 +178,7 @@ in-toto link metadata file and buildinfo file produced by the rebuilder. This
 needs to be displayed in a simple webpage and introduce no new features to
 remain compatible.
 
-Thus the goals for this iteration is as follows;
+Thus the goals for this iteration are as follows;
 
 \begin{itemize}
     \item Maintain compatibility with the old visualizer
@@ -292,11 +301,11 @@ build the needed data structures.
 \end{figure}
 
 The first step is to make sure the database format is correctly represented. The
-previous iteration had a strict dependency on sqlite, which is a very simple
+previous iteration had a strict dependency on SQLite, which is a very simple
 database stored in a single file. This works well for point of concept
 implementations and where the database does not grow exceedingly large.
 
-In the rewrite we will be utilizing an ORM for python, the sqlalchemy library.
+In the rewrite we will be utilizing an ORM for python, the SQLAlchemy library.
 This will allow us to define data models and instantiate them on top of
 different database engines. The database structure itself closely copies the one
 from the original implementation. The schema as displayed on~\ref{fig:schema},
@@ -304,23 +313,23 @@ page~\pageref{fig:schema}, represent the implemented model in the ORM.
 
 The schema implements the model as follows; ``package'' can have multiple
 ``versions''. The models that belong to ``linkmetadata`` and ``buildinfo`` is
-the tables containing the data itself. In the previous iteration these where
+the tables containing the data itself. In the previous iteration these were
 stored as plain text files, which is a less portable way of dealing with the
 data. There can be multiple submissions for each version, so this relation is a
-``One-to-Many`` relationship where one ``version'' can have multiple submissions
+one-to-many relationship where one ``version'' can have multiple submissions
 from rebuilders.
 
 The ``UUID'' field found in the ``linkmetadata'' and ``buildinfo'' model is
 mostly a hack. The main issue was to find the pairs of submissions without
 over-complicating the database structure. One solution would be to create a new
 table to associate the submissions. This would enable us to properly group them
-later on an find the individual pairs. However, because of some time
-constraints, and because the implementation of a new model would take some time,
-the addition of an unique ``UUID'' for each submission is an easier alternative
-that is simple to implement. This allows us to group the submissions for the
-frontend later on.
+later on and find the individual pairs. However, because of time constraints,
+and because the implementation of a new model would take some time, the addition
+of an unique ``UUID'' for each submission is an easier alternative that is
+simple to implement. This allows us to group the submissions for the frontend
+later on.
 
-It should be noted that the ORM handles the One-to-many and many-to-many
+It should be noted that the ORM handles the one-to-many and many-to-many
 relationships. They are not explicitly included in the modeled schema for on 
 for the sake of brevity.
 
@@ -349,9 +358,9 @@ class Version(db.Model):
 \label{lst:version-model}
 \end{listing}
 
-The sqlalchemy library enables us to define database models as native Python
+The SQLAlchemy library enables us to define database models as native Python
 classes. As can be seen in~\ref{lst:version-model} we are able to represent the
-needed files, and relationships for the ``Version'' model. In total the
+needed files, and relationships for the ``version'' model. In total the
 implementation consists of 4 classes which we are able to query, create and
 update. This lets us avoid having to implement the transition from the database
 format to the correct data representation in the project.
@@ -362,11 +371,11 @@ format to the correct data representation in the project.
 To reimplement the API as can be seen in table~\ref{api:old_visualizer} on
 page~\pageref{api:old_visualizer}, we need to create the needed routes for the
 web service. This is being done by Flask, which is a webserver framework for
-python. The same framework was utilized in the original implementation and
+Python. The same framework was utilized in the original implementation and
 enables us to mainly substitute the code from the old database implementation,
 to the one utilizing the ORM. There are two parts to this, one part needs to
 return the plain-text elements for the APT transport, and one part needs to
-render HTML webpages for the user too browse.
+render HTML webpages for the user to browse.
 
 
 \begin{listing}[htpb]
@@ -382,7 +391,7 @@ def all_sources_pkg(pkgname):
     ).all()
     return render_template("source.html", package=pkgname, entries=entries)
 \end{minted}
-\caption{Python code for source.html}
+\caption{Python code for source.HTML}
 \label{lst:python-source}
 \end{listing}
 
@@ -438,18 +447,18 @@ package and version.
 
 \subsection*{REST API Considerations}%
 \label{sub:api_considerations}
-The models we create heavily rely on relationships to properly store the
+The models we create rely heavily on relationships to properly store the
 information across several tables. Since we also back-reference across models,
 we end up in a peculiar situation. When we turn the models to a JSON structure,
 or attempt to debug them with the relationships enabled, they will recurse until
-the global stack limiter in python is hit. This makes it somewhat impossible to
-output the models in a good manner when debugging and developing the models.
+the global stack limiter in python is hit. This makes it somewhat hard to output
+the models in a good manner when debugging and developing the models.
 
 For debugging and development purposes, there was a simple REST API developed to
 inspect the created objects when submitting new rebuilds. These would recurse
 indefinitely and crash the application. To counter this we wrote a simple hack
 to make sure the models would not indefinitely recurse. Since we are capable of
-inspecting the stack in python, we write a simple wrapper to the functions prone
+inspecting the stack in python, we wrote a simple wrapper to the functions prone
 to the recurse problem.
 
 \begin{listing}
@@ -485,34 +494,36 @@ class Package(db.Model):
 \label{lst:recurse_limiter_usage}
 \end{listing}
 
-Listing~\ref{lst:recurse_limiter} is a short and simple which inspects the stack
-for every function it is wrapping. We are using the python syntax sugar for
-decorators. They are functions which wrap around another function, with an added
-syntax for the sake of clarity. This will be invoked before the function it is
-wrapping gets called. Here we simply check if the stack is larger then 25, in
-which case we stop calling the functions an return. This is a slight hack, but
-it works to limit the depth of the objects when outputting the raw models.
+Listing~\ref{lst:recurse_limiter} is a short and simple function which inspects
+the stack for every function it is wrapping. We are using the python syntax
+sugar for decorators. They are functions which wrap around another function,
+with an added syntax for the sake of clarity. The ``recurse'' decorator will be
+invoked before the function it is wrapping gets called. Here we simply check if
+the stack is larger then 25, in which case we stop calling the JSON deserializer
+and return. This is a slight hack, but it works to limit the depth of the
+call stack when outputting the raw models.
 
 Listing~\ref{lst:recurse_limiter_usage} shows how we create the JSON objects.
-Since we want consistency, we utilize `OrderedDict` which is a dictionary
+Since we want consistency, we utilize OrderedDict which is a dictionary
 reimplementation keeping insertion order of the items. This enables us to output
 the objects in a consistent manner.
 
-The current visualizer doesn't utilize any sort of REST API, this was created to
-aid in debugging and lay down the ground work for the future REST API
-implementation. This approached worked wonderful in the next iterations of the
-project for debugging and API purposes.
+The current visualizer doesn't utilize any sort of REST API, but we did write a
+few REST API endpoints for testing  purposes and aid in debugging. This also
+laid down the ground work for the future REST API implementations. This
+approach worked wonderful in the next iterations of the project for debugging
+and API purposes.
 
 
 \subsection*{Results}%
 \label{sub:first_iteration_results}
 
 The result of this development is a mirror of the previous visualizer
-implementation. The main requirement is to be able to query the last submitted
-buildinfo and linkmetadata file. The fact that it only is capable of querying
-the last submission is a design choice from the first revisions as it only
-stored the last submitted files. For compatibility reasons this is kept in the
-rewrite.
+implementation. The requirement to achieve compatible interfaces is to be able
+to query the most recent buildinfo and link metadata file. The fact that it
+only is capable of querying the most recent is a design choice from the
+first revisions as it only stored the last submitted files. For compatibility
+reasons this is kept in the rewrite.
 
 \begin{figure}[H]
 \center{\includegraphics[]{../Pictures/overview.png}}
@@ -538,16 +549,18 @@ The second iteration focuses on implementing merkle trees into the visualizer.
 These will create the foundation of the transparency log in the upcoming
 iterations for this project.
 
-These will be implemented along side of the reimplementation of the visualizer,
+These will be implemented alongside of the reimplementation of the visualizer,
 and the current structure of the code. We will take a look at the challenges of
 implementing this correctly along with making sure the proofs are correctly
 implemented to support a transparency log.
 
 \subsection*{Goals}%
 \label{sub:second_iteration_goals}
-The goals of this iteration is as to make sure the merkle tree operated
-properly. For this to happen there needs to be validated proofs and a proper
-tree generated when new items are added.
+The goals of this iteration is to make sure the merkle tree operated properly.
+For this to happen there needs to be validated proofs and a proper tree
+generated when new items are added. We will also be writing a very simple output
+where we can visualize the generated tree as a node graph. This will aid in
+debugging the creation of the tree.
 
 \begin{itemize}
     \item Implement the needed database models for the datastructure
@@ -555,7 +568,7 @@ tree generated when new items are added.
     \item The tree should not be rebuilt for each append
     \item Audit proofs should be implemented
     \item Consistency proofs should be implemented
-    \item Graph the tree
+    \item Visualize the tree graph
 \end{itemize}
 
 
@@ -569,7 +582,7 @@ below.
 
 The development of this project will be done in a few stages. First we will take
 a look at the underlying database model needed to construct the trees. Next up
-is how to construct merkel trees without rebuilding all interior nodes. We need
+is how to construct Merkle trees without rebuilding all interior nodes. We need
 to have a way to append new nodes by rehashing the least amount of interior
 hashes.
 
@@ -585,18 +598,18 @@ library written by~\citeauthor{pymerkeltools} to aid in the creation of the
 transparency log proof algorithms~\cite{pymerkeltools}. It should be noted that
 this library does not provide a persistence storage outside of just storing the
 plain text tree as a JSON structure in a file. Our goal is to reuse portions of
-the library code, and adapt them to a tree structure backed by postgresql to
+the library code, and adapt them to a tree structure backed by PostgreSQL to
 provide the transparency log features. This allows us to have a proper backend
 storage for the merkle tree.
 
 
 \subsection*{Database}%
 \label{sub:database}
-Since we have implemented the visualizer with ``sqlalchemy'', the idea is to
+Since we have implemented the visualizer with SQLAlchemy, the idea is to
 utilize the SQL backend to store the tree. This gives a few challenges on how to
-structure the model when it comes with relationships. We need to traverse the
-tree for the proofs developed later on, so there should be easy rely on and
-construct when constructing new nodes.
+structure the model when it comes to relationships. We need to traverse the
+tree for the proofs developed later on, so the relationships bindings in the
+model should be correct and be easy to differentiate.
 
 \begin{listing}[H]
 \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{python}
@@ -626,29 +639,29 @@ class Node(db.Model):
 
     children_id = db.Column(db.Integer, db.ForeignKey("node.id"))
 \end{minted}
-\caption{Node sqlalchemy model}
+\caption{Node SQLAlchemy model}
 \label{lst:node_model}
 \end{listing}
 
 Listing~\ref{lst:node_model} shows the model that was settled on. Each of the
 fields serve a purpose in the current model. ``leaf\_index'' keeps track of what
-position as leaf node it is. This is important when we start constructing proofs
-as some of the lookups needs to know what leaf number 16 is. ``type'' denotes
-one of two things, ``data'' for leaf nodes or ``level'' for interior nodes.
-``data'' is a leaf node that has the ``data'' field filled with JSON. ``level''
-has no ``data'' field, but does have both ``left'' and ``right'' filled with the
-appropriate child node. ``hash'' contains the hash of the ``data'' JSON object.
+position as leaf node it was inserted as. This is important when we start
+constructing proofs as some of the lookups needs to know what leaf number 16 is.
+``type'' denotes one of two things, ``data'' for leaf nodes or ``level'' for
+interior nodes.  ``data'' is a leaf node that has the ``data'' field filled with
+JSON. ``level'' has no ``data'' field, but does have both ``left'' and ``right''
+filled with the appropriate child node. ``hash'' contains the hash of the
+``data'' JSON object.
 
 The relationship modeled was a bit difficult to get correctly modeled in SQL.
-The intentions was to have one foreign key to bind the left and right
+The intentions were to have one foreign key to bind the left and right
 relationships to, but this turned out to be difficult to implement. The solution
 was to have the ``left'' relationship bind to ``children\_left\_id'' and
 ``right'' bind to ``children\_right\_id''. This solves the problem of having the
-relationship correctly modeled, however to find the correct child node for the
-leaf and interior node, we need to check both left and right to find the correct
-node.
+relationship correctly modeled. To find the correct child node for the leaf and
+interior node, we need to check both left and right to find the correct node.
 
-\begin{figure}[hbst]
+\begin{figure}[htpb]
 \centering
 \begin{tikzpicture}
 \Tree
@@ -663,11 +676,12 @@ node.
 
 In the example node relationship in Figure~\ref{fig:relationship_example} we can
 demonstrate what the ORM described in Listing~\ref{lst:node_model} would end up
-looking like. If we sit with the appropriate model for ``N1'' we have a interior
-node with a parent, left and right relationship. The parent node ``r'' where
-we can peak at the values ``children\_left'' and ``children\_right'' values to
-find the correct node. To find the ``l'' and ``r'' leaf nodes in this example we
-only have to check the ``left'' and ``right'' relationships respectively.
+looking like. If we sit with the appropriate model for ``N1'' we have an
+interior node with a parent, left and right relationship. The parent node ``r''
+where we can peek at the values ``children\_left'' and ``children\_right''
+values to find the correct node. To find the ``l'' and ``r'' leaf nodes in this
+example we only have to check the ``left'' and ``right'' relationships
+respectively.
 
 We are keeping everything in the same table with the same model. There is no
 inherent distinction between leafs, interior nodes and root nodes in this
@@ -678,51 +692,52 @@ to look for the last inserted ``level'' node.
 \subsection*{Construct tree}%
 \label{sub:construct_tree}
 We now have the database model we can build the tree with. Since this system is
-suppose to run over time, and might target thousands of nodes, we need to be
-able to append to the tree without re building the entire tree. This is a
+supposed to run over time, and might target thousands of nodes, we need to be
+able to append to the tree without rebuilding the entire tree. This is a
 tedious process and could very well take quite a while if the number of nodes
-grow large enough.
+grows large enough.
 
 The algorithm to build a tree, where all the interior nodes are hashed for every
 new insertion involves counting the number of nodes to be hashed. If this is an
 odd number, promote the last node in this list to the next step. Now we take two
 and two nodes and hash them together, left to right. This creates interior nodes
-we call ``levels''. When this is done, we start from the beginning and the
+we call ``levels''. When this is done, we start from the beginning, and the
 current set of interior nodes are the nodes we operate on.
 
 This is a tedious process and does not scale very well over time. What we do
-need is an algorithm that only rehash the changed interior nodes.
+need is an algorithm that only rehashes the changed interior nodes.
 
 The algorithm for this involves figuring out all the loose subroots of the tree.
-This approach to append new notes has been described in the original paper
+This approach to append new nodes has been described in the original paper
 by~\citeauthor{182788} where they calculate frozen subroots down on the left
 Side of the tree until the appropriate subroot is reached~\cite{182788}.
 
-Our implementation is as follows; we take the count of all leafs in the tree and
+Our implementation is as follows; we take the count of all leaves in the tree and
 use them to calculate the largest complete subtree in the merkle tree, and
 remove this from the count.  What we are left with are all the nodes in surplus
 on the right hand side of the tree.
 
 We can then walk down the tree on the left side, append the current node on the
 path, and then do the same calculation with the nodes in surplus. We then know
-the next complete subtree in the chain, remove them from the count, append the
-node and walk down. We continue this until we reach 0 loose nodes, in which case
-we are at the node we are suppose to append the new node with. The chain of
-appended nodes upwards is the list of nodes we need to append with to rehash all
-of the interior nodes of the tree.
+the next complete subtree in the chain, remove the amount of nodes the complete
+subroot has from the count, append the node and walk down. We continue this
+until we reach 0 loose nodes, in which case we are at the node we are supposed to
+append the new node too. The chain of appended nodes upwards is the list of
+nodes we need to append with to rehash all of the interior nodes of the tree.
 
-The resulting code takes the new node that is going to be appended and hashes it
-in the with the lowest node going up. This only rehashes the interior nodes of
-the tree that needs to be rehashed. This lets us very easily reach a fast
-append-only merkel-tree implementation backed by a SQL database.
+The resulting code takes the new node that is going to be appended, and hashes
+it in the with the most recent node, then walks up the chain. This only rehashes
+the interior nodes of the tree that needs to be rehashed. This lets us very
+easily reach a fast append-only Merkle tree implementation backed by an SQL
+database.
 
 
 \subsection*{Cryptographic attack mitigation}%
 \label{sub:mitigate_attack}
-To the nodes we need to consider the two sources of information we are
-essentially hashing. If the node is a leaf we need to hash the JSON data
+When constructing hashes we need to consider the two sources of information we
+are essentially hashing. If the node is a leaf we need to hash the JSON data
 structure. This is done by taking the keys and values in the JSON structure and
-hashing them together in order. If the node is a interior node, this step is
+hashing them together in order. If the node is an interior node, this step is
 omitted and the hash consists of the hash of the left and right nodes as shown
 in Listing~\ref{lst:node_hashing_strategy}. The result of this is the
 appropriate hash for the node.
@@ -735,16 +750,16 @@ H\{\text{NodeType},\ \text{LeftNode},\ \text{RightNode}\}
 \end{equation*}
 \end{listing}
 
-There are a few attacks on can do in practice on any data structure that uses
+There are a few attacks one can do in practice on any data structure that uses
 cryptographic hashes. Since the same output always returns the same value, they
-are prone to what is called a ``second preimage'' attack~\cite{rfc4270}. If the
-attacker know the input, they can re append the values, and create the same hash
+are prone to what is called a ``second preimage'' attack. If the
+attacker knows the input, they can re append the values, and create the same hash
 in the tree.  This can allow the construction of malicious data or open up for
-other venues of attack.
+other venues of attack~\cite{rfc4270}.
 
-To mitigate this, certificate transparency log append a null byte value for
+To mitigate this, a certificate transparency log appends a null byte value for
 leafs, and a 1 byte value for levels in the tree. This makes sure that we can't
-replay previous data as there is always some values being appended. In our
+replay previous data as there are always some values being appended. In our
 implementation we append ``data'' and ``level'' as the prefix in the hashed
 value. This serves the same purpose as the certificate transparency logs.
 
@@ -753,22 +768,21 @@ value. This serves the same purpose as the certificate transparency logs.
 \label{sub:graph_merkle_tree}
 To validate that we are getting the correct association and relationships when
 appending new elements, one of the important things to get is a visualization of
-the currently constructed merkle tree. To aid the discovery of problematic nodes
-the first 10 letters of the hash is printed with the node to easily find the
-affected node and aid debugging.
+the currently constructed merkle tree. To aid the discovery of problematic
+nodes, the first 10 letters of the hash is printed with the node to easily find
+the affected node and aid debugging.
 
 To do this we loop through all of the nodes in the tree. We print out the left,
-and right parent of the node in a format that is compatible with the graphviz
+and right parent of the node in a format that is compatible with the Graphviz
 tool to generate pictures. The output found in Listing~\ref{lst:graphviz-test}
 enables us to produce the PDF picture in Figure~\ref{fig:graphviz_pdf} by
 supplying the output to ``dot -Tpdf''.
 
-It should be noted that when trees get sufficiently large, the graph it self is
+It should be noted that when trees get sufficiently large, the graph itself is
 of less value when debugging. It is hard to get a good overview when the tree
 reaches around 60 nodes as the generated trees are spacious. Not enough time was
 invested trying to fiddle with the style got a proper display when the trees
-grow large enough. However, they did aid in early debugging when trees where
-sparse.
+grow large. However, they did aid in early debugging when trees were sparse.
 
 %TC:ignore
 \begin{listing}[H]
@@ -808,11 +822,11 @@ have implemented the database structure in a succinct manner.
 The audit proof needs the id, or the hash of the node that should have the audit
 proof generated. When we have the node, we essentially traverse the children of
 the node. We then check on what side of the child the parent node is on. If it's
-on the left side, we fetch the right node on the next children. This node is
+on the left side, we fetch the right node on the next child. This node is
 appended to the list with the keyword ``RIGHT''. If it's on the right side, we
-fetch the left node on the next children side. This node is appended to the list
-with the keyword ``LEFT''. We then traverse to the next child and continue the
-path upwards until the root node is reached, which has no child node.
+fetch the left node on the child. This node is appended to the list with the
+keyword ``LEFT''. We then traverse to the next child and continue the path
+upwards until the root node is reached, which has no child node.
 
 When all the nodes are appended to a list, with the correct side expressed we
 have a complete list of all the nodes needed. We can then append the current
@@ -827,7 +841,7 @@ given and append the hash on the correct side of the previous hash.
 
 \subsection*{Consistency proof}%
 \label{sub:consistency_proof_implementation}
-Consistency proofs are very similar to audit proof, however they carry another
+Consistency proofs are very similar to audit proofs, however they carry another
 important property. They allow us to follow the path from a given known signed
 merkle tree root to the current new one. They are important to make sure we are
 capable of tracing a path from the last known tree root we have, and to the
@@ -845,7 +859,7 @@ roots. We can then take the heights, and start from the first leaf, move up the
 tree until the root of the largest complete subtree is found. Then we know how
 many leafs we have to move forward until we can start to climb the next subtree.
 
-Once this is done with all the founds heights, we have all the needed roots to
+Once this is done with all the found heights, we have all the needed roots to
 recreate the previous merkle tree root. This can be checked by taking the
 previous tree root which is given as the input and do at the same hash
 concatenation as we do with the audit proof. If this value is as expected, we
@@ -903,8 +917,8 @@ important features, namely the audit proof and the consistency proof.
 The goals stated in the beginning of this iteration have been met. 
 
 An appropriate database model has been constructed, and given us the needed
-relationships between nodes to form a tree, and effectively port the needed
-algorithms to this tree structure. By lifting some code from the ``pymerkle''
+relationships between nodes to form a tree, and effectively ports the needed
+algorithms to this tree structure. By lifting some code from the pymerkle
 library we are able to create append-only trees without having to rehash all
 interior nodes of the merkle tree.
 
@@ -954,7 +968,7 @@ for each appropriate proof.
 It should be noted that while annotating the output graphs I discovered that the graphviz
 output as displayed in subsection~\ref{sub:graph_merkle_tree} is inherently
 unordered, at least for complete subtrees. Incomplete subtrees would always be
-outputed on the right hand side of the graph, but graphviz does not guarantee
+output on the right hand side of the graph, but graphviz does not guarantee
 any ordering of the internal subtrees. That means the graph as shown in these
 examples does not completely represent the ordering of the internal tree, but
 this has no bearing on the result of the generating paths at all. It's mostly a
@@ -971,11 +985,11 @@ displayed graph leaf number three. A bit hard to follow, but we will endure!
 \end{equation*}
 \end{listing}
 
-The way the path proofs are structure is a JSON object in a structure like
-Listing~\ref{lst:Path structure}. We have tuples with two elements. The first
-specifies the side which the hash should be concatenated on, this can either be
-``LEFT'' or ``RIGHT''. The node object is the JSON structure we get from the
-Node object as defined in the ORM model.
+The way the path proofs are structured is a JSON object in a structure like
+shown on listing~\ref{lst:Path structure}. We have tuples with two elements. The
+first specifies the side which the hash should be concatenated on, this can
+either be ``LEFT'' or ``RIGHT''. The node object is the JSON structure we get
+from the Node object as defined in the ORM model.
 
 \begin{listing}[H]
 \caption{Code for validating path}
@@ -1001,12 +1015,12 @@ To concatenate so we achieve the present root node, we need a function to hash
 each of the tuples on the correct side. The Listing~\ref{lst:hashing algorithm}
 displays this algorithm used in this project. There are a few important points.
 
-The lines 2 and 3 deal with the possible issue of having an empty chain behind
-hashed. This is more of a short circuit in the case we are dealing with empty
-paths. Line 4 explicitly deals with the fact that Python is designed to be
-``pass-by-reference''. Any modifications on the path when we pop off items to
-create the hash will affect any code holding the reference. We thus copy the
-list to make sure no references are modified. Rest of the code is all about
+The lines 2 and 3 deal with the possible issue of having an empty list hashed.
+This is more of a short circuit in the case we are dealing with empty paths.
+Line 4 explicitly deals with the fact that Python is designed to be
+pass-by-reference. Any modifications on the path when we pop off items to create
+the hash will affect any code holding the reference. We thus copy the list to
+make sure no references are modified. The rest of the code is all about
 concatenating the strings on the correct side of the nodes to create the hash.
 
 
@@ -1058,7 +1072,7 @@ sake of keeping things terse.
 The figure~\ref{fig:validate_proof_tree} on page
 \pageref{fig:validate_proof_tree} is the audit tree with the appropriately
 highlighted nodes, and the same nodes are found by the audit endpoint and a path
-to the root node is correctly generated, this can be verified running the given
+to the root node is correctly generated. This can be verified running the given
 structure with the previously mentioned hash function.
 
 In our case we can also trust the initial validation done by the server, as it
@@ -1104,14 +1118,14 @@ Listing~\ref{lst:consistency proof} displays the consistency proof. It is
 considerably smaller then the audit proof as we are only dealing with the
 subroots. Since we are dealing with a rather small tree, it is not the best
 situation to show off a consistency proof, as one subroot of the two is a
-previous merkle tree root, thus we are only getting two in return we need to
+previous merkle tree root. Thus we are only getting two in return we need to
 hash together. 
 
 However, as shown on~\ref{fig:consistency_proof_tree} on
 page~\pageref{fig:consistency_proof_tree} we are returned the correct tree roots
 for the proof and thus we have implemented the needed proofs.
 
-In Section~\ref{sec:testing} on page~\pageref{sec:testing} we are going to
+In Section~\ref{ch:evaluation} on page~\pageref{ch:evaluation} we are going to
 investigate and test the transparency log implementation further.
 
 \subsection{Third Iteration: Tree root signing}%
@@ -1121,7 +1135,7 @@ by~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} in certificate
 transparency logs is the ability to have tree-roots
 signed~\cite{b.-laurie-a.-langley-e.kaster-google-2013}. This lets us verify
 with public key cryptography that the tree-root was created by the given
-transparency log. In this chapter we will go through how this implemented.
+transparency log. In this chapter we will go through how this is implemented.
 
 \subsection*{Goals}%
 \label{sub:third_iteration_goals}
@@ -1137,11 +1151,11 @@ signatures on tree nodes.
 
 \subsection*{Development}%
 \label{sub:third_iteration_development}
-For the development of this feature we are utilizing the ``securesystemslib'' from
+For the development of this feature we are utilizing the securesystemslib from
 New York University's' secure systems lab. It's a library with a collection of
 easy-to-use primitives to deal with encryption, decryption and signature
 verification on data for python. Utilizing this library makes it trivial to
-implement the needed signature functionality in a short concise manner.
+implement the needed signature functionality in a short and concise manner.
 
 \begin{listing}[H]
 \caption{Glue code for ``securesystemslib''}
@@ -1173,11 +1187,11 @@ def verify_data(signature, data):
 The implementation itself consists of a file for the needed code to ease the key
 creation for the rebuilder. For the sake of ease, we don't consider problems
 such as password strength for the signing key as the main focus is on the
-transparency log implementation, so in this implementation the password is
-hard coded to ``123'', which is admittedly a poor password. For the
-cryptography, elliptic curves are used instead of the traditional RSA algorithm.
-The choice behind this is because elliptic curves needs less bits to produce
-equally strong keys. We then end up with faster and smaller signatures.
+transparency log implementation. In this implementation the password is hard
+coded to ``123'', which is admittedly a poor password. For the cryptography,
+elliptic curves are used instead of the traditional RSA algorithm. The reason is
+that elliptic curves needs less bits to produce equally strong keys. We then end
+up with faster and smaller signatures.
 
 These auxiliary functions makes it trivial to further implement the tree root
 signing in the model.
@@ -1225,7 +1239,7 @@ implement tree root signing in the current implementation of the visualizer.
 \subsection*{Results}%
 \label{sub:third_iteration_results}
 
-The results of this iteration is 2 new endpoints and some new code to help with
+The results of this iteration is two new endpoints and some new code to help with
 signing tree roots in the transparency log. The resulting API endpoints can be
 found in Table~\ref{api:crypto_api} which shows the newly created endpoints.
 
@@ -1280,7 +1294,7 @@ To verify a tree root on the server side, we can provide the output from
 ``/api/log/tree/root'' from Listing~\ref{api:transparency_log}, and forward this
 to ``/api/crypto/verify''. In the example from
 Listing~\ref{lst:test-verify-endpoint}, we have provided a minimal tree root
-json object to display a successful verification of a tree root on the server
+JSON object to display a successful verification of a tree root on the server
 side.
 
 %TC:ignore
@@ -1305,10 +1319,10 @@ $ curl --header "Content-Type: application/json" \
 \subsection{Fourth Iteration: Transparency log overlay}%
 \label{sub:transparency_overlay}
 In this section we are going to create an abstraction over the values we insert
-into the merkle tree. So far the only been using mock values to test the
+into the merkle tree. So far we have only been using mock values to test the
 correctness of the tree. But we are after all going to record the submissions
 from the rebuilder and append them to the log. We also need to expose a new API
-to the apt transport which we need to integrate with at a later point.
+to the APT transport which we need to integrate with at a later point.
 
 We want to have some enforced properties to see how we can implement
 abstractions on the values. We can't remove entries once they are on the
@@ -1319,25 +1333,25 @@ advisories from the parent distribution.
 \subsection*{Goals}%
 \label{sub:fourth_iteration_goals}
 
-The goals for this iteration is as follows;
+The goals for this iteration are as follows;
 
 \begin{itemize}
-    \item We should have well defined objects to return
+    \item We should have well defined entry formats
     \item We should be able to find package submissions
     \item We should be able to revoke package submissions
 \end{itemize}
 
 \subsection*{Development}%
 \label{sub:fourth_iteration_development}
-First we need to figure out what data we are dealing with. Lets start off by
-defining one item appended on the tree as an "Entry". An entry should always
+First we need to figure out what data we are dealing with. Let us start off by
+defining one item appended on the tree as an ``Entry''. An entry should always
 contain two key pieces of information, namely package name and version. This is
 important to retrieve them at a later point.
 
 Once we have established this we need to figure out what sort of entries we are
-dealing with. We are going to deal with namely two actions, accepting
-submissions from the rebuilder, which we will call ``inclusions'', and
-revocations of said submissions. 
+dealing with. We are going to deal with two actions, accepting submissions from
+the rebuilder, which we will call ``inclusions'', and revocations of said
+submissions. 
 
 \begin{listing}[H]
 \caption{Entry definitions}
@@ -1357,19 +1371,20 @@ revoke = {"type": "revoke",
 \end{minted}
 \end{listing}
 
-Listing~\ref{lst:entrydefinitions} displays some Python code to illustrate the
+Listing~\ref{lst:entrydefinitions} displays Python code to illustrate the
 two entries we are going to be dealing with on this transparency log. We have
-the ``inclusion'' entry which lists the package name and version, this is a
+the ``inclusion'' entry which lists the package name and version. This is a
 common field assumed for all entries, along with the appropriate files that
-contain the buildinfo, which contains the record for the build environment, and
-the linkmetadata, which is the in-toto metadata needed for the client
+contain the buildinfo, which contains the record for the build environment. 
+
+We also have linkmetadata, which is the in-toto metadata needed for the client
 verification later on. This denotes that the package and the files has been
 rebuilt and is a submission.
 
 The other entry we will be dealing with is a ``revoke'' entry. This denotes an
 inclusion which has been marked as bad. We will be using these entries to mask
 inclusion entries on the client side. This contains two fields. The ``hash''
-fields denotes the hash of the merkle tree object containing an inclusion entry.
+field denotes the hash of the merkle tree object containing an inclusion entry.
 The next field is ``reason'' which can contain an optional message as to why the
 given inclusion has been revoked.
 
@@ -1379,9 +1394,9 @@ page~\pageref{sub:first_iteration_development}.
 
 Extending the previous ``/new\_build'' endpoint, where we are creating the
 needed ``Package'' and ``Version'' models for database insertion, we now also
-append the relevant information to the transparency log. This is fairly straight
-forward as we only need to construct the ``inclusion'' dictionary and insert it
-as JSON on to the database.
+append the relevant information to the transparency log. This is fairly
+straightforward as we only need to construct the ``inclusion'' dictionary and
+insert it as JSON into the database.
 
 \begin{listing}[H]
 \caption{Fetch entries}
@@ -1402,14 +1417,14 @@ def rebuilder_fetch(name, version):
 We also need to fetch all entries on the database given a package name and
 version. PostgreSQL has dedicated JSON support in their database, which our
 model defined on listing~\ref{lst:node_model} on page~\pageref{lst:node_model}
-has implemented for the data field. What we can now do is use native postgresql
+has implemented for the data field. What we can now do is use native PostgreSQL
 filters on the JSON as seen on listing~\ref{lst:fetch_entries}. This allows us
 to easily filter through all entries and return them easily for the REST API.
 
-When it comes to having an ``revoke'' entry, we need to have a few
-considerations in place. As input we need the hash of an node on the merkle
+When it comes to having a ``revoke'' entry, we need to have a few
+considerations in place. As input we need the hash of a node on the merkle
 tree with a ``inclusion'' entry. Currently we don't want to publish revocations
-of any objects, as future entries could be implemented in the future. What we do
+of any objects, as further entries could be implemented in the future. What we do
 is that we look up the hash, get the object and verify the type of the entry
 before submitting the revoke entry on the object.
 
@@ -1497,7 +1512,7 @@ $ curl -XPOST --header "Content-Type: application/json" \
 Listing~\ref{lst:rebuild_revoke_curl} enables us to revoke the inclusion on the
 tree and also allows us to state the reason for the revocation of the inclusion.
 This evidently works fine and allows us to fetch all of the entries on the test
-package. We are currently using a previous rebuilt package with a corresponding
+package. We are currently using a previously rebuilt package with a corresponding
 linkmetadata file. The package is called ``lostirc'' and the version is
 ``0.4.6-4.2''
 
@@ -1536,7 +1551,7 @@ multiple inclusion proofs for the same package as we are only dealing with the
 package name and the package version.
 
 This API is flexible and can be extended to include multiple entries in the
-future. We will now attempt to integrate them into the ``apt'' package handler.
+future. We will now attempt to integrate them into the APT package handler.
 
 
 \subsection{APT Transport integration}\label{sec:apt_transport}
@@ -1546,8 +1561,8 @@ future. We will now attempt to integrate them into the ``apt'' package handler.
 
 So far we have implemented the server side of this software. Now comes the
 client side which will do the package verification towards the visualizer.
-The current rebuilder system as implemented before this thesis, the was an
-integration with the ``apt'' package manager for debian written for this. The
+The current rebuilder system as implemented before this thesis, there was an
+integration with the APT package manager for Debian written for this. The
 purpose of this integration is to have a process which let apt download the
 appropriate package, but in a way where we can do additional verification.
 
@@ -1576,14 +1591,14 @@ appropriate package, but in a way where we can do additional verification.
 The sequence diagram in Figure~\ref{fig:intoto_sequence_diagram} shows the idea
 behind this. When apt communicated with a package repository it will use a
 binary for the communication between the client and the server. What we have is
-an ``intoto'' client which can be used as a drop-in replacement of the ``http''
+an ``in-toto'' client which can be used as a drop-in replacement of the ``http''
 one. We only forward between the client and the apt server until we see that a
 package has been acquired, this is recognized when the ``201 URI Done'' message
 is passed. This implies we have downloaded the package locally. We
 man-in-the-middle this message and begin our verification process.
 
 This process involves having configured one or more rebuilders we should be
-communicating with in an configuration file. We will then request each of the
+communicating with in a configuration file. We will then request each of the
 rebuilders on this list for the linkmetadata file. The verification step is
 implemented with ``in-toto''. This involves a layout from in-toto which
 describes the expected keys and the threshold that needs to be met for the
@@ -1600,7 +1615,7 @@ implementation.
 \subsection*{Goals}%
 \label{sub:apt_transport_goals}
 For this integration we need to move the old API interactions to the new one. To
-do this we need to implement a few thing.
+do this we need to implement a few things.
 
 \begin{itemize}
     \item We need to store rebuilder tree roots
@@ -1610,8 +1625,8 @@ do this we need to implement a few thing.
     \item Validate with available metadata
 \end{itemize}
 
-This should be validated locally and inherently no need to trust the output of
-the rebuilders.
+An additional goal of the API is to validate the output without need to trust
+any validations the rebuilder does.
 
 \subsection*{Development}%
 \label{sub:apt_transport_development}
@@ -1625,13 +1640,13 @@ The steps needed are
     \item Have previous known merkle tree state
     \item Fetch consistency proof and validate this
     \item Store new tree root in place of old tree root
-    \item Fetch available entries on package
-    \item Validate package with any valid inclusion entries
+    \item Fetch available entries on the given package
+    \item Validate package -with any valid inclusion entries
 \end{enumerate}
 
 It should be noted that any validation step on tree nodes need to attempt to
 recreate the hash appropriately. We also need to validate any signatures on
-merkle tree roots. Thus our additions to the ``intoto'' transport amounts to 5
+merkle tree roots. Thus our additions to the ``in-toto'' transport amounts to 5
 functions.
 
 \begin{itemize}
@@ -1742,7 +1757,7 @@ remove the rebuild mocking which the test setup utilizes. This enables us to
 test the new rebuilder directly instead of utilizing a mock of the API.
 
 First we need to modify the in-toto layout used for testing. The in-toto layout
-is used for making sure threshold of available, and good, linkmetadata exists for
+is used for making sure thresholds of available, and good, linkmetadata exists for
 the given package. The current test setup requires two good metadata files to
 exist, this is because they are utilizing the test setup with two rebuilders to
 make sure things work appropriately. In our case we only really care about the
@@ -1756,7 +1771,7 @@ tree root correctly. To do this we make sure we are dealing with a reproducible
 setup so the seeded merkle tree root doesn't change between tests. We do this by
 first initializing a merkle tree with 10 elements. Then we pick one of these
 roots which we will use to start off on our testing, in our case we went with
-the merkle tree root present when there was 4 leaf nodes for no particular
+the merkle tree root present when there was four leaf nodes for no particular
 reason. We make sure we store this file, and copy it to the right location,
 along with making sure the mock apt client has the configuration set to look for
 this file.

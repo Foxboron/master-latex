@@ -73,80 +73,6 @@ earlier.
 In this thesis we will focus on how package managers work as a supply chain for
 distributing software in a secure manner.
 
-
-\subsubsection*{in-toto}
-in-toto is a framework to verify the integrity of a supply chain. It defines a
-specification that details what steps should occur. As one supply chain could
-define and utilize any number of steps its vital for this to be extensible, and
-customize able. In-toto lets the specification detail who should perform the
-step in the supply chain.
-
-The layout describes what each step of the supply chain should contain. It can
-be any expected commands, something the process should succeed running, any
-expected material, things needed for the step in the chain to proceed, and any
-products, artifacts created by the steps. These are described in a very small
-language that contains keywords following regular expressions which should be
-satisfied.
-
-The link metadata is a JSON file that specifies what the values, and outputs of
-the corresponding step should be. Evaluating the specification along with the
-link metadata lets the users, or the organization, verify that the supply chain
-has not been tampered with. 
-
-\begin{listing}[H]
-\begin{minted}[]{json}
-{"signatures": [],
- "signed": {
-  "_type": "layout",
-  "expires": "2021-01-06T18:30:57Z",
-  "inspect": [{
-        "_type": "inspection",
-        "expected_materials": [
-             ["MATCH", "*.deb", "WITH", "PRODUCTS", "FROM", "rebuild"],
-             ["DISALLOW", "*.deb"]],
-        "expected_products": [],
-        "name": "verify-reprobuilds",
-        "run": ["/usr/bin/true"]}],
-  "keys": {
-        "2e7be98291270e3b7fca429a2210e99cff22017e":{
-             "hashes": ["pgp+SHA2"],
-             "keyid": "2e7be98291270e3b7fca429a2210e99cff22017e",
-             "keyval": {"private": "", "public": {"e": "010001", "n": "e0da84bec..."}},
-             "method": "pgp+rsa-pkcsv1.5",
-             "type": "rsa"}},
-  "readme": "",
-  "steps": [{
-        "_type": "step",
-        "expected_products": [
-             ["CREATE", "*.deb"],
-             ["DISALLOW", "*.deb"]],
-        "name": "rebuild",
-        "pubkeys": ["2e7be98291270e3b7fca429a2210e99cff22017e"],
-        "threshold": 1}]
-}}
-\end{minted}
-\caption{Example in-toto schema}
-\label{lst:in-toto-schema}
-\end{listing}
-
-\begin{listing}[H]
-\begin{minted}[]{json}
-{"signatures": [
-  {"keyid": "918b19596...",
-   "other_headers": "0400010800...",
-   "signature": "bc1d9776bf..."}],
- "signed": {
-  "_type": "link",
-  "name": "rebuild",
-  "products": {
-   "python-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8e69d5cbdc..."},
-   "python3-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8234484139..."}}
-}}
-\end{minted}
-\caption{Example linkmetadata file}
-\label{lst:linkmetadata}
-\end{listing}
-
 \section{Linux Distributions}\label{sec:linux_distributions}
 \subsection*{Linux}
 Linux is free and open-source kernel. It was first developed by Linus Torvalds
@@ -163,7 +89,6 @@ of volunteers as a hobby for free. The tooling of these distributions, along
 with organization and the inherent supply chain to deliver artifacts to the
 users, are unique to each project. Some are ``source''-distributions, and only
 distribute build recipes, and some distributed pre-compiled binary packages.
-
 
 \subsection*{Debian}
 Debian was one of the first operating systems based on Linux, and was created by
@@ -194,10 +119,11 @@ system.
 
 \subsection*{Trusting trust}
 In a paper from Ken Thompson in 1984, after he won the Turing Award for his work
-on the UNIX operating system, \citetitle{ken-thompson-1984}, Thompson as a
-programming exercise implements a very basic self-reproducing program. As a
-demonstration, he adds code capable of introducing new code when certain
-patterns are encountered. This implements a backdoor in something that could
+on the UNIX operating system, \citetitle{Thompson:1984:RTT:358198.358210},
+Thompson as a programming exercise implements a very basic self-reproducing
+program. As a demonstration, he adds code capable of introducing new code when
+certain patterns are encountered. This implements a backdoor in something that
+could
 
 \begin{quotation}
 ``You can't trust code that you did not totally create yourself. [...] No amount
@@ -206,7 +132,8 @@ code. In demonstrating the possibility of this kind of attack, I picked on the C
 compiler. I could have picked on any program-handling program such as an
 assembler, a loader, or even hardware microcode. As the level of program gets
 lower, these bugs will be harder and harder to detect.  A well-installed
-microcode bug will be almost impossible to detect''\cite{ken-thompson-1984}.
+microcode bug will be almost impossible to
+detect''\cite{Thompson:1984:RTT:358198.358210}.
 \end{quotation}
 
 % TODO: Research into software verifiability
@@ -252,8 +179,6 @@ in oppressive regimes where the internet connection is filtered, or partially
 blocked. To help giving access to this network, they develop a variant of the
 web browser firefox called ``Tor browser''~\cite{tor-browser}.
 
-% TODO: Add sources
-
 This browser is configured to utilize the tor network for an anonymous browsing
 session. This has been a very important software used by marginalized
 protesters. Because of this, the supply chain and distribution of this software
@@ -272,11 +197,12 @@ short order''~\cite{mike-perry-2013}.
 
 The result of this concern is the move to support reproducible builds. Allowing
 users, and multiple independent builders, to recreate the distributed artifact
-bit-for-bit ~\cite{unknown-2014}. This is done by utilizing ``Gitain'' which
-builds, and packages the software on self-contained virtual machines. This
-enables the project to distribute the same build instructions as used to package
-the software in the first place, and allows users to easily verify if the
-distributed artifact matches the self-produced one.
+bit-for-bit~\cite{unknown-2014}. This is done by utilizing ``Gitian'' which
+builds, and packages the software on self-contained virtual
+machines~\cite{gitian}. This enables the project to distribute the same build
+instructions as used to package the software in the first place, and allows
+users to easily verify if the distributed artifact matches the self-produced
+one.
 
 % TODO: Bitcoin
 
@@ -311,17 +237,16 @@ multiple different linux distributions is close to impossible and unmanageable
 for most software. Thus we need to specify the environment being utilized with
 all of the requirements and idiosyncrasies.
 
-This is not a new discovery.
-\citeauthor{r.-torres-cabrera-and-bonnie-lee-appleton-1999} in their paper
-\citetitle{r.-torres-cabrera-and-bonnie-lee-appleton-1999} from 1999, they
-defined a ``Bill of Material'', or a ``BOM'' for short.
+This is not a new discovery. \citeauthor{software-reconstruction-1999} in their
+paper \citetitle{software-reconstruction-1999} from 1999, they defined a ``Bill
+of Material'', or a ``BOM'' for short.
 
 \begin{quotation}
 ``Document all of the components that contributed to the build in a list, i.e.,
 a bill of materials (BOM). The BOM may contain the names, versions, and
 directory paths of operating systems, libraries, compilers, linkers, make-files,
 build scripts, etc The BOM may be manually created, but many configuration
-management tools generate it as a by- product of the build'' \cite{r.-torres-cabrera-and-bonnie-lee-appleton-1999}.
+management tools generate it as a by- product of the build''~\cite{software-reconstruction-1999}.
 \end{quotation}
 
 \begin{listing}[H]
@@ -423,10 +348,8 @@ distributed packages is an unwieldy task. The appeal of Linux distributions is
 the ability to download pre-compiled packages to save the effort of building all
 the software one intend to use.
 
-% TODO: Add CI source
-
 Currently Debian has put a great deal of effort into testing packages by setting
-up a ``Continuous Integration'' framework for testing packages. This setup
+up a ``Continuous Integration'' framework for testing packages~\cite{debian-ci}. This setup
 compiles all Debian packages twice with variations to see if they end up
 reproducible or not. This is a neat approach to find reproducability issues, but
 it does not reproduce any packages produced and distributed by Debian developers
@@ -511,7 +434,7 @@ recreate the missing nodes for the root. In the Figure~\ref{fig:audit} we can
 see the representation of a merkle tree. For the proof that the node $ d5 $ is
 part of the merkle tree represented with the signed tree root $ r $ the needed
 tree roots are $ r = \{ d5, d6, l, m \} $. If they are hashed together
-appropriatly, such as $ r = H( m, H( H(d5, d6), l)) $, we will arrive at the
+appropriately, such as $ r = H( m, H( H(d5, d6), l)) $, we will arrive at the
 same value for and thus the proof is validated.
 
 The consistency proof is used to verify that the log is operating as an
@@ -521,11 +444,10 @@ this tree root. The returned path is the number of subroots needed to
 recreate the path from the root, until the new root.
 
 To have a correctly vetted tamper-evident log, there needs to be monitor server.
-
-Monitor servers watch new entries from log servers and verify them. They
-collect the current signed tree root, and makes sure they match up with the
-currently fetched server. They are important to make sure that the log
-collecting server behaves properly.
+Monitor servers watch new entries from log servers and verify them. They collect
+the current signed tree root, and makes sure they match up with the currently
+fetched server. They are important to make sure that the log collecting server
+behaves properly.
 
 \subsection*{Transparency Log Overlays}%
 \label{sub:transparency_log_overlays}

@@ -49,14 +49,14 @@ concurrent operation. This enables easier development, along higher workloads
 and scalability~\cite{pgsql}.
 
 \subsection*{sqlalchemy}
-sqlalchemy is a widely used object relation mapping library for Python. It
+SQLAlchemy is a widely used object relation mapping library for Python. It
 support a wide selection of database backends and translates the raw database
 data into usable Python objects for easier interopability. This helps us to save
 time by not having to map any values to our own data structures as everything
 are written as native Python classes~\cite{sqlalchemy}.
 
 \begin{listing}[ht]
-\caption{Example sqlalchemy model}
+\caption{Example SQLAlchemy model}
 \label{lst:sqlalchemy}
 \begin{minted}{python}
 class User(db.Model):
@@ -79,7 +79,6 @@ into one another~\cite{pandas}\cite{matplotlib}.
 
 \subsection*{Git and Github}%
 \label{sub:git_and_github}
-% TODO: Kilde på git
 An important aspect of any project is to keep track of changes. For this project
 the version control system ``git'' was used. It is a well known version control
 system and widely used and deployed on a wide selection of providers. The
@@ -105,14 +104,92 @@ containers after the thesis is done will also be done.
 
 \subsection*{curl}%
 \label{sub:curl}
+When developing an API is desirable to quickly test the functionality. For this
+project we utilized the widely used and popular tool curl, which is written
+by~\citeauthor{curl} and supports a wide array of URLs and data protocols for
+data transfer~\cite{curl}. This allows us to quickly and effectively test and
+display API end points we are going to be developing.
 
+
+\subsubsection*{in-toto}%
+\label{sub:graphviz}
+in-toto is a framework to verify the integrity of a supply chain. It defines a
+specification that details what steps should occur. As one supply chain could
+define and utilize any number of steps its vital for this to be extensible, and
+customize able. In-toto lets the specification detail who should perform the
+step in the supply chain~\cite{in-toto}.
+
+The layout describes what each step of the supply chain should contain. It can
+be any expected commands, something the process should succeed running, any
+expected material, things needed for the step in the chain to proceed, and any
+products, artifacts created by the steps. These are described in a very small
+language that contains keywords following regular expressions which should be
+satisfied.
+
+The link metadata is a JSON file that specifies what the values, and outputs of
+the corresponding step should be. Evaluating the specification along with the
+link metadata lets the users, or the organization, verify that the supply chain
+has not been tampered with. 
+
+\begin{listing}[H]
+\begin{minted}[]{json}
+{"signatures": [],
+ "signed": {
+  "_type": "layout",
+  "expires": "2021-01-06T18:30:57Z",
+  "inspect": [{
+        "_type": "inspection",
+        "expected_materials": [
+             ["MATCH", "*.deb", "WITH", "PRODUCTS", "FROM", "rebuild"],
+             ["DISALLOW", "*.deb"]],
+        "expected_products": [],
+        "name": "verify-reprobuilds",
+        "run": ["/usr/bin/true"]}],
+  "keys": {
+        "2e7be98291270e3b7fca429a2210e99cff22017e":{
+             "hashes": ["pgp+SHA2"],
+             "keyid": "2e7be98291270e3b7fca429a2210e99cff22017e",
+             "keyval": {"private": "", "public": {"e": "010001", "n": "e0da84bec..."}},
+             "method": "pgp+rsa-pkcsv1.5",
+             "type": "rsa"}},
+  "readme": "",
+  "steps": [{
+        "_type": "step",
+        "expected_products": [
+             ["CREATE", "*.deb"],
+             ["DISALLOW", "*.deb"]],
+        "name": "rebuild",
+        "pubkeys": ["2e7be98291270e3b7fca429a2210e99cff22017e"],
+        "threshold": 1}]
+}}
+\end{minted}
+\caption{Example in-toto schema}
+\label{lst:in-toto-schema}
+\end{listing}
+
+\begin{listing}[H]
+\begin{minted}[]{json}
+{"signatures": [
+  {"keyid": "918b19596...",
+   "other_headers": "0400010800...",
+   "signature": "bc1d9776bf..."}],
+ "signed": {
+  "_type": "link",
+  "name": "rebuild",
+  "products": {
+   "python-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8e69d5cbdc..."},
+   "python3-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8234484139..."}}
+}}
+\end{minted}
+\caption{Example linkmetadata file}
+\label{lst:linkmetadata}
+\end{listing}
 
 
 \subsection*{Deployment}%
 \label{sub:deployment}
-% TODO: Legge til source på uh-iaas
 UH-IaaS is a cloud infrastructure provider created for research institution to
-deploy software and build platform. They provide free resources for student
+deploy software and build platform~\cite{uhiaas}. They provide free resources for student
 projects and the rebuilder infrastructure described in this thesis is currently
 deployed on their platform. Extended testing of the implementations of this
 thesis is also done on their platform.
