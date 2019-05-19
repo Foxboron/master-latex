@@ -84,7 +84,6 @@ relying on the buildinfo server created by the Debian project to keep track of
 all published buildinfo files from built packages. This gives us a canonical
 view of all packages built by the Debian infrastructure.
 
-% TODO: Add refference to pull request
 To utilize this service we need to keep a track of all newly submitted files,
 however the current API does not support this. To get around this we submitted a
 code change so we would be able to get all files submitted after a given
@@ -1410,7 +1409,7 @@ def rebuilder_fetch(name, version):
             .filter(Node.data.op('->>')('version') == version)
             .order_by(Node.created.desc())
             ).all()
-    return records
+    return [[rec.to_json(), audit_proof(rec)] for rec in records]
 \end{minted}
 \end{listing}
 
@@ -1420,6 +1419,10 @@ model defined on listing~\ref{lst:node_model} on page~\pageref{lst:node_model}
 has implemented for the data field. What we can now do is use native PostgreSQL
 filters on the JSON as seen on listing~\ref{lst:fetch_entries}. This allows us
 to easily filter through all entries and return them easily for the REST API.
+
+For each of the entries a corresponding audit proof needs to be fetched. To
+lessen the burden on the client, we append this proof to the response. This
+allows us to not having to implement the audit proof fetching and validation 
 
 When it comes to having a ``revoke'' entry, we need to have a few
 considerations in place. As input we need the hash of a node on the merkle
@@ -1622,6 +1625,7 @@ do this we need to implement a few things.
     \item We need to verify any signatures
     \item We need to verify the consistency proof
     \item Parse available entries
+    \item We need to verify the audit proof of entries
     \item Validate with available metadata
 \end{itemize}
 
@@ -1638,9 +1642,10 @@ from the merkle tree. All of this should be done locally.
 The steps needed are
 \begin{enumerate}
     \item Have previous known merkle tree state
-    \item Fetch consistency proof and validate this
+    \item Fetch consistency proof and validate this proof
     \item Store new tree root in place of old tree root
     \item Fetch available entries on the given package
+    \item Fetch audit proof for each entry and validate this proof
     \item Validate package -with any valid inclusion entries
 \end{enumerate}
 
@@ -1670,7 +1675,8 @@ Once this is done we can store the new tree root locally with
 ``store\_new\_tree\_root''. This leaves us with fetching the current entries of
 the given package and version which will be done with ``fetch\_rebuild''. It
 will loop over any given entry, and mask any hashes where we have a ``revoke''
-entry.
+entry. We will also make sure the consistency proof of the given entry is
+correct.
 
 %TC:ignore
 \begin{listing}[H]
@@ -1742,7 +1748,9 @@ tree root, the signature of the tree root and the number of leafs present when
 this tree root was the current version. We write this file as appropriate when
 new tree roots are gathered.
 
-% TODO: Appendix to apt-transport implementations and commits
+The links to the source code of this can be found in
+Appendix~\ref{appendix:apt-development-source} on
+page~\pageref{appendix:apt-development-source}.
 
 \subsection*{APT Transport Testing}%
 \label{sub:apt_transport_testing}
@@ -1782,6 +1790,14 @@ page~\pageref{appendix:apt_testing} goes through the test setup of the apt
 transport and the resulting test suite run. This helps make sure the results are
 reproducible.
 
+\section*{Summary}\label{sec:development-summary}
+In this section we have explained how the development of the new visualizer was
+done. What we got is a new visualizer where we have support for transparency
+logs and an extended API and code base to help further development in the
+future.
+
+We have also done the needed integration between the transparency log and
+verified it works.
 
 \blankpage
 \end{document}

@@ -193,8 +193,6 @@ projects like Debian going to end up distributing state-sponsored malware in
 short order''~\cite{mike-perry-2013}.
 \end{quotation}
 
-% TODO: Gitain
-
 The result of this concern is the move to support reproducible builds. Allowing
 users, and multiple independent builders, to recreate the distributed artifact
 bit-for-bit~\cite{unknown-2014}. This is done by utilizing ``Gitian'' which
@@ -203,8 +201,6 @@ machines~\cite{gitian}. This enables the project to distribute the same build
 instructions as used to package the software in the first place, and allows
 users to easily verify if the distributed artifact matches the self-produced
 one.
-
-% TODO: Bitcoin
 
 % TODO: Kilder
 Around the same time, in 2013, Debian started a push towards reproducible
@@ -230,12 +226,15 @@ create the package. It also needs to take the current date time if no
 ``SOURCE\_DATE\_EPOCH'' is provided.
 
 \subsection*{Buildinfo}
-% TODO: Kanskje nevne økosystemer bedre?
 One of the main issues with reproducible builds is that is hard to make
 everything universally reproducible. Producing the same binary package on
 multiple different linux distributions is close to impossible and unmanageable
 for most software. Thus we need to specify the environment being utilized with
-all of the requirements and idiosyncrasies.
+all of the requirements and idiosyncrasies. The environment is made up of a few
+things. The installed software installed on the system. What shell variables are
+present as it denotes the expected timezone, language settings and any other
+special requirements. These things can make builds behave differently and thus
+important to record and keep track of.
 
 This is not a new discovery. \citeauthor{software-reconstruction-1999} in their
 paper \citetitle{software-reconstruction-1999} from 1999, they defined a ``Bill
@@ -283,9 +282,7 @@ Such a file would contain all the requirements to recreate the environment the
 artifact was built inn. Because of the previously mentioned restrictions, there
 is a need for multiple formats to define the requirements. Currently there are
 around 5 different formats for different ecosystems on the reproducible builds
-website \cite{reproducible-builds-2019}.
-
-% TODO: Legg til source på deb-buildinfo
+website~\cite{reproducible-builds-2019}.
 
 The Debian format encompasses a wide array of values ``Format'' defines
 the expected fields in the format and gets incremented with any changes.
@@ -293,7 +290,7 @@ the expected fields in the format and gets incremented with any changes.
 the corresponding binary package it outputs. The ``Architecture'' fields defines
 which architecture the product is compiled towards. Debian supports a wide array
 of CPU architectures from ARM to AMD 64 bit. High-level languages usually does
-not compile, therefor ``all'' is used to denote this.
+not compile, therefor ``all'' is used to denote this~\cite{deb-buildinfo}.
 
 The ``Build-'' variables denotes the build environment used to create the
 artifact in the Debian ecosystem. Since Debian has a slew of derivative and
@@ -312,13 +309,9 @@ that can affect the build process. ``Environment'' encompasses all of these.
 Most importantly the variable ``SOURCE\_DATE\_EPOCH'' is stored here to make sure
 timestamps are deterministic.
 
-% TODO: Lenke til buildinfo.debian.net
 This file can then be distributed alongside the package, or provided through
 other means. Debian archives all buildinfo-files on a centralized webpage where
-they can be queried and retrieved.
-
-% TODO: Add disorderfs source
-% TODO: Add diffoscope source
+they can be queried and retrieved~\cite{buildinfo-debian}.
 
 \subsection*{disorderfs}
 When distributing files it is very commonly to do so using file archives. Common
@@ -349,21 +342,19 @@ the ability to download pre-compiled packages to save the effort of building all
 the software one intend to use.
 
 Currently Debian has put a great deal of effort into testing packages by setting
-up a ``Continuous Integration'' framework for testing packages~\cite{debian-ci}. This setup
-compiles all Debian packages twice with variations to see if they end up
-reproducible or not. This is a neat approach to find reproducability issues, but
-it does not reproduce any packages produced and distributed by Debian developers
-directly. They are merely built twice in their own environment. The real goal is
-to reproduce distributed packages, so the CI solution it self does not fulfill
-this goal.
+up a ``Continuous Integration'' framework for testing packages~\cite{debian-ci}.
+This setup compiles all Debian packages twice with variations to see if they end
+up reproducible or not. This is a neat approach to find reproducability issues,
+but it does not reproduce any packages produced and distributed by Debian
+developers directly. They are merely built twice in their own environment. The
+real goal is to reproduce distributed packages, so the CI solution it self does
+not fulfill this goal.
 
 What is needed is servers which takes packages as distributed, and reproduces
 these. The general idea is that there should be a pool of diverse servers which
 are capable of rebuilding packages in the correct environment. These rebuilders
-should be capable of sharing some sort of attestation for the built package.
-
-% TODO: Attestation sharing source
-% TODO: Source - planned in 2014/2-16 by the project
+should be capable of sharing some sort of attestation for the built
+package~\cite{reproducible-builds-sharing}.
 
 \section{Merkle Trees}%
 \label{sec:merkle_trees}
@@ -376,7 +367,7 @@ inclusion of elements by calculating the path from the given leaf to the root
 node. This can be done by acquiring the missing hashes for each intermediate
 node, and then hash each of the steps together.
 
-\subsubsection{Transparency logs}%
+\subsubsection*{Transparency logs}%
 \label{sub:certificate_transparency_log}
 Transparency logs is a use case of merkle-trees by~\citeauthor{182788} and
 describes how merkle-trees can be used to achieve tamper evident
@@ -472,6 +463,61 @@ commitments on the log can be arbitrary and aid in providing some semantic
 meaning to the underlying application. In our project, we will utilize this idea
 to provide rebuild attestation, but also the ability to revoke such attestations
 on the merkle tree.
+
+\section{Research Overview}%
+\label{sec:research_overview}
+
+\subsection{Software Distribution Transparency and Auditability}\label{sec:benjamin}
+The initial work on package transparency logs, as a form of binary transparency,
+was done by \citeauthor{1711.07278v1}. It implements an append-only merkle tree to
+keep track of released versions of software into a package repository, namely
+debian.\cite{1711.07278v1}
+
+It details a novel hidden attack, where a backdoored package is distributed to
+some users but not everyone. As the transparency log knows which package is the
+correct one, it is possible to detect such attacks. The implementation also
+defines log monitors, that peaks at inclusions and makes sure the logs are
+operating properly and doesn't leave out information.
+
+
+\subsection{CHAINIAC}\label{sec:chainiac}
+CHAINIAC by \citeauthor*{kirill-niktin-2017} introduces a framework to help
+collectively validate source-to-binary correspondence\cite{kirill-niktin-2017}.
+This is done by introducing a cothority. Each developer commits their binaries
+and corresponding source code to a merkle tree which is then signed by the
+developers. This is built through a distributed system which will rebuild and
+corroborate their results to aggregate signatures on packages. The number of
+required signatures from this cothority is defined by the project and pushed to
+a skipchain based update timeline.
+
+
+\subsection{Contour}\label{sec:contour}
+Contour by \citeauthor{1712.08427v2} is a system that implements binary
+transparency by utilizing blockchains. In blockchains merkle trees are used to
+store the data. In this implementation the resulting binaries are hashes on the
+chain. The resulting merkle root is then hashed with previous roots to provide
+the transaction and a block header. This is again distributed and secure from
+split view attacks, where one server presents the client with a malicious view
+of the world. Split view attacks enable the remote log to provide proofs to the
+client which are not present elsewhere. The solution to this is by adding a
+consensus on top of the tree. The implementation was tested using the Python
+packaging index, PyPI, and the Debian package repository to test the
+solution.\cite{1712.08427v2}
+
+
+\subsection{Go transparency log}\label{sec:go-transparency-log}
+Go has been developing their dependency management the past year. With the
+release of their new dependency manager, go mod, they now produce dependency
+information along with a lockfile. The lockfile, go.sum, contains packages along
+with versions and checksums.
+
+A recent proposal by \citeauthor{russ-cos-and-filippo-valsorda} details how this
+go.sum file would be commited to a transparency log to provide a verification
+method for dependency releases in the go ecosystem. It implements a own database
+to model merkle trees, and lets nodes validate and monitor the tree for
+dependency inclusions. The idea is to check this log server when dependency
+files are downloaded for proofs of releases.\cite{russ-cos-and-filippo-valsorda}
+
 
 \section*{Summary}\label{sec:summary-theory} 
 In this chapter we have taken a deeper look at the theory surrounding supply

@@ -138,5 +138,58 @@ the importance of the research, as well as aiding future researchers to build
 off on the research done in this project ~\cite{Hevner:2004:DSI:2017212.2017217}.
 
 
+\section{Evaluation}%
+\label{sec:methodology_evaluation}
+Evaluation is a very important part of design science research. Because our
+artifact is an Instantiation we need to decide on a way to test the actual code
+base being produced in this thesis.
+
+\citeauthor{Peffers:2012:DSR:2342209.2342243}
+in~\citetitle{Peffers:2012:DSR:2342209.2342243} does a literature review on 148
+design science articles. They do an open coding approach, where they categorize
+the articles using codes, and compared the results across the different
+fields~\cite{Peffers:2012:DSR:2342209.2342243}. Their review isn't very
+detailed, as noted in their conclusion. But it pinpoints some trends among
+engineering fields where design science artifacts, such as instantiations,
+are usually evaluated with technical experiments.
+
+They explain technical experiments as;
+\begin{quotation}
+    ``...a performance evaluation of an algorithm implementation using real-world
+    data, synthetic data, or no data, designed to evaluate the technical
+    performance, rather than its performance in relation to the real world.
+    ''~\cite[p.~402]{Peffers:2012:DSR:2342209.2342243}
+\end{quotation}
+
+To evaluate our artifact, we are essentially going to take a look at the package
+builds debian does, and see if we are capable of processing them with our
+system. This gives us some real world data to take a look at, and help us figure
+out if we are on the correct track regarding out system. We will also be writing
+up a few APIs. 
+
+APIs are important as they are utilized by developers, however there are no
+clear process on how to evaluate good API design.
+\citeauthor{Iyer:2012:EAC:2342209.2342213} outlines this problem
+in~\citetitle{Iyer:2012:EAC:2342209.2342213}, and comes up with a stakeholder
+analysis to help evaluate API design choices when it comes to design
+science~\cite{Iyer:2012:EAC:2342209.2342213}.
+
+More importantly, they detail a set of key attributes which they believe are
+important for good modular API designs.  
+The outline of these key trais are what we are also going to take a look at~\cite[p.~31]{Iyer:2012:EAC:2342209.2342213};
+\begin{description}
+    \item[Functionality] - The modules are separated and contain logical groupings.
+    \item[Hierarchy] - Modules can be decomposed into sub-modules and internal details does not leak.
+    \item[Separation of concerns] - Each module is loosely coupled with other modules.
+    \item[Interoperability] - Modules can easily interact with others.
+    \item[Resuability] - Modules can be reused in other systems.
+\end{description}
+
+This couples with a real-world evaluate when it comes to data will guide us in
+the evaluation stage of this research.
+
+
+
+
 \blankpage
 \end{document}

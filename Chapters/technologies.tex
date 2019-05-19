@@ -25,7 +25,7 @@ this.
 \label{sub:transparency_log_library}
 The development of the transparency log requires some effort to properly
 implement a merkle tree with the appropriate proofs to so the implementation can
-be useful. To do this we lifted some code from the library
+be useful. To do this we lifted some code from the Python library ``pymerkle''
 by~\citeauthor{pymerkeltools} to aid in the development~\cite{pymerkeltools}.
 Parts of the algorithms has been changed to accommodate the development goals of
 this project. It was easier to lift code then find a suitable merkle tree
@@ -131,6 +131,25 @@ the corresponding step should be. Evaluating the specification along with the
 link metadata lets the users, or the organization, verify that the supply chain
 has not been tampered with. 
 
+
+\begin{listing}[H]
+\begin{minted}[]{json}
+{"signatures": [
+  {"keyid": "918b19596...",
+   "other_headers": "0400010800...",
+   "signature": "bc1d9776bf..."}],
+ "signed": {
+  "_type": "link",
+  "name": "rebuild",
+  "products": {
+   "python-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8e69d5cbdc..."},
+   "python3-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8234484139..."}}
+}}
+\end{minted}
+\caption{Example linkmetadata file}
+\label{lst:linkmetadata}
+\end{listing}
+
 \begin{listing}[H]
 \begin{minted}[]{json}
 {"signatures": [],
@@ -152,7 +171,6 @@ has not been tampered with.
              "keyval": {"private": "", "public": {"e": "010001", "n": "e0da84bec..."}},
              "method": "pgp+rsa-pkcsv1.5",
              "type": "rsa"}},
-  "readme": "",
   "steps": [{
         "_type": "step",
         "expected_products": [
@@ -160,30 +178,15 @@ has not been tampered with.
              ["DISALLOW", "*.deb"]],
         "name": "rebuild",
         "pubkeys": ["2e7be98291270e3b7fca429a2210e99cff22017e"],
-        "threshold": 1}]
-}}
+        "threshold": 1}]}}
 \end{minted}
 \caption{Example in-toto schema}
 \label{lst:in-toto-schema}
 \end{listing}
 
-\begin{listing}[H]
-\begin{minted}[]{json}
-{"signatures": [
-  {"keyid": "918b19596...",
-   "other_headers": "0400010800...",
-   "signature": "bc1d9776bf..."}],
- "signed": {
-  "_type": "link",
-  "name": "rebuild",
-  "products": {
-   "python-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8e69d5cbdc..."},
-   "python3-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8234484139..."}}
-}}
-\end{minted}
-\caption{Example linkmetadata file}
-\label{lst:linkmetadata}
-\end{listing}
+In this project we will be utilizing in-toto for the build attestation
+verification part in the APT transport. We don't deal with this directly, but
+it is currently an integral part of the verification part.
 
 
 \subsection*{Deployment}%
