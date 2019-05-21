@@ -6,5 +6,32 @@
 \begin{document}
 \chapter{APT Testing setup}%
 \label{appendix:apt_testing}
+To run the APT transport test suite you need to have a running docker daemon and
+the correct privileges set up. Below is the expected abbreviated output of the
+test run.
 
+\begin{minted}{bash}
+$ git clone https://github.com/Foxboron/master.git
+Cloning into 'master'...
+$ cd master 
+$ make transport-test                                
+[*] Starting
+[*] Waiting for system to start...
+[*] Adding test data...
+[*] Running test suite...
+[...]
+apt_1       | py37 create: /app/.tox/py37
+apt_1       | py37 installdeps: -rrequirements.txt, pylint, bandit, coverage, mock
+apt_1       | py37 installed: asn1crypto==0.24.0,astroid==2.2.5,attrs==19.1.0,bandit==1.6.0,certifi==2019.3.9,cffi==1.12.3,chardet==3.0.4,colorama==0.4.1,coverage==4.5.3,cryptography==2.6.1,gitdb2==2.0.5,GitPython==2.1.11,idna==2.8,in-toto==0.3.0,iso8601==0.1.12,isort==4.3.20,lazy-object-proxy==1.4.1,mccabe==0.6.1,mock==3.0.5,pathspec==0.5.9,pbr==5.2.0,pycparser==2.19,pylint==2.3.1,PyNaCl==1.3.0,python-dateutil==2.8.0,PyYAML==5.1,requests==2.22.0,securesystemslib==0.11.3,six==1.12.0,smmap2==2.0.5,stevedore==1.30.1,typed-ast==1.3.5,urllib3==1.25.2,wrapt==1.11.1
+apt_1       | py37 run-test: commands[2] | coverage run -m unittest discover
+[...]
+apt_1       | ----------------------------------------------------------------------
+apt_1       | Ran 11 tests in 18.749s
+apt_1       | OK
+[...]
+apt_1       |   py37: commands succeeded
+apt_1       |   congratulations :)
+[...]
+[*] Removing containers...
+\end{minted}
 \end{document}

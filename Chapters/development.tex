@@ -773,9 +773,9 @@ the affected node and aid debugging.
 
 To do this we loop through all of the nodes in the tree. We print out the left,
 and right parent of the node in a format that is compatible with the Graphviz
-tool to generate pictures. The output found in Listing~\ref{lst:graphviz-test}
-enables us to produce the PDF picture in Figure~\ref{fig:graphviz_pdf} by
-supplying the output to ``dot -Tpdf''.
+tool to generate pictures~\cite{Ellson01graphviz}. The output found in
+Listing~\ref{lst:graphviz-test} enables us to produce the PDF picture in
+Figure~\ref{fig:graphviz_pdf} by supplying the output to ``dot -Tpdf''.
 
 It should be noted that when trees get sufficiently large, the graph itself is
 of less value when debugging. It is hard to get a good overview when the tree
@@ -1151,10 +1151,11 @@ signatures on tree nodes.
 \subsection*{Development}%
 \label{sub:third_iteration_development}
 For the development of this feature we are utilizing the securesystemslib from
-New York University's' secure systems lab. It's a library with a collection of
-easy-to-use primitives to deal with encryption, decryption and signature
-verification on data for python. Utilizing this library makes it trivial to
-implement the needed signature functionality in a short and concise manner.
+New York University's' secure systems lab~\cite{securesystemslib}. It's a
+library with a collection of easy-to-use primitives to deal with encryption,
+decryption and signature verification on data for python. Utilizing this library
+makes it trivial to implement the needed signature functionality in a short and
+concise manner.
 
 \begin{listing}[H]
 \caption{Glue code for ``securesystemslib''}

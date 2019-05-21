@@ -136,11 +136,9 @@ microcode bug will be almost impossible to
 detect''\cite{Thompson:1984:RTT:358198.358210}.
 \end{quotation}
 
-% TODO: Research into software verifiability
 This paints a very bleak picture, considering most software we get today is
-pre-compiled and provided to us by different vendors.
-
-% TODO: Move into diverse compilation. Reprobuilds an extension
+pre-compiled and provided to us by different vendors. There is no clear cut of
+verifying what is provided by these vendors.
 
 But there are possible ways to counter this problem.  David A. Wheeler in his
 dissertation \citetitle{Wheeler:2005:CTT:1106778.1106809} details a possible solution to
@@ -151,9 +149,13 @@ compilation'' \cite{Wheeler:2005:CTT:1106778.1106809}.
 detect any difference in the resulting artifact. The first compilation is done
 with a secondary compiler, then again with the primary compiler. The idea is
 that the secondary compiler is a minimal implementation of the compiler, and can
-be trusted.
+be trusted. However, creating compilers is not a trivial task. If we want to
+have a trusted and verified compiler that is capable of outputting the same
+binary we need to write them. This gets complicated quickly when you consider
+the time and effort spent on writing compilers for languages such as C++.
 
-% TODO: Skrive mer
+Instead we have had an effort to reproduce software in other ways.
+
 
 \subsection*{Reproducible builds}
 Reproducible builds is a set of practices for how to achieve deterministic
@@ -202,11 +204,13 @@ instructions as used to package the software in the first place, and allows
 users to easily verify if the distributed artifact matches the self-produced
 one.
 
-% TODO: Kilder
 Around the same time, in 2013, Debian started a push towards reproducible
-builds, and an effort into achieving this for their distributed packages. Since
-then, 22 projects are officially part of the initiative and there has been 4
-conferences has been held to tackle the problem.
+builds, and an effort into achieving this for their distributed
+packages~\cite{debian-repro-2013}. Since then, 22 projects are officially part
+of the initiative to bring reproducible builds to users, among others are Arch
+Linux, Fedora, Tor, openSUSE and more~\cite{repro-who}. There has been 4 summits
+held for volunteers to come together and discuss the issues at
+hand~\cite{repro-paris}.
 
 \subsection*{Source Date Epoch}
 One of the most common offenders for undeterministic builds is the embedding of
@@ -228,7 +232,7 @@ create the package. It also needs to take the current date time if no
 \subsection*{Buildinfo}
 One of the main issues with reproducible builds is that is hard to make
 everything universally reproducible. Producing the same binary package on
-multiple different linux distributions is close to impossible and unmanageable
+multiple different Linux distributions is close to impossible and unmanageable
 for most software. Thus we need to specify the environment being utilized with
 all of the requirements and idiosyncrasies. The environment is made up of a few
 things. The installed software installed on the system. What shell variables are
@@ -522,7 +526,6 @@ files are downloaded for proofs of releases.\cite{russ-cos-and-filippo-valsorda}
 \section*{Summary}\label{sec:summary-theory} 
 In this chapter we have taken a deeper look at the theory surrounding supply
 chains, reproducible builds and merkle trees. In the next chapter we will be
-taking a look at the current research being done towards shared attestation on
-reproducible builds and package transparency logs.
+taking a look at the technologies we will be utilizing for this project.
 \blankpage
 \end{document}
