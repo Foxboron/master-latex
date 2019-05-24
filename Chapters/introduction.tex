@@ -5,12 +5,12 @@
 \documentclass[../Main/thesis.tex]{subfiles}
 \begin{document}
 \chapter{Introduction}\label{ch:introduction}
-Distributing software is hard. For years Linux distributions has distributed
+Distributing software is hard. For years Linux distributions have distributed
 software by compiling them on build servers, or personal computers, and
 submitting them to a central repository. This is distributed to a number of
 mirrors where users can get the latest software updates. This enables users to
-get pre-compiled binaries instead of building it by hand locally. But how do we
-know that the downloaded software has not been tampered with?
+get pre-compiled binaries instead of building them by hand locally. But how do
+we know that the downloaded software has not been tampered with?
 
 Targeted attacks against the software supply chain is an increasing threat.
 The security company Symantec reported in 2018 that there was one supply chain
@@ -24,17 +24,17 @@ struggling to protect their software deliveries~\cite{cd-pipelines-case-study}.
 There has been a number of explicit attacks against supply chains that surrounds
 Linux Distributions. Inappropriate commit access has been achieved with
 Gentoo~\cite{gentoo-compromise-2018}, Linux~\cite{linux-compromise-2011}, and
-even managed to publish backdoor in an network equipment
+even managed to publish backdoors in a network equipment
 vendor~\cite{Checkoway:2016:SAJ:2976749.2978395}~\cite{juniper-backdoor-advisory},
 
-There has been attempts at breaking package
+There have been attempts at breaking package
 managers~\cite{Cappos:2008:LMA:1455770.1455841}, and several other instances of
 attacks against Linux
 distributions~\cite{gentoo-compromise-2003}~\cite{fedora-compromise-2011}~\cite{fedora-compromise-2008}.
 
-In this thesis we will look into how reproducible builds enables distributions
+In this thesis we will look into how reproducible builds enable distributions
 and software authors to provide bit-for-bit identical binaries. We will extend
-this concept and provide servers that takes these packages, and rebuilds them to
+this concept and provide servers that take these packages and rebuild them to
 provide additional attestation to the user whether or not a package is
 reproducible. The build attestations will be using build metadata as defined
 from the reproducible builds project.
@@ -48,14 +48,16 @@ of revoking previous build attestations to further help users when verifying
 packages.
 
 The verification step of downloading packages will be performed by the Debian
-package manager, apt, by providing a new package transport that checks against a
-transparency log.
+package manager APT. To make sure we are able to query the needed services for
+the verification, we will be providing a new package transport that checks
+against a transparency log to detect tampering.
 
 \section{Motivation}\label{sec:motivation}
-The motivation this research is to see if transparency logs gives the users any
-new security guarantees on top of the rebuilder verification. There has been no
-real-world deployment of publicly accessible rebuilder infrastructure, and the
-integration of transparency logs into user tools has not been investigated 
+The motivation this research is to investigate if transparency logs whether and
+how this can give the users any new security guarantees on top of the rebuilder
+verification. There has been no real-world deployment of publicly accessible
+rebuilder infrastructure, and the integration of transparency logs into user
+tools has not been investigated 
 
 It should be noted that this research is primarily focused on the technical
 implementation of such a system.
@@ -75,21 +77,22 @@ complete rebuilder system for Debian packages and infrastructure.
 
 The development describes in this thesis is the rewrite of the visualizer
 component which provides an API to the user clients. The rewrite adds the
-package transparency log capability of the system along with provided a more
+package transparency log capability of the system along with providing a more
 refined API for the apt transport used to verify packages.
 
 \section{Research questions}\label{sec:rq}
 
 \begin{itemize}
-    \item How does a transparency log provide any additional security guarantees?
+    \item How can a transparency log provide additional security guarantees, and
+        if so, how?
     \item Are we able to implement this into the current rebuilder verification
         process?
     \item Can this be deployed in a real-world scenario?
 \end{itemize}
 
 Along with these research questions there is a motivation to contribute
-reproducible research. All of the evaluations in this thesis will have
-open-source code attached to it.
+reproducible research. All of the evaluations in this thesis have open-source
+code attached to them.
 
 \blankpage
 \end{document}

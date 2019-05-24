@@ -70,11 +70,11 @@ page~\pageref{appendix:buildinfo_ftp_server}).
     \textbf{Date} & 
     \textbf{Count} \\
 \hline
-    2019-01-31 & 41566 \\ \hline
-    2019-02-28 & 29750 \\ \hline
-    2019-03-31 & 18354 \\ \hline
-    2019-04-30 & 10061 \\ \hline
-    2019-05-19 &  5288 \\ \hline
+    2019-01 & 41566 \\ \hline
+    2019-02 & 29750 \\ \hline
+    2019-03 & 18354 \\ \hline
+    2019-04 & 10061 \\ \hline
+    2019-05 &  5288 \\ \hline
     \textbf{Total} & 105019 \\ \hline
 \end{tabulary}
 \caption{Debian package builds from 1st of January until 19th of May}
@@ -107,6 +107,11 @@ achieved. We also provide a ``Makefile'' which is a standardized format for
 executing build, testing and installation scripts for software. This allows us
 to provide a generic interface where once can run the test setup in the future.
 
+The test data we are using is small key value pairs with an incremented number.
+The reason for this is because creating and faking the appropriate data would
+require a fair bit of parsing of the BUILDINFO files as link metadata is not
+included in the file server.
+
 See Appendix~\ref{appendix:merkle_tree_stress_test} on
 page~\pageref{appendix:merkle_tree_stress_test} for the testing instructions.
 
@@ -114,8 +119,10 @@ page~\pageref{appendix:merkle_tree_stress_test} for the testing instructions.
 \label{sub:testing_results}
 For the testing of the tree, there was around 113000 elements appended to the
 transparency log. The intentions is to test what would happen with the data
-storage when approaching the number of package submissions this system would
-achieve.
+storage when approaching an expected amount of build submissions on the log.
+As the transparency log is going to be used by the APT client to find the
+metadata needed to verify packages we need to see if the log interaction is
+going to slow down the process.
 
 
 \begin{figure}[H]
@@ -125,13 +132,31 @@ achieve.
 \label{fig:response_time}
 \end{figure}
 
+Figure~\ref{fig:response_time} shows the growth in response time when appending
+new entries to the log. The log has a blue line, which is the response time, and
+a orange line which is the mean response time as we move through the graph. The
+minimum response time was below 0.1 seconds, and the maximum response time
+observed was 12 seconds. The testing itself lasted around 120 hours, or around 5
+days. The size of the table in complete ended at around 243 MB. Consistency and
+audit proofs also spent approximately the same time for each query.
+
+12 second is not by any means a good metric in this case. We need to do multiple
+consistency proofs and audit proofs for each package we are going to install.
+This quickly adds up in seconds and slows down the package installation process
+by a non trivial amount of time. The main reason after some investigation is
+that relationship building is taking a fair amount of time.
+
+PostgreSQL is not well optimized for joins and relations when it's done on the
+same table. This quickly adds up seconds when we do several queries to get the
+object models from the ORM in place.
+
+In contrast the Certificate Transparency Logs which are developed by google
+takes a mere second to query for a full consistency proof on 68 million leafs.
 
 
-% TODO: Hva er ytelsen på faktiske CT logs?
 
-
-% \section{APT Integration}%
-% \label{sec:apt_integration}
+\section{APT Integration and Security}%
+\label{sec:apt_integration_and_security}
 
 
 \section{Summary}%

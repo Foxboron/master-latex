@@ -51,44 +51,41 @@ threat model reviewed where the security concerns are addressed and in some case
 justified.
 
 This model only encompasses the development and the code written by the authors
-and is fairly similar to a traditional software models when the security aspects
+and is fairly similar to a traditional software models, when the security aspect
 of it is removed. However, we are lacking a few considerations from this model;
 distributions and the wider ecosystem that is involved writing and producing
-software. \citeauthor{rj-ellison-2010} in \citetitle{rj-ellison-2010} they
-analyze how the United states Department of Defense handles software acquisition
-in a very high secure environment. 
-
-
-In the context of the military ``[\dots] supply chains typically
-involve the movement of materials from home base to troops in theater. The
-responsibility for managing these supply chains falls to the acquisition and
-logistics experts''~\cite{rj-ellison-2010}. In this case, the DoD is not
-producing any software. Their only concern is to get the software developed,
-tested, shipped and updated in a secure fashion. In all of these steps they
-might relay on outside contractors and thus have to safeguard themselves from
-any risks. This in turns makes the supply chain far larger, and far more
-encompassing then a development model like the software lifecycle looked upon
-earlier.
+software. \citeauthor{rj-ellison-2010} in \citetitle{rj-ellison-2010} he
+analyzes how the United states Department of Defense handles software
+acquisition in a very high secure environment. In the context of the military
+``[\dots] supply chains typically involve the movement of materials from home
+base to troops in theater. The responsibility for managing these supply chains
+falls to the acquisition and logistics experts''~\cite{rj-ellison-2010}. In this
+case, the DoD is not producing any software. Their only concern is to get the
+software developed, tested, shipped and updated in a secure fashion. In all of
+these steps they might relay on outside contractors and thus have to safeguard
+themselves against any risks. This in turns makes the supply chain far larger, and
+far more encompassing then a development model like the software lifecycle
+looked upon earlier.
 
 In this thesis we will focus on how package managers work as a supply chain for
 distributing software in a secure manner.
 
 \section{Linux Distributions}\label{sec:linux_distributions}
 \subsection*{Linux}
-Linux is free and open-source kernel. It was first developed by Linus Torvalds
+Linux is a free and open-source kernel. It was first developed by Linus Torvalds
 in the early 1991 and has grown into the largest open-source project
 today~\cite{linuxfoundation-linux}. It is commonly used in everything from
-firmware modules on a computer, to the every increasing field of Internet of
-Thing, along with servers and on personal computers. The development of Linux is
-distributed and has spawned the ``Open-Source'' method of developing software.
+firmware modules on a computer, to the ever increasing field of Internet of
+Things, along with servers and on personal computers. The development of Linux is
+distributed and has spawned the open-source method of developing software.
 
-Linux is accompanied by a suit of tools and environment that is commonly
-referred to as a ``distribution'' and defines an operating system based on
+Linux is accompanied by a suite of tools and environment that is commonly
+referred to as a distribution and defines an operating system based on
 Linux. These are created by companies as commercial products, as well as groups
 of volunteers as a hobby for free. The tooling of these distributions, along
 with organization and the inherent supply chain to deliver artifacts to the
 users, are unique to each project. Some are ``source''-distributions, and only
-distribute build recipes, and some distributed pre-compiled binary packages.
+distribute build recipes, and some distribute pre-compiled binary packages.
 
 \subsection*{Debian}
 Debian was one of the first operating systems based on Linux, and was created by
@@ -100,15 +97,14 @@ installed packages on their system.
 
 These packages are maintained by package maintainers who package, update and
 maintain the required files to distribute this to the end user. Each maintainer
-has a cryptographic secure singing key they use to fetch, and publish source
+has a cryptographic secure signing key they use to fetch, and publish source
 packages to a build server. These source packages contains the needed files,
 patches and package files to compile the project source code to a format
 accepted by the Debian package manager, apt.
 
 The build server verifies the signatures and compile these source packages to
 the all the supported architectures. It will then sign these packages with its
-own key, and then distribute these to the end-user in the form of a mirror
-system.
+own key, and distribute them to the end-user in the form of a mirror system.
 
 
 \section{Software determinism}\label{sec:reproducible_builds}
@@ -118,8 +114,8 @@ system.
 % TODO: En seksjon ang "trust"?
 
 \subsection*{Trusting trust}
-In a paper from Ken Thompson in 1984, after he won the Turing Award for his work
-on the UNIX operating system, \citetitle{Thompson:1984:RTT:358198.358210},
+In a paper from Ken Thompson in 1984 (after he won the Turing Award for his work
+on the UNIX operating system) \citetitle{Thompson:1984:RTT:358198.358210},
 Thompson as a programming exercise implements a very basic self-reproducing
 program. As a demonstration, he adds code capable of introducing new code when
 certain patterns are encountered. This open up the possibility of having
@@ -175,22 +171,23 @@ all specified artifacts''~\cite{reproducible-builds-2019-definitions}.
 \end{quotation}
 
 One of the earliest open-source projects to promote reproducible builds is the
-Tor project. The Tor project develops the ``Tor network'' which is anonymity
-network compromised of volunteer that run network nodes that effectively
+Tor project. The Tor project develops the ``Tor network'' which is an anonymity
+network compromised of volunteers that run network nodes that effectively
 anonymize the network of the user~\cite{tor}. This is heavily used by dissidents
 in oppressive regimes where the internet connection is filtered, or partially
 blocked. To help giving access to this network, they develop a variant of the
-web browser firefox called ``Tor browser''~\cite{tor-browser}.
+web browser Firefox called ``Tor browser''~\cite{tor-browser}.
 
-This browser is configured to utilize the tor network for an anonymous browsing
-session. This has been a very important software used by marginalized
-protesters. Because of this, the supply chain and distribution of this software
-is important. Receiving a malicious version of this software could in many cases
-result in prison of life threatening danger to people. Mike Perry highlighted
-this concern when discussing the testing of the ``Tor browser''.
+The browser is configured to utilize the Tor network for an anonymous browsing
+session. Marginalized protester has been widely using Tor to circumvent
+censorship. The supply chain and distribution of this software is important as
+protesters and marginalized groups need the security features to stay secure.
+Receiving a malicious version of this software could in many cases result in
+prison of life threatening danger to people. Mike Perry highlighted the concern
+when discussing the testing of the ``Tor browser''.
 
 \begin{quotation}
-``This means that software development has to evolve beyond the simple models of
+    ``[...] software development has to evolve beyond the simple models of
 "Trust my gpg-signed apt archive from my trusted build machine", or even
 projects like Debian going to end up distributing state-sponsored malware in
 short order''~\cite{mike-perry-2013}.
@@ -198,12 +195,11 @@ short order''~\cite{mike-perry-2013}.
 
 The result of this concern is the move to support reproducible builds. Allowing
 users, and multiple independent builders, to recreate the distributed artifact
-bit-for-bit~\cite{unknown-2014}. This is done by utilizing ``Gitian'' which
-builds, and packages the software on self-contained virtual
-machines~\cite{gitian}. This enables the project to distribute the same build
-instructions as used to package the software in the first place, and allows
-users to easily verify if the distributed artifact matches the self-produced
-one.
+bit-for-bit~\cite{unknown-2014}. This is done by utilizing Gitian which builds,
+and packages the software on self-contained virtual machines~\cite{gitian}. This
+enables the project to distribute the same build instructions as used to package
+the software in the first place, and allows users to easily verify if the
+distributed artifact matches the self-produced one.
 
 Around the same time, in 2013, Debian started a push towards reproducible
 builds, and an effort into achieving this for their distributed
@@ -216,10 +212,10 @@ hand~\cite{repro-paris}.
 \subsection*{Source Date Epoch}
 One of the most common offenders for undeterministic builds is the embedding of
 when something was built. On the surface this looks like a completely sane thing
-to do for most builds, but this creates problems when the produced artifact in
+to do for most builds, but it creates problems when the produced artifact in
 turns become undeterministic because we built it at another point in time.
 
-The reproducible builds project defines an environment variable called
+The Reproducible Builds project defines an environment variable called
 ``SOURCE\_DATE\_EPOCH'' which is an means to solve this dilemma
 \cite{reproducible-builds-2019-source-date-epoch}. The variable enables software
 distributors to build artifacts with an embedded time, but it also helps to
@@ -231,15 +227,15 @@ create the package. It also needs to take the current date time if no
 ``SOURCE\_DATE\_EPOCH'' is provided.
 
 \subsection*{Buildinfo}
-One of the main issues with reproducible builds is that is hard to make
+One of the main issues with reproducible builds is that it hard to make
 everything universally reproducible. Producing the same binary package on
 multiple different Linux distributions is close to impossible and unmanageable
 for most software. Thus we need to specify the environment being utilized with
 all of the requirements and idiosyncrasies. The environment is made up of a few
 things. The installed software installed on the system. What shell variables are
 present as it denotes the expected timezone, language settings and any other
-special requirements. These things can make builds behave differently and thus
-important to record and keep track of.
+special requirements. These things can make builds behave differently and are
+thus important to record and keep track of.
 
 This is not a new discovery. \citeauthor{software-reconstruction-1999} in their
 paper \citetitle{software-reconstruction-1999} from 1999, they defined a ``Bill
@@ -284,20 +280,21 @@ SOURCE_DATE_EPOCH="1543231660"
 \end{listing}
 
 Such a file would contain all the requirements to recreate the environment the
-artifact was built inn. Because of the previously mentioned restrictions, there
-is a need for multiple formats to define the requirements. Currently there are
-around 5 different formats for different ecosystems on the reproducible builds
-website~\cite{reproducible-builds-2019}.
+artifact was built inn. Because each ecosystem has their own way of parsing
+information, there is a need for multiple formats to define the requirements.
+Currently there are around 5 different formats for different ecosystems on the
+reproducible builds website~\cite{reproducible-builds-2019}.
 
-The Debian format encompasses a wide array of values ``Format'' defines
-the expected fields in the format and gets incremented with any changes.
-``Source'' and ``Binary'' defines the source package used to produce this, and
-the corresponding binary package it outputs. The ``Architecture'' fields defines
+The Debian format encompasses a wide array of values ``Format'' defines the
+expected fields in the format and gets incremented with any changes.  ``Source''
+and ``Binary'' defines the source package used to produce the artifact, and the
+corresponding binary package it outputs. The ``Architecture'' fields defines
 which architecture the product is compiled towards. Debian supports a wide array
 of CPU architectures from ARM to AMD 64 bit. High-level languages usually does
-not compile, therefor ``all'' is used to denote this~\cite{deb-buildinfo}.
+not compile, therefore ``all'' is used to denote the
+architecture~\cite{deb-buildinfo}.
 
-The ``Build-'' variables denotes the build environment used to create the
+The ``Build-'' variables denote the build environment used to create the
 artifact in the Debian ecosystem. Since Debian has a slew of derivative and
 closely related distributions, ``Build-Origin'' is used to denote this
 distribution.  ``Build-Architecture'' denotes the architecture of the build
@@ -309,20 +306,20 @@ the kernel used. This is commonly fetched with the command ``uname -a''.
 packaging of this artefact. This s an important list to keep track of as it
 enables the complete recreation of the environment at a later point.
 
-Linux has several variables that sets the locale, language and timestamp format,
+Linux has several variables that set the locale, language and timestamp format
 that can affect the build process. ``Environment'' encompasses all of these.
-Most importantly the variable ``SOURCE\_DATE\_EPOCH'' is stored here to make sure
-timestamps are deterministic.
+Most importantly the variable ``SOURCE\_DATE\_EPOCH'' is stored here to make
+sure timestamps are deterministic.
 
 This file can then be distributed alongside the package, or provided through
 other means. Debian archives all buildinfo-files on a centralized webpage where
 they can be queried and retrieved~\cite{buildinfo-debian}.
 
 \subsection*{disorderfs}
-When distributing files it is very commonly to do so using file archives. Common
-formats is the ZIP and the TAR format. However, the order in which files appear
-in the archive needs to be consistent for the checksum to match, however this
-can be hard to test in some cases. ``disorderfs'' is a filesystem that lets you
+When distributing files it is very common to do so using file archives. Common
+formats is the ZIP and the TAR format. The order in which files appear in the
+archive needs to be consistent for the checksum to match, however this can be
+hard to test in some cases. ``disorderfs'' is a filesystem that lets you
 introduce unexpected and randomized behavior when reading files. This helps find
 sources for non-deterministic artifacts in the build process.
 
@@ -370,27 +367,34 @@ and combined two and two. The top node of this tree is reffed to as a ''root
 node''. The interesting property of merkle trees is the ability to verify the
 inclusion of elements by calculating the path from the given leaf to the root
 node. This can be done by acquiring the missing hashes for each intermediate
-node, and then hash each of the steps together.
+node, and then hash each of the nodes together.
 
 \subsubsection*{Transparency logs}%
 \label{sub:certificate_transparency_log}
-Transparency logs is a use case of merkle-trees by~\citeauthor{182788} and
-describes how merkle-trees can be used to achieve tamper evident
-logging~\cite{182788}. Certificate transparency logs
-from~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013}is an implementation
-of transparency logs~\cite{b.-laurie-a.-langley-e.kaster-google-2013}.
+Transparency logs is a use case of Merkle trees by~\citeauthor{182788} and
+describes how Merkle trees can be used to achieve tamper evident
+logging~\cite{182788}. In the traditional sense, logs can be plain text files
+published anywhere. It can simply be a line of text detailing something. If this
+where to change on a remote service, there would not normally be any evidence of
+this. What a transparency log attempts to accomplish is to create hashes of the
+log entries, and create a tree. If we store the hash of this tree, we could
+prove the log has been modified at some point in time after the has we got was
+provided. 
 
-Certificate transparency logs helps organizations issuing HTTPS certificates an
-audit log of all certificates issued, and by whom. It allows the discoverability
-of when abuse, and malicious issuing of certificates backwards in time, and also
-allows organizations to see who issues certificates for what domains. This can
-aid in detecting compromise early.
+Certificate transparency logs
+from~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013}is an implementation
+of transparency logs. These logs lets organizations that issue HTTPS
+certificates an audit trail~\cite{b.-laurie-a.-langley-e.kaster-google-2013}.
+It allows the discovery of when abuse, and creation of malicious certificates.
+The log allows organizations to see who issued certificates for what domains,
+and can aid in detecting private key compromise, API misuse or other types of
+misuse early.
 
 Proofs in the context of transparency logs are tuple pairs where the first
-element describes the position, and the second element includes the hash of
-the given object. Given the correct order of hashing, the product of this
-should be some merkle tree root the log is either currently using, or have
-used in the past.
+element describes the position of the hash, which can be either left or right,
+and the second element includes the hash of the given object. Given the correct
+order of hashing, the product should be some merkle tree root the log is either
+currently using, or have used in the past.
 
 The proofs needed to implement a transparency log is as follows;
 \begin{itemize}
@@ -419,13 +423,13 @@ The proofs needed to implement a transparency log is as follows;
 \label{fig:audit}
 \end{figure}
 
-Each of this proofs are needed to correctly verify that a transparency log
+Each of these proofs are needed to correctly verify that a transparency log
 is correctly operating and can verify this to monitors.  Monitors follow
 these logs to assure consistency and to make sure logs do not misbehave. It
 also allows monitors to verify the append-only property of the log.
 
-The audit proof is used to verify that the given element in the log exists
-in the log. The tree root is given, along with the elements needed to
+The audit proof is used to verify that the given element in the log has not been
+tampered with. The tree root is given, along with the elements needed to
 recreate the missing nodes for the root. In the Figure~\ref{fig:audit} we can
 see the representation of a merkle tree. For the proof that the node $ d5 $ is
 part of the merkle tree represented with the signed tree root $ r $ the needed
@@ -435,20 +439,21 @@ same value for and thus the proof is validated.
 
 The consistency proof is used to verify that the log is operating as an
 append-only log in a correct manner. This proof requires two things. A
-previous merkle tree root, and the number of leafs present at the time of
+previous merkle tree root, and the number of leaves present at the time of
 this tree root. The returned path is the number of subroots needed to
 recreate the path from the root, until the new root.
 
 To have a correctly vetted tamper-evident log, there needs to be monitor server.
 Monitor servers watch new entries from log servers and verify them. They collect
-the current signed tree root, and makes sure they match up with the currently
+the current signed tree root, and make sure they match up with the currently
 fetched server. They are important to make sure that the log collecting server
-behaves properly.
+do not tamper with the entries on the log and thus do not tamper with the
+entries on the log and thus behaves properly.
 
 \subsection*{Transparency Log Overlays}%
 \label{sub:transparency_log_overlays}
-For our system we will add some semantic meaning to the leafs we add to the
-merkle tree. This will be explained in greater details in the development of
+For our system we will add some semantic meaning to the leaves we add to the
+merkle tree. This will be explained in greater detail in the development of
 this in Section~\ref{sub:fourth_iteration_development} on
 page~\pageref{sub:fourth_iteration_development}, however we will go into some of
 the underlying concepts.
@@ -460,13 +465,13 @@ events~\cite{10.11452976749.2978404}. They create a system greatly inspired by
 the work of both~\citeauthor{182788}, in transparency logs~\cite{182788},
 and~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} in certificate
 transparency logs~\cite{b.-laurie-a.-langley-e.kaster-google-2013}, and builds
-on top of these concepts.
+on top of of the concepts describe in the paper.
 
 The idea of this approach is to log the everyday events of systems on a
 transparency log to make sure the events are tamper-evident. The values of these
 commitments on the log can be arbitrary and aid in providing some semantic
 meaning to the underlying application. In our project, we will utilize this idea
-to provide rebuild attestation, but also the ability to revoke such attestations
+to provide rebuild attestations, but also the ability to revoke such attestations
 on the merkle tree.
 
 \section{Research Overview}%
@@ -476,24 +481,24 @@ on the merkle tree.
 The initial work on package transparency logs, as a form of binary transparency,
 was done by \citeauthor{1711.07278v1}. It implements an append-only merkle tree to
 keep track of released versions of software into a package repository, namely
-debian.\cite{1711.07278v1}
+Debian.\cite{1711.07278v1}
 
-It details a novel hidden attack, where a backdoored package is distributed to
-some users but not everyone. As the transparency log knows which package is the
-correct one, it is possible to detect such attacks. The implementation also
-defines log monitors, that peaks at inclusions and makes sure the logs are
-operating properly and doesn't leave out information.
+The paper details a novel hidden attack, where a backdoored package is
+distributed to some users but not everyone. As the transparency log knows which
+package is the correct one, it is possible to detect such attacks. The
+implementation also defines log monitors, that peek at inclusions and make
+sure the logs are operating properly and doesn't leave out information.
 
 
 \subsection{CHAINIAC}\label{sec:chainiac}
 CHAINIAC by \citeauthor*{kirill-niktin-2017} introduces a framework to help
 collectively validate source-to-binary correspondence\cite{kirill-niktin-2017}.
-This is done by introducing a cothority. Each developer commits their binaries
+This is done by introducing a cothority.  Each developer commits their binaries
 and corresponding source code to a merkle tree which is then signed by the
 developers. This is built through a distributed system which will rebuild and
-corroborate their results to aggregate signatures on packages. The number of
-required signatures from this cothority is defined by the project and pushed to
-a skipchain based update timeline.
+corroborate their results to aggregate signatures on packages which makes up the
+cothority. The number of required signatures from this cothority is defined by
+the project and pushed to an updated timeline.
 
 
 \subsection{Contour}\label{sec:contour}
@@ -501,7 +506,7 @@ Contour by \citeauthor{1712.08427v2} is a system that implements binary
 transparency by utilizing blockchains. In blockchains merkle trees are used to
 store the data. In this implementation the resulting binaries are hashes on the
 chain. The resulting merkle root is then hashed with previous roots to provide
-the transaction and a block header. This is again distributed and secure from
+the transaction and a block header. This is again distributed and secured from
 split view attacks, where one server presents the client with a malicious view
 of the world. Split view attacks enable the remote log to provide proofs to the
 client which are not present elsewhere. The solution to this is by adding a
@@ -525,8 +530,9 @@ files are downloaded for proofs of releases.\cite{russ-cos-and-filippo-valsorda}
 
 
 \section*{Summary}\label{sec:summary-theory} 
-In this chapter we have taken a deeper look at the theory surrounding supply
-chains, reproducible builds and merkle trees. In the next chapter we will be
-taking a look at the technologies we will be utilizing for this project.
+In this chapter we have taken a deeper look at the theory surrounding software
+distributions, supply chains, reproducible builds and merkle trees. In the next
+chapter we will be taking a look at the technologies we will be utilizing for
+this project.
 \blankpage
 \end{document}
