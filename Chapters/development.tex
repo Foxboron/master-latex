@@ -942,7 +942,8 @@ Figure~\ref{fig:graph} shows the constructed merkle tree. The first level is the
 hash of all the leaf nodes which is currently some simple mock data in the JSON
 structure for testing purposes. There is a total of 3 interior nodes, where the
 top one is the merkle tree root. Our goal is to test the appropriate proofs and
-make sure we are getting back the appropriate nodes for the sake of 
+make sure we are getting back the appropriate nodes. These will help us make
+sure we can reconstruct the root node in the tree.
 
 \begin{figure}[H]
 \centering

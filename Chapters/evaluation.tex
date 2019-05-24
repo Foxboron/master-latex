@@ -10,21 +10,128 @@ In this section we will be evaluating the project. We will be utilizing the
 outline described in Chapter~\ref{ch:methodology} to help evaluate the final
 research artifacts we are left with.
 
-We will first be evaluating the API we created during the different iterations
-of this project. We will be utilizing the attributes for modular API design as
-outlined
-by~\citeauthor{Iyer:2012:EAC:2342209.2342213}~\cite{Iyer:2012:EAC:2342209.2342213},
-then we will be doing a technical evaluation of the 
+So far we have had four iteration on this project. First iteration was to
+reimplement the API and functionality from the first visualizer, the second
+iteration implemented support for merkle trees, the third iteration implemented
+the needed signing layer on the tree, and the fourth final iteration that
+implements the transparency log overlay.
+
+The APIs we created during the different iterations of this project is what we
+will be taking a look at first. For this evaluation the attributes for modular
+API design as outlined by~\citeauthor{Iyer:2012:EAC:2342209.2342213} is going to
+be used~\cite{Iyer:2012:EAC:2342209.2342213}. We will then be doing a technical
+evaluation of the transparency log implementation by stress testing the data
+storage and compare it to the expected amount of data from published Debian
+packages. The APT integration is going to be evaluated last so we can consider
+some of the possible security guarantees.
+
+Appendix~\ref{appendix:evaluation} on page~\pageref{appendix:evaluation} is
+going to contain any auxiliary details  and information for this evaluation.
 
 
 \section{API Evaluation}%
 \label{sec:api_evaluation}
+The APIs we are going to evaluate is the transparency log
+API from Table~\ref{api:transparency_log} on page~\pageref{api:transparency_log}, the
+crypto API from Table~\ref{api:crypto_api} on page~\pageref{api:crypto_api} and the overlay
+API from Table~\ref{api:Overlay API} on page~\pageref{api:Overlay API}.
 
-\section{Data Structure Testing}%
-\label{sec:data_structure_testing}
+We are not going to consider~\ref{api:old_visualizer} on
+page~\pageref{api:old_visualizer} as it predates this thesis and mainly
+reimplemented for the sake of compatibility with the current rebuilder setup.
 
-\section{APT Integration}%
-\label{sec:apt_integration}
+\section{Transparency log testing}%
+\label{sec:transparency_log_testing}
+To test the merkle tree implementation we need to first consider the amount of
+data this system would realistically receive. We have implemented this tree on
+top of a SQL database, so performance impacts should be checked to see how large
+a tree can grow and the performance impacts.
+
+Debian builds and releases packages into a testing repository on a daily basis,
+this produces the BUILDINFO files we will be using to recreate packages in the
+rebuilder. This can be retrieved from a centralized server with an API, however
+since the API was tedious to work with there has been put up a file server with
+all the BUILDINFO submissions. This allows us to grab the files produced for
+each day of the year.
+
+The file server contains builds information from 2016 until 2019 and totals an
+archive of around 130 GB. As the merkle tree grows for every insertion and
+hashes interior nodes along with signing the root node, we need to limit the
+data for practical reasons. We are going to only consider the build submissions
+from 1st of January 2019, until 19th of May 2019 (see
+Appendix~\ref{appendix:buildinfo_ftp_server} on
+page~\pageref{appendix:buildinfo_ftp_server}).
+
+\begin{table}[htpb]
+\centering
+% \setlength\extrarowheight{2pt}
+\begin{tabulary}{1.0\textwidth}{|l|L|}
+\hline
+    \textbf{Date} & 
+    \textbf{Count} \\
+\hline
+    2019-01-31 & 41566 \\ \hline
+    2019-02-28 & 29750 \\ \hline
+    2019-03-31 & 18354 \\ \hline
+    2019-04-30 & 10061 \\ \hline
+    2019-05-19 &  5288 \\ \hline
+    \textbf{Total} & 105019 \\ \hline
+\end{tabulary}
+\caption{Debian package builds from 1st of January until 19th of May}
+\label{evaluation:buildinfos_ftp}
+\end{table}
+
+Table~\ref{evaluation:buildinfos_ftp} shows the number of builds done for each
+month. There is a slight spike in January with a subsequent falloff through the
+spring. The total submissions is around 105000. The goal of the testing is to
+see how well the current implementation can handle around 105000 elements on the
+tree. What is the performance, and is it acceptable for implementation in the
+real-world in it's current state?
+ 
+\subsection*{Testing setup}%
+\label{sub:testing_setup}
+One of the goals as outlined in the introduction is the ability to reproduce the
+results of the thesis. For this we need to have a way of easily create the
+components needed for the testing. For the transparency log we need two
+components, one database service running PostgreSQL, and one service to run the
+visualizer component. To make sure this setup is easy for future researcher to
+set up, we utilize a technology called containers. Containers are light weight
+process separations on the host operating system. The commonly used tool for
+creating containers is called Docker, as described
+in Section~\ref{sub:docker_and_containers}.
+
+Docker allows us to define the components in a way that lets us easily build and
+tear down the systems without having to manually setup the services themselves.
+The testing is done with these setup to make sure reproducible results can be
+achieved. We also provide a ``Makefile'' which is a standardized format for
+executing build, testing and installation scripts for software. This allows us
+to provide a generic interface where once can run the test setup in the future.
+
+See Appendix~\ref{appendix:merkle_tree_stress_test} on
+page~\pageref{appendix:merkle_tree_stress_test} for the testing instructions.
+
+\subsection*{Testing results}%
+\label{sub:testing_results}
+For the testing of the tree, there was around 113000 elements appended to the
+transparency log. The intentions is to test what would happen with the data
+storage when approaching the number of package submissions this system would
+achieve.
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{../Diagrams/evaluation/response_time.pdf}
+\caption{Response time on entry inclusion}
+\label{fig:response_time}
+\end{figure}
+
+
+
+% TODO: Hva er ytelsen på faktiske CT logs?
+
+
+% \section{APT Integration}%
+% \label{sec:apt_integration}
 
 
 \section{Summary}%
