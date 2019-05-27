@@ -48,9 +48,10 @@ of revoking previous build attestations to further help users when verifying
 packages.
 
 The verification step of downloading packages will be performed by the Debian
-package manager APT. To make sure we are able to query the needed services for
-the verification, we will be providing a new package transport that checks
-against a transparency log to detect tampering.
+package manager APT. APT supports the ability to have multiple transports for
+retrieving packages from the web. To make sure we are able to query the needed
+services for the verification, we will be providing a new package transport that
+checks against a transparency log to detect tampering.
 
 \section{Motivation}\label{sec:motivation}
 The motivation this research is to investigate if transparency logs whether and
@@ -80,19 +81,41 @@ component which provides an API to the user clients. The rewrite adds the
 package transparency log capability of the system along with providing a more
 refined API for the apt transport used to verify packages.
 
-\section{Research questions}\label{sec:rq}
-
-\begin{itemize}
-    \item How can a transparency log provide additional security guarantees, and
-        if so, how?
-    \item Are we able to implement this into the current rebuilder verification
-        process?
-    \item Can this be deployed in a real-world scenario?
-\end{itemize}
-
+\section{Research questions and contributions}\label{sec:rq}
+In this section we will be looking at the research question of this thesis.
 Along with these research questions there is a motivation to contribute
 reproducible research. All of the evaluations in this thesis have open-source
 code attached to them.
+
+\subsection*{RQ1}%
+\label{sub:rq1}
+\textit{Can a transparency log provide additional security guarantees, and if so, how?}
+\\\\
+The goal of the project is to see if we are capable of enhancing the visualizer
+component of the rebuilder with more security guarantees. Transparency logs can
+provide security gurantees if implemented correctly, namely the evidence that
+the provided logs have or have not been tampered with. The current rebuilder
+have no such feature and any build submissions can be tampered with after
+publication.
+
+\subsection*{RQ2}%
+\label{sub:rq2}
+\textit{Are we able to implement this into the current rebuilder verification process?}
+\\\\
+The current rebuilder verification process fetches plain text data from an
+endpoint with no validation. To utilize the security features from a
+transparency log, we would need to make sure they can be validated and
+implemented in the APT package manager.
+
+\subsection*{RQ3}%
+\label{sub:rq3}
+\textit{Can this be deployed in a real-world scenario?}
+\\\\
+Given a correct implementation of the transparency log, it would be interesting
+to investigate how the resulting log implementation can work. Debian publishes
+multiple packages each day, and we can see the amount of data the log would need
+to consume and whether or not it is capable of consuming the data in a
+real-world scenario.
 
 \blankpage
 \end{document}

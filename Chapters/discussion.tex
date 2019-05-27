@@ -6,22 +6,172 @@
 \begin{document}
 \chapter{Discussion}%
 \label{ch:discussion}
+In this chapter we will be discussing and reflecting upon the research methods
+used in this project and answer the research questions at hand.
 
 \section{Design Science Research}%
 \label{sec:design_science_research_evaluation}
+This research has been based on the Design Science research methodology. We have
+identified a problem and attempted to solve this problem by following the
+guidelines set forth
+by~\citeauthor{Hevner:2004:DSI:2017212.2017217}; design as an artifact, problem
+relevance, design evaluation, research contributions, research rigor, design as
+a search process and communication of research~\cite{Hevner:2004:DSI:2017212.2017217}.
 
-\section{API}%
-\label{sec:api}
+Design as an artifact means that the product of this research should be
+something tangible in the form of a construct, a model, a method or an
+instantiation. This research has produced an instantiation in the form of a
+rewritten visualizer with a transparency log implementation.
 
-\section{Technical Testing}%
-\label{sec:technical_testing}
+The problem relevance implies that the artifact produced by this research should
+be relevant and solve an important problem. This guide has been satisfied as we
+have attempted to combine two previously separate technologies; the rebuilder
+system with a transparency log.
+
+Design evaluation means that we need to go through an evaluation of the created
+artifact. This was done through the Chapter~\ref{ch:evaluation}
+on~\pageref{ch:evaluation}.
+
+The Research contribution guideline means that the research must provide clear
+and verifiable contribution in the specific areas the artifact is designed for.
+The artifact in this thesis contributed directly to securing the supply chain
+for Debian packages and can hopefully lead to further research in this area. The
+artifact coupled with clear means to reproduce the environments and tests done
+in this thesis allows a clear verifiable and reproducible path to the results of
+the contribution.
+
+Research rigor means that the construction of the artifact and the research has
+gone through rigorous methods in both construction and the evaluation of the
+artifacts. We have done a technical test of the given artifact and specified
+goals along the way.
+
+Design as a search process requires that the search for an effective artifact
+needs to utilize the available means to reach an end. This research started by
+looking at the current implementation and identified a need to tamper evident
+logging of the rebuild submissions.
+
+Communication of the research means that the research needs to be communicated
+and presented to management and technical people. This research builds on top of
+the needs of the Debian community and solves problems directly related to the
+ever increasing threat of software supply chain security. We have also published
+the source code for this project to GitHub.
+
+\section{Technical Implementation}%
+\label{sec:technical_Implementation}
+After each iteration of this project we have done basic testing to make sure the
+goals are met and to figure out if there has been any implementation bugs. This
+has resulted in utility tools to verify the integrity of the data structure,
+which was used in the technical testing.
+
+\citeauthor{Peffers:2012:DSR:2342209.2342243}
+in~\citetitle{Peffers:2012:DSR:2342209.2342243} did a literature review over
+design science artifacts, and the evaluation method
+used~\cite{Peffers:2012:DSR:2342209.2342243}, and described in
+Section~\ref{sec:methodology_evaluation} on
+page~\pageref{sec:methodology_evaluation} Technical evaluations are done to
+assess how well the artifact is at solving the problem at hand.
+
+The technical evaluation was done in Chapter~\ref{ch:evaluation} on
+page~\pageref{ch:evaluation}. The limitations in the implementation restricted
+the desire to replay larger data from the Debian build submissions. With more
+time the assessment and the technical evaluation could have been broader and
+covered a wider range of data.
+
+It should also be noted that there is a feature in the current implementation is
+missing. Log monitors are used to validate the elements on the transparency log
+are included, and the log is not being actively tampered with and issues
+consistency proofs. They are an essential part of a live implementation of a
+logging system, however because of lack of time we did not manage to implement
+this feature. We are however testing the implementation in our own conditions.
+A log monitor is not need to do so, and does not affect the proofs when testing
+the artifact.
+
+During the development of this artifact, there was a realization
+that~\citeauthor{trillian} had implemented Trillian, which is a ``\ldots
+transparent, highly scalable and cryptographically verifiable data
+store''~\cite{trillian}. This is a free and open-source software library to
+implement verifiable data storage for things like certificate transparency logs,
+discussed in Section~\ref{sub:certificate_transparency_log} on
+page~\pageref{sub:certificate_transparency_log}.
+
+Trillian is used in multiple certificate transparency log implementations, such
+as Nimbus from Cloudflare~\cite{nimbus}, and could prove a viable backend in
+stead of a naive implementation. Interestingly, the implementation of Trillian
+is also supported by multiple SQL storage for things such as tree heads, leafs
+and subtrees. It would be interesting to investigate how such improvements would
+affect the performance of the currently implementation.
 
 \section{Security Implications}%
 \label{sec:security_implications}
+The current implementation is by no means effective at what it does. But we can
+still assess the security implications of the project. The project properly
+implements the audit proof, and consistency proof as described in
+Section~\ref{sub:second_iteration_results} on
+page~\pageref{sub:second_iteration_results}
+
+In Section~\ref{sub:apt_transport_testing} on
+page~\pageref{sub:apt_transport_testing} we implement the integration into the
+APT package manager for Debian and verify the proofs locally without relying on
+the remove transparency server.
+
+What this means is that we can now a few new security features in the rebuilder.
+The usage of transparency logs, as described by~\citeauthor{182788} in~\citetitle{182788}
+transparency logs enables us to detect tampering~\cite{182788}. Before this
+rewrite, a visualizer can modify rebuild attestations with no sign of actually
+doing so. They can provide falsified information and trick APT into thinking it
+has gotten a valid package, but instead gotten a malicious one.
+
+With our rewrite, we can now detect if tampering has happened by issuing the
+correct consistency and audit proofs to the log. This prevents the rebuilders
+from actively modifying content on the log.
+
+\section{Reproducible Research}%
+\label{sec:reproducible_research}
+Since we are after all writing about reproducible builds, trying to achieve
+reproducible research in this thesis seemed like a fitting goal. The evaluations
+and testing done in this project can be found in
+Appendix~\ref{appendix:evaluation} on page~\pageref{appendix:evaluation}.
+
+Appendix~\ref{appendix:apt-development-source} on
+page~\pageref{appendix:apt-development-source} lists the source code used in
+this project, and Appendix Section~\ref{sec:source_code_master} lists the source
+code for the transparency log implementation. The repository contains the data
+from the evaluation with the needed scripts to recreate any graphs in this
+thesis.
 
 \section{Research Questions}%
 \label{sec:research_questions}
+In this section we are going to take a look at the research questions defined
+in Section~\ref{sec:rq} on page~\pageref{sec:rq} and answer them from the
+discussion in this chapter.
 
+\subsection*{Research Question 1:}%
+\label{sub:research_question_1_}
+\textit{Can a transparency log provide additional security guarantees, and
+if so, how?}\\
+As discussed in Section~\ref{sec:security_implications} we can see that a
+transparency log indeed provides additional security guarantees on top of the
+the previous rebuild setup. We are able to provide proofs that can prove whether
+or not tampering has taken place. This gives users additional security
+guarantees.
+
+\subsection*{Research Question 2:}%
+\label{sub:research_question_2_}
+\textit{Are we able to implement this into the current rebuilder verification
+process?}\\
+Section~\ref{sec:apt_transport} on page~\pageref{sec:apt_transport} describes
+the integration into the APT transport that does the rebuilder verification
+process. We managed to implement this cleanly into the existing code base with
+no modification in the process it self.
+
+\subsection*{Research Question 3:}%
+\label{sub:research_question_3_}
+\textit{Can this be deployed in a real-world scenario?}\\
+The following discussion in Section~\ref{sec:technical_Implementation} shows
+that there are a few problems with the implementation in this thesis which makes
+it unfit for a real-world scenario. Chapter~\ref{ch:evaluation} on
+page~\pageref{ch:evaluation} shows how the performance of the artifact is not
+sufficient enough to meet the data demands from Debian packaging.
 
 \blankpage
 \end{document}

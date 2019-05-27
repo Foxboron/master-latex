@@ -28,17 +28,60 @@ some of the possible security guarantees.
 Appendix~\ref{appendix:evaluation} on page~\pageref{appendix:evaluation} is
 going to contain any auxiliary details  and information for this evaluation.
 
+% \section{APT Integration and Security}%
+% \label{sec:apt_integration_and_security}
 
 \section{API Evaluation}%
 \label{sec:api_evaluation}
-The APIs we are going to evaluate is the transparency log
-API from Table~\ref{api:transparency_log} on page~\pageref{api:transparency_log}, the
-crypto API from Table~\ref{api:crypto_api} on page~\pageref{api:crypto_api} and the overlay
-API from Table~\ref{api:Overlay API} on page~\pageref{api:Overlay API}.
+The APIs we are going to evaluate is the transparency log API from
+Table~\ref{api:transparency_log} on page~\pageref{api:transparency_log}, the
+crypto API from Table~\ref{api:crypto_api} on page~\pageref{api:crypto_api} and
+the transparency overlay API from Table~\ref{api:Overlay API} on
+page~\pageref{api:Overlay API}.
 
 We are not going to consider~\ref{api:old_visualizer} on
 page~\pageref{api:old_visualizer} as it predates this thesis and mainly
 reimplemented for the sake of compatibility with the current rebuilder setup.
+
+\subsection*{Functionality}%
+\label{sub:functionality}
+This attribute centers around the needs to make functionality offered intuitive.
+The developed APIs center on the concept of standardized REST API concepts and
+should be easy for anyone familiar to utilize. The API also covers all the
+requirements to interact with the transparency log provided.
+
+\subsection*{Hierarchy}%
+\label{sub:hierarchy}
+When designing complex API there is a chance internal implementation detail
+leaks to the user of the API. In our current implementation internal details are
+exposed as we have increment by developed our API. We are capable of adding pure
+JSON objects to our log, as well as adhere to the entry definitions for the
+overlay.
+
+\subsection*{Separation of concerns}%
+\label{sub:seperation_of_concerns}
+Separation of concerns in this scenario is handled well. We have split
+functionality across multiple APIs with clearly labeled names. The tree API does
+not implement functionality in the merkle tree API. However, when utilizing the
+API one has to use APIs from both the transparency log API and the transparency
+overlay API.
+
+\subsection*{Interopability}%
+\label{sub:interopability}
+Interopability is how easy it is to interact with this API. Complicated APIs
+might be less useful as the tools available might be sparse.  The way to
+interact with this API is through REST API calls. This is widely used and a lot
+of tools are available to interact with APIs designed in this fashion.
+
+\subsection*{Resuability}%
+\label{sub:resuability}
+The design of this API is not designed to be inherently reusable for other
+usages then the one it is suppose to cover. We can however utilize the raw
+merkle tree without utilizing the more abstracted API calls in this
+implementation.
+
+% \section{Design Science Guidelines}%
+% \label{sec:design_science_guidelines}
 
 \section{Transparency log testing}%
 \label{sec:transparency_log_testing}
@@ -124,7 +167,6 @@ As the transparency log is going to be used by the APT client to find the
 metadata needed to verify packages we need to see if the log interaction is
 going to slow down the process.
 
-
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.5\textwidth]{../Diagrams/evaluation/response_time.pdf}
@@ -138,7 +180,7 @@ a orange line which is the mean response time as we move through the graph. The
 minimum response time was below 0.1 seconds, and the maximum response time
 observed was 12 seconds. The testing itself lasted around 120 hours, or around 5
 days. The size of the table in complete ended at around 243 MB. Consistency and
-audit proofs also spent approximately the same time for each query.
+audit proofs also spend approximately the same time for each query.
 
 12 second is not by any means a good metric in this case. We need to do multiple
 consistency proofs and audit proofs for each package we are going to install.
@@ -150,18 +192,27 @@ PostgreSQL is not well optimized for joins and relations when it's done on the
 same table. This quickly adds up seconds when we do several queries to get the
 object models from the ORM in place.
 
-In contrast the Certificate Transparency Logs which are developed by google
-takes a mere second to query for a full consistency proof on 68 million leafs.
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.5\textwidth]{../Diagrams/evaluation/nodes.pdf}
+\caption{Number of nodes over time}
+\label{fig:nodes_figure}
+\end{figure}
 
+Figure~\ref{fig:nodes_figure} shows the number of leafs and interior nodes that
+gets created over time. For 113054 leafs a total number of 819533 interior nodes
+gets created. This amounts to a complete 932587 objects on the database table.
+This suggests a naive implementation in the append function we implemented
+in Section~\ref{sub:second_iteration_development} on
+page~\pageref{sub:second_iteration_development} where we implemented the append
+functionality to the tree. In a proper implementation the number of interior
+nodes should mirror the number of leafs. This is the issue affecting the poor
+performance of the tree.
 
-
-\section{APT Integration and Security}%
-\label{sec:apt_integration_and_security}
-
-
-\section{Summary}%
-\label{sec:evaluation_summary}
-
+However, the proofs works and has been correctly implemented as proven when we
+implemented it into the APT transport in Section~\ref{sub:fourth_iteration_results} on
+page~\pageref{sub:fourth_iteration_results}. The poor performance does not
+affect the correctness of the tree.
 
 \blankpage
 \end{document}

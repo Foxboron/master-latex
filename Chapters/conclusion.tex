@@ -6,15 +6,96 @@
 \begin{document}
 \chapter{Conclusion}%
 \label{ch:conclusion}
+This chapter presents and summarized the thesis. We will go through the research
+contributions, the limitations of the work we have done and the possible
+direction this project can take in the future.
 
 \section{Summary}%
 \label{sec:summary}
+In this thesis we have used Design Science research to develop a replacement for
+the API front end used by the rebuilder infrastructure, called visualizer. We
+have replaced the old implementation with a new extended version with support
+for additional security properties by implementing a transparency log on top of
+the API. The development has gone over four iterations by establishing a set of
+goals and making sure the goals are met after each iteration. After the
+iterations on the visualizer rewrite, we had an integration phase into the
+Debian package manager APT, to make sure we are able to utilize with the new
+API.
 
-\section{Results and Limitations}%
-\label{sec:results_and_limitations}
+Before the first iteration of the project we established the requirements of the
+old API front end of the system. There where several API endpoints that had to be
+implemented to ensure backwards compatibility. This was the first iteration
+which was centered around making sure the code base is extensible and that the
+old API endpoints was correctly implemented.
+
+The second iteration implemented the Merkle tree data structure in a PostgreSQL
+data storage back end. The implementation encompasses a dedicated API to
+investigate and debug the API, along with appending raw JSON data structures to
+the tree it self. The base proofs was implemented in this iteration: audit
+proofs and consistency proofs. The visualizer also got an endpoint to visualize
+the merkle tree as a graph using the graphviz library. The end result of this
+iteration was a working merkle tree implementation that works as a transparency
+log and provide tamper evident logging. We are also capable of appending new
+elements without having to re-hash the interior nodes of the tree.
+
+The third iteration centered around the cryptographic parts of the Merkle tree.
+All Merkle tree roots needs to be signed by a key pair to prove the given tree
+root comes from the given log server. This implemented the integration of a
+simple yet powerful library to aid in creating keys, signatures and the needed
+API endpoints of the crypto API. We also made sure all new tree roots are signed
+when appended leafs are added to the tree.
+
+The fourth iteration implemented the transparency log overlay. We are for all
+intents and purposes implementing logging of events, and these carry some
+meaning which needs to be conveyed to the client. We implemented to kinds of
+overlay entries for package submission inclusion, and revocation. This allows
+the client to distinguish the meaning of different logged events. We are capable
+of having multiple package submissions on the log, in the form of inclusions,
+and revoke them if they where published or build erroneously. By appending
+BUILDINFO files, which describes the build environment of packages, and in-toto
+metadata, which is used to verify the integrity of the supply chain process, we
+are able to retrieve and verify packages on the client side.  The result of this
+is an abstracted API for the client to utilize when verifying packages on the
+client side.
+
+The final development section deals with the APT integration. APT is the Debian
+package manager and is used to download packages from remote repositories. By
+utilizing the transport system, and extending the transport written for the
+rebuilder system, we where able to extend and improve on the transport to
+utilize the new API and fetch in-toto link metadata from this process. We
+implemented the needed extensions to the transport so we could validate the
+consistency of rebuilders, and utilize the audit proofs of the fetched entries.
+
+The evaluation of the prototype was done through technical testing where we
+appended entries to the log and tested the response time as the process went on.
+What we discovered is that the performance is not good enough for real-world use
+as the current data storage does not scale well enough. However we are capable
+of validate the proofs in the data storage and thus able of provide additional
+security guarantees to the APT integration.
+
+The research has shown the transparency log does provide additional security
+guarantees, and that we are capable of implementing this into the current
+verification process. However the current implementation is not sufficient for
+real-world usage.
 
 \section{Future Work}%
 \label{sec:future_work}
+The future work concerns the technical implementation of this project.
+Moving the back end implementation away from the homegrown SQL data storage this
+thesis presents, into a general data storage such as trillian from Google would
+give valuable insight into the possible scalability of this technology. Other
+investigations into improvements of the data storage would be valuable to
+enhance and contribute to the software supply chain security of Debian packages.
+
+
+\section{Conclusion}%
+\label{sec:conclusion_conclusion}
+This research has presented the theory, development and evaluation of a
+transparency log for a package rebuilder system. The research concludes that
+even if the current implementation is not sufficient for real-world usage, we
+are capable of having additional security guarantees with this project. However,
+improving the efficiency of this system needs to be explored further.
+
 
 
 \blankpage
