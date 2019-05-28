@@ -7,24 +7,27 @@
 \chapter{Introduction}\label{ch:introduction}
 Distributing software is hard. For years Linux distributions have distributed
 software by compiling them on build servers, or personal computers, and
-submitting them to a central repository. This is distributed to a number of
-mirrors where users can get the latest software updates. This enables users to
-get pre-compiled binaries instead of building them by hand locally. But how do
-we know that the downloaded software has not been tampered with?
+submitting the packages to a central repository. The packages is then
+distributed to a number of mirrors where users can get the latest software
+updates. This enables users to get pre-compiled binaries instead of building
+them by hand locally. But how do we know that the downloaded software has not
+been tampered with? % TODO: Drøft
 
-Targeted attacks against the software supply chain is an increasing threat.
-The security company Symantec reported in 2018 that there was one supply chain
+Targeted attacks against software supply chain is an increasing threat.  The
+security company Symantec reported in 2018 that there was one supply chain
 attack reported every month in 2017~\cite{symantec-istr-2018}, and in their 2019
-report noted that targeted attacks has gone up 78\% since
-then~\cite{symantec-istr-2019}. There has also been a growing concern among
+report noted that targeted attacks has gone up 78\% in 2019
+~\cite{symantec-istr-2019}. There has also been a growing concern amongst
 security professionals about the dangers of supply chain
-attacks~\cite{crowdstrike-supply-chain-attacks}. Companies are as well
-struggling to protect their software deliveries~\cite{cd-pipelines-case-study}.
+attacks~\cite{crowdstrike-supply-chain-attacks}. Companies are also struggling
+to protect their software deliveries~\cite{cd-pipelines-case-study}.
+
+% TODO: Bindeledd mellom
 
 There has been a number of explicit attacks against supply chains that surrounds
-Linux Distributions. Inappropriate commit access has been achieved with
-Gentoo~\cite{gentoo-compromise-2018}, Linux~\cite{linux-compromise-2011}, and
-even managed to publish backdoors in a network equipment
+Linux Distributions. Inappropriate commit access was achieved on the  Gentoo
+build server~\cite{gentoo-compromise-2018}, Linux~\cite{linux-compromise-2011},
+and even managed to install backdoors in a network equipment
 vendor~\cite{Checkoway:2016:SAJ:2976749.2978395}~\cite{juniper-backdoor-advisory},
 
 There have been attempts at breaking package
@@ -42,7 +45,7 @@ from the reproducible builds project.
 We introduce an append-only package transparency log, closely resembling
 certificate transparency logs, where we commit build attestations from the
 rebuilders. This lets users easily verify rebuild attestations, along with
-enabling the possible discovery of attacks against the distribution
+enabling the possibility of discovery of attacks against the distribution
 supply-chain. We will further enhance this log by implementing the possibility
 of revoking previous build attestations to further help users when verifying
 packages.
@@ -82,10 +85,10 @@ package transparency log capability of the system along with providing a more
 refined API for the apt transport used to verify packages.
 
 \section{Research questions and contributions}\label{sec:rq}
-In this section we will be looking at the research question of this thesis.
-Along with these research questions there is a motivation to contribute
-reproducible research. All of the evaluations in this thesis have open-source
-code attached to them.
+In this section we will present the research question of this thesis.  Along
+with these research questions there is a motivation to contribute reproducible
+research. All of the evaluations in this thesis have open-source code attached
+to them.
 
 \subsection*{RQ1}%
 \label{sub:rq1}
@@ -95,7 +98,7 @@ The goal of the project is to see if we are capable of enhancing the visualizer
 component of the rebuilder with more security guarantees. Transparency logs can
 provide security gurantees if implemented correctly, namely the evidence that
 the provided logs have or have not been tampered with. The current rebuilder
-have no such feature and any build submissions can be tampered with after
+has no such feature and any build submissions can be tampered with after
 publication.
 
 \subsection*{RQ2}%

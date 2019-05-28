@@ -9,16 +9,15 @@
 In this section we will take a closer look at the theory surrounding
 supply chains, reproducible builds, transparency logs and rebuilders.
 
-
 \section{Supply Chains}\label{sec:supply_chain}
 \subsection*{The Supply Chain}
 Most of the software today are developed through a series of steps. This is
 traditionally called ``The Software Supply Chain''. Software projects today go
-through development, building, testing, staging and in the end production, with
-slight variations between them. This is largely done with self-hosted solutions,
-or outsourced to external hosting solution.
+through development, building, testing, staging and production, with slight
+variations between them. This is largely done with self-hosted solutions, or
+outsourced to external hosting solution.
 
-In the world of open-source the software delivery are usually done by Linux
+In the world of open-source, the software delivery are usually done by Linux
 distributions, or other similar methods of distributions. The supply chain in
 this regard is the complete steps from developers getting the source code for
 the project, until it is delivered as a compiled artifact to the end-user. This
@@ -412,7 +411,7 @@ The proofs needed to implement a transparency log is as follows;
 ]
 \end{tikzpicture}}%
 \qquad
-\subfloat[needed roots for audit proof of ``d5'']{\begin{tikzpicture}
+\subfloat[needed nodes for audit proof of ``d5'']{\begin{tikzpicture}
 \Tree
 [ .\node[root]{r};
 [ .\node[roots]{m};   [ .i d1 d2 ]  [ .j d3 d4 ]  ]

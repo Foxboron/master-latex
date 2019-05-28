@@ -18,11 +18,14 @@
 \begin{document}
 \subfile{../Front/front} % This is the titlepage
 \pagenumbering{roman}
+\blankpage
 \setcounter{page}{1}
-% \subfile{../Front/quote}
-% \subfile{../Front/abstract}
-% \subfile{../Front/acknowledgment}
+\subfile{../Front/quote}
+\blankpage
+\subfile{../Front/abstract}
+\subfile{../Front/acknowledgment}
 \tableofcontents
+\blankpage
 \listoffigures
 \blankpage
 \listoftables
@@ -46,11 +49,13 @@
 %%=========================================
 % \bibliographystyle{apa}
 % \addcontentsline{toc}{chapter}{\bibname}
-\printbibliography
 \blankpage
+\printbibliography
 \appendix
 \subfile{../Appendices/appendix-apt-testing}
+\blankpage
 \subfile{../Appendices/appendix-apt-development-source}
+\blankpage
 \subfile{../Appendices/appendix-evaluation}
 % Include more appendices as required.
 %%=========================================

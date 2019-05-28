@@ -13,7 +13,7 @@ research artifacts we are left with.
 So far we have had four iteration on this project. First iteration was to
 reimplement the API and functionality from the first visualizer, the second
 iteration implemented support for merkle trees, the third iteration implemented
-the needed signing layer on the tree, and the fourth final iteration that
+the needed signing layer on the tree, and the fourth and final iteration that
 implements the transparency log overlay.
 
 The APIs we created during the different iterations of this project is what we
@@ -21,7 +21,7 @@ will be taking a look at first. For this evaluation the attributes for modular
 API design as outlined by~\citeauthor{Iyer:2012:EAC:2342209.2342213} is going to
 be used~\cite{Iyer:2012:EAC:2342209.2342213}. We will then be doing a technical
 evaluation of the transparency log implementation by stress testing the data
-storage and compare it to the expected amount of data from published Debian
+storage and comparing it to the expected amount of data from published Debian
 packages. The APT integration is going to be evaluated last so we can consider
 some of the possible security guarantees.
 
@@ -33,20 +33,20 @@ going to contain any auxiliary details  and information for this evaluation.
 
 \section{API Evaluation}%
 \label{sec:api_evaluation}
-The APIs we are going to evaluate is the transparency log API from
+The APIs we are going to evaluate are the transparency log API from
 Table~\ref{api:transparency_log} on page~\pageref{api:transparency_log}, the
 crypto API from Table~\ref{api:crypto_api} on page~\pageref{api:crypto_api} and
 the transparency overlay API from Table~\ref{api:Overlay API} on
 page~\pageref{api:Overlay API}.
 
 We are not going to consider~\ref{api:old_visualizer} on
-page~\pageref{api:old_visualizer} as it predates this thesis and mainly
+page~\pageref{api:old_visualizer} as it predates this thesis and is mainly
 reimplemented for the sake of compatibility with the current rebuilder setup.
 
 \subsection*{Functionality}%
 \label{sub:functionality}
-This attribute centers around the needs to make functionality offered intuitive.
-The developed APIs center on the concept of standardized REST API concepts and
+This attribute centers around the need to make functionality offered intuitive.
+The developed APIs centers on the concept of standardized REST API concepts and
 should be easy for anyone familiar to utilize. The API also covers all the
 requirements to interact with the transparency log provided.
 
@@ -54,8 +54,8 @@ requirements to interact with the transparency log provided.
 \label{sub:hierarchy}
 When designing complex API there is a chance internal implementation detail
 leaks to the user of the API. In our current implementation internal details are
-exposed as we have increment by developed our API. We are capable of adding pure
-JSON objects to our log, as well as adhere to the entry definitions for the
+exposed as we have incrementally developed our API. We are capable of adding
+pure JSON objects to our log, as well as adhere to the entry definitions for the
 overlay.
 
 \subsection*{Separation of concerns}%
@@ -73,26 +73,22 @@ might be less useful as the tools available might be sparse.  The way to
 interact with this API is through REST API calls. This is widely used and a lot
 of tools are available to interact with APIs designed in this fashion.
 
-\subsection*{Resuability}%
-\label{sub:resuability}
-The design of this API is not designed to be inherently reusable for other
-usages then the one it is suppose to cover. We can however utilize the raw
-merkle tree without utilizing the more abstracted API calls in this
-implementation.
-
-% \section{Design Science Guidelines}%
-% \label{sec:design_science_guidelines}
+\subsection*{Reusability}%
+\label{sub:reusability}
+The API is not designed to be inherently reusable for other usages than the one
+it is supposed to cover. We can however use the raw merkle tree without
+utilizing the more abstracted API calls in this implementation.
 
 \section{Transparency log testing}%
 \label{sec:transparency_log_testing}
-To test the merkle tree implementation we need to first consider the amount of
+To test the Merkle tree implementation we need to first consider the amount of
 data this system would realistically receive. We have implemented this tree on
 top of a SQL database, so performance impacts should be checked to see how large
-a tree can grow and the performance impacts.
+a tree can grow before any noticeable impacts can be found.
 
 Debian builds and releases packages into a testing repository on a daily basis,
 this produces the BUILDINFO files we will be using to recreate packages in the
-rebuilder. This can be retrieved from a centralized server with an API, however
+rebuilder. This can be retrieved from a centralized server with an API. However,
 since the API was tedious to work with there has been put up a file server with
 all the BUILDINFO submissions. This allows us to grab the files produced for
 each day of the year.
@@ -129,12 +125,12 @@ month. There is a slight spike in January with a subsequent falloff through the
 spring. The total submissions is around 105000. The goal of the testing is to
 see how well the current implementation can handle around 105000 elements on the
 tree. What is the performance, and is it acceptable for implementation in the
-real-world in it's current state?
+real-world in its current state?
  
 \subsection*{Testing setup}%
 \label{sub:testing_setup}
 One of the goals as outlined in the introduction is the ability to reproduce the
-results of the thesis. For this we need to have a way of easily create the
+results of the thesis. For this we need to have a way to easily create the
 components needed for the testing. For the transparency log we need two
 components, one database service running PostgreSQL, and one service to run the
 visualizer component. To make sure this setup is easy for future researcher to
@@ -145,10 +141,10 @@ in Section~\ref{sub:docker_and_containers}.
 
 Docker allows us to define the components in a way that lets us easily build and
 tear down the systems without having to manually setup the services themselves.
-The testing is done with these setup to make sure reproducible results can be
+The testing is done with this setup to make sure reproducible results can be
 achieved. We also provide a ``Makefile'' which is a standardized format for
 executing build, testing and installation scripts for software. This allows us
-to provide a generic interface where once can run the test setup in the future.
+to provide a generic interface where one can run the test setup in the future.
 
 The test data we are using is small key value pairs with an incremented number.
 The reason for this is because creating and faking the appropriate data would
@@ -200,19 +196,29 @@ object models from the ORM in place.
 \end{figure}
 
 Figure~\ref{fig:nodes_figure} shows the number of leafs and interior nodes that
-gets created over time. For 113054 leafs a total number of 819533 interior nodes
-gets created. This amounts to a complete 932587 objects on the database table.
+get created over time. For 113054 leafs a total number of 819533 interior nodes
+get created. This amounts to a complete 932587 objects on the database table.
 This suggests a naive implementation in the append function we implemented
 in Section~\ref{sub:second_iteration_development} on
-page~\pageref{sub:second_iteration_development} where we implemented the append
-functionality to the tree. In a proper implementation the number of interior
-nodes should mirror the number of leafs. This is the issue affecting the poor
-performance of the tree.
+page~\pageref{sub:second_iteration_development} In a proper implementation the
+number of interior nodes should mirror the number of leafs. This is the issue
+causing the poor performance of the tree.
 
 However, the proofs works and has been correctly implemented as proven when we
 implemented it into the APT transport in Section~\ref{sub:fourth_iteration_results} on
 page~\pageref{sub:fourth_iteration_results}. The poor performance does not
 affect the correctness of the tree.
+
+\section{Summary}%
+\label{sec:evaluation_summary}
+In this chapter we have taken a look at the implementation of the new visualizer
+component for the rebuilder system. We have assessed how well the implementation
+written in this thesis can handle real-world data. The data we compared to was
+the number of package builds Debian have done over a 5 months period. 
+
+The assessment shows that the current implementation does not scale very well
+considering the amount of data it would be required to store. There needs to be
+more research into how this implementation can be improved.
 
 \blankpage
 \end{document}

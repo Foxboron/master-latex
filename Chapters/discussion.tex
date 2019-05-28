@@ -24,30 +24,30 @@ instantiation. This research has produced an instantiation in the form of a
 rewritten visualizer with a transparency log implementation.
 
 The problem relevance implies that the artifact produced by this research should
-be relevant and solve an important problem. This guide has been satisfied as we
+be relevant and solve an important problem. This guideline has been satisfied as we
 have attempted to combine two previously separate technologies; the rebuilder
 system with a transparency log.
 
 Design evaluation means that we need to go through an evaluation of the created
 artifact. This was done through the Chapter~\ref{ch:evaluation}
-on~\pageref{ch:evaluation}.
+on page~\pageref{ch:evaluation}.
 
-The Research contribution guideline means that the research must provide clear
+The research contribution guideline means that the research must provide clear
 and verifiable contribution in the specific areas the artifact is designed for.
 The artifact in this thesis contributed directly to securing the supply chain
 for Debian packages and can hopefully lead to further research in this area. The
-artifact coupled with clear means to reproduce the environments and tests done
-in this thesis allows a clear verifiable and reproducible path to the results of
+artifact was designed with clear means to reproduce the environments and tests.
+This thesis allows a clear verifiable and reproducible path to the results of
 the contribution.
 
 Research rigor means that the construction of the artifact and the research has
 gone through rigorous methods in both construction and the evaluation of the
-artifacts. We have done a technical test of the given artifact and specified
+artifact. We have done a technical test of the given artifact and specified
 goals along the way.
 
 Design as a search process requires that the search for an effective artifact
 needs to utilize the available means to reach an end. This research started by
-looking at the current implementation and identified a need to tamper evident
+looking at the current implementation and identified a need for tamper evident
 logging of the rebuild submissions.
 
 Communication of the research means that the research needs to be communicated
@@ -69,7 +69,7 @@ design science artifacts, and the evaluation method
 used~\cite{Peffers:2012:DSR:2342209.2342243}, and described in
 Section~\ref{sec:methodology_evaluation} on
 page~\pageref{sec:methodology_evaluation} Technical evaluations are done to
-assess how well the artifact is at solving the problem at hand.
+assess how good the artifact is at solving the problem at hand.
 
 The technical evaluation was done in Chapter~\ref{ch:evaluation} on
 page~\pageref{ch:evaluation}. The limitations in the implementation restricted
@@ -77,14 +77,27 @@ the desire to replay larger data from the Debian build submissions. With more
 time the assessment and the technical evaluation could have been broader and
 covered a wider range of data.
 
-It should also be noted that there is a feature in the current implementation is
-missing. Log monitors are used to validate the elements on the transparency log
-are included, and the log is not being actively tampered with and issues
-consistency proofs. They are an essential part of a live implementation of a
-logging system, however because of lack of time we did not manage to implement
-this feature. We are however testing the implementation in our own conditions.
-A log monitor is not need to do so, and does not affect the proofs when testing
-the artifact.
+There are some further improvements in the current data storage scheme we could
+consider. One of the main disadvantages in the current implementation is that
+all data is stored on one table for the Merkle tree. Another way to layout the
+storage is to have one storage for interior nodes and the hashes of the leafs,
+and storage the leaf data in another table. This could potentially introduce
+less overheard when querying the Node table multiple time.
+
+Another advanced strategy that could help the overall performance is to store
+complete subtrees in another table. This would shorten the time we have to look
+through the Node table to create the appropriate path. It would be a bit more
+difficult to implement, as we would need to keep track of the tree height, and
+promote the largest complete tree for any given to a database for easy look up.
+
+It should also be noted that there is a feature in the current implementation
+that is missing. Log monitors are used to validate that the elements on the
+transparency log are included, and the log is not being actively tampered with
+and issues consistency proofs. They are an essential part of a live
+implementation of a logging system. However, because of lack of time we did not
+manage to implement this feature. We are however testing the implementation in
+our own conditions.  A log monitor is not needed to do so, and does not affect
+the proofs when testing the artifact.
 
 During the development of this artifact, there was a realization
 that~\citeauthor{trillian} had implemented Trillian, which is a ``\ldots
@@ -95,11 +108,11 @@ discussed in Section~\ref{sub:certificate_transparency_log} on
 page~\pageref{sub:certificate_transparency_log}.
 
 Trillian is used in multiple certificate transparency log implementations, such
-as Nimbus from Cloudflare~\cite{nimbus}, and could prove a viable backend in
-stead of a naive implementation. Interestingly, the implementation of Trillian
+as Nimbus from Cloudflare~\cite{nimbus}, and could prove a viable backend
+instead of a naive implementation. Interestingly, the implementation of Trillian
 is also supported by multiple SQL storage for things such as tree heads, leafs
 and subtrees. It would be interesting to investigate how such improvements would
-affect the performance of the currently implementation.
+affect the performance of the current implementation.
 
 \section{Security Implications}%
 \label{sec:security_implications}
@@ -114,12 +127,13 @@ page~\pageref{sub:apt_transport_testing} we implement the integration into the
 APT package manager for Debian and verify the proofs locally without relying on
 the remove transparency server.
 
-What this means is that we can now a few new security features in the rebuilder.
-The usage of transparency logs, as described by~\citeauthor{182788} in~\citetitle{182788}
-transparency logs enables us to detect tampering~\cite{182788}. Before this
-rewrite, a visualizer can modify rebuild attestations with no sign of actually
-doing so. They can provide falsified information and trick APT into thinking it
-has gotten a valid package, but instead gotten a malicious one.
+What this means is that we now have implemented new security features in the
+rebuilder. The usage of transparency logs, as described by~\citeauthor{182788}
+in~\citetitle{182788} transparency logs enables us to detect
+tampering~\cite{182788}. Before this rewrite, a visualizer can modify rebuild
+attestations with no sign of actually doing so. They can provide falsified
+information and trick APT into thinking it has gotten a valid package, but
+instead gotten a malicious one.
 
 With our rewrite, we can now detect if tampering has happened by issuing the
 correct consistency and audit proofs to the log. This prevents the rebuilders
@@ -151,9 +165,9 @@ discussion in this chapter.
 if so, how?}\\
 As discussed in Section~\ref{sec:security_implications} we can see that a
 transparency log indeed provides additional security guarantees on top of the
-the previous rebuild setup. We are able to provide proofs that can prove whether
-or not tampering has taken place. This gives users additional security
-guarantees.
+previous rebuild setup. We are able to provide proofs that can prove whether or
+not tampering has taken place. This gives users the additional security
+guarantee of being able to detect tampering of the published build submissions.
 
 \subsection*{Research Question 2:}%
 \label{sub:research_question_2_}
@@ -162,7 +176,7 @@ process?}\\
 Section~\ref{sec:apt_transport} on page~\pageref{sec:apt_transport} describes
 the integration into the APT transport that does the rebuilder verification
 process. We managed to implement this cleanly into the existing code base with
-no modification in the process it self.
+no modification in the process itself.
 
 \subsection*{Research Question 3:}%
 \label{sub:research_question_3_}
@@ -171,7 +185,6 @@ The following discussion in Section~\ref{sec:technical_Implementation} shows
 that there are a few problems with the implementation in this thesis which makes
 it unfit for a real-world scenario. Chapter~\ref{ch:evaluation} on
 page~\pageref{ch:evaluation} shows how the performance of the artifact is not
-sufficient enough to meet the data demands from Debian packaging.
+sufficient to meet the data demands from Debian packaging.
 
-\blankpage
 \end{document}
