@@ -11,10 +11,13 @@ doing, establish the base requirements of the rewrite of the visualizer with the
 goal of improving the design.
 
 After the first iteration is done we will be implementing the merkle tree
-storage for the rebuild submissions. Then we will be focusing on implementing
-the needed signing of the merkle tree roots. The final iteration will be the
+storage for the rebuild submissions which consists of a in-toto linkmetadata
+file, and a BUILDINFO file. Then we will be focusing on implementing the needed
+signing of the merkle tree roots to help verify that the given tree roots
+actually comes from the given rebuilder. The final iteration will be the
 implementation of the transparency log overlay, which will be the front end for
-the apt client to get rebuild submissions.
+the APT client to fetch rebuild submission and check if they have been revoked
+or not.
 
 The last section deals with the integration between the existing apt transport
 and the new visualizer API. We will be removing the support for the old API and
@@ -73,7 +76,14 @@ of special cases.
 
 The overlying architecture is displayed in~\ref{lst:rebuilder_sequence_diagram}
 as a sequence diagram. It gives a quick overview of how the different parts
-interact with each other in sequence for one successful package rebuild.
+interact with each other in sequence for one successful package rebuild. The
+scheduler queries the API of the buildinfo server for new BUILDINFO files since
+last time this was done. The scheduler pushes this file to a Redis, which is a
+very simple key value storage system. The builder queries the Redis server for
+new BUILDINFO submissions it is suppose to build. If the build is successful, it
+will produce a in-toto link metadata file, and a BUILDINFO file for this build.
+Both of these are submitted to the visualizer which publicizes in a public API
+which allows APT clients to query them.
 
 
 \subsection{buildinfo.debian.net}%
@@ -87,10 +97,11 @@ view of all packages built by the Debian infrastructure.
 To utilize this service we need to keep a track of all newly submitted files,
 however the current API does not support this. To get around this we submitted a
 code change so we would be able to get all files submitted after a given
-timestamp. As of writing this code change is not accepted.
+timestamp. This code change was not accepted in time, so the current rebuilder
+testing was done by setting up a copy of the server with the change included.
 
-The rebuilder system has instead relied on a copy of the server with the code
-change included so we are able to monitor new buildinfo files.
+See Appendix~\ref{appendix:buildinfo-pull-request} on
+page~\pageref{appendix:buildinfo-pull-request}.
 
 \subsection{scheduler}%
 \label{sub:scheduler}
@@ -106,7 +117,7 @@ other architectures then ``amd64''.
 
 \subsection{builder}%
 \label{sub:builder}
-The builder consists of a service that queries redis after new items on a timer.
+The builder consists of a service that queries Redis after new items on a timer.
 When new builds are dispatched, the build is done by utilizing the buildinfo
 files as provided by the Debian build server. The build are done with the tool
 ``srebuild''.
@@ -116,18 +127,24 @@ With this environment the buildinfo is parsed and all missing dependencies are
 acquired to recreate the package. The source packages, which contains the source
 and the build files needed to build the package, is acquired from a mirror and
 the build is done. When the build is done, the results are signed with a
-cryptographic key, to verify that the build server did produce the files, and
+cryptographic key, to verify that the build server produced the files, and
 then published to the visualizer.
 
 
 \subsection{visualizer}%
 \label{sub:visualizer}
 The visualizer is the component which displays the rebuilt packages in a web UI.
-The user is also able to fetch the buildinfo and linkmetadata files. The current
+The user is also able to fetch the buildinfo and link metadata files. The current
 implementation is a short snippet of code backed by a SQLite database to aid in
 displaying the needed webpages. The implemented API as seen in
 \ref{api:old_visualizer} is simplistic and provides the needed features to let
 users verify builds.
+
+The importance of the visualizer is that it is the component the APT package
+manager uses to fetch link metadata it utilize uses to verify packages before
+installation. Because of this we need to extend the component with a better
+architecture and implement a transparency log to make sure the submissions are
+not altered by a malicious rebuilder.
 
 
 \begin{table}[H]
@@ -152,6 +169,11 @@ users verify builds.
 \label{api:old_visualizer}
 \end{table}
 
+The Table~\ref{api:old_visualizer} shows the current API implemented. It allows
+for submissions, and basic fetching of the available build submissions in the
+form of the BUILDINFO file and the link metadata file. This is the API that
+needs to be supported by the rewrite of the visualizer component to be
+compatible with the current rebuilder system.
 
 \section{Project development}%
 \label{sec:project_development}
@@ -189,10 +211,10 @@ Thus the goals for this iteration are as follows;
 \subsection*{Development}%
 \label{sub:first_iteration_development}
 The initial task for this project was figuring out a structure that was flexible
-and made sense for the further development. The structure that was aimed upon
-was to separate database models in its own directory, templates in its own
-directory and views in it's own. When this setup was done we could continue with
-the development of the visualizer.
+and made sense for the further development. The structure that was aimed for was
+to separate database models in its own directory, templates in its own directory
+and views in it's own. When this setup was done we could continue with the
+development of the visualizer.
 
 In practice the visualizer only accepts two files, and displays an index of
 these files. There are no processing being done except to figure the given
@@ -358,11 +380,11 @@ class Version(db.Model):
 \end{listing}
 
 The SQLAlchemy library enables us to define database models as native Python
-classes. As can be seen in~\ref{lst:version-model} we are able to represent the
-needed files, and relationships for the ``version'' model. In total the
-implementation consists of 4 classes which we are able to query, create and
-update. This lets us avoid having to implement the transition from the database
-format to the correct data representation in the project.
+classes. As can be seen in Listing~\ref{lst:version-model} we are able to
+represent the needed files, and relationships for the ``version'' model. In
+total the implementation consists of 4 classes which we are able to query,
+create and update. This lets us avoid having to implement the transition from
+the database format to the correct data representation in the project.
 
 \subsection*{API and Frontend}%
 \label{sub:api_and_frontend}
@@ -709,7 +731,7 @@ need is an algorithm that only rehashes the changed interior nodes.
 The algorithm for this involves figuring out all the loose subroots of the tree.
 This approach to append new nodes has been described in the original paper
 by~\citeauthor{182788} where they calculate frozen subroots down on the left
-Side of the tree until the appropriate subroot is reached~\cite{182788}.
+side of the tree until the appropriate subroot is reached~\cite{182788}.
 
 Our implementation is as follows; we take the count of all leaves in the tree and
 use them to calculate the largest complete subtree in the merkle tree, and
@@ -877,11 +899,6 @@ make sure the tree works, and the properties and paths are generated correctly.
 We have also made some debug utilities to make sure we have generated a well
 formed binary tree, and no nodes are generating poor relationships.
 
-The Listing~\ref{api:transparency_log} shows the complete API that was designed
-to along with the code base. This API lets us add arbitrary JSON objects to the
-merkle tree, and to inspect these nodes and verify them with an audit proof or
-consistency proof.
-
 \begin{table}[H]
 \footnotesize
 \centering
@@ -908,6 +925,11 @@ consistency proof.
 \caption{Second Iteration: Transparency log API}
 \label{api:transparency_log}
 \end{table}
+
+The Listing~\ref{api:transparency_log} shows the complete API that was designed
+to along with the code base. This API lets us add arbitrary JSON objects to the
+merkle tree, and to inspect these nodes and verify them with an audit proof or
+consistency proof.
 
 The API allows for inspection of the tree with graphviz, along with also
 inspecting individual interior nodes and leafs. It gives endpoints for the most
@@ -1121,7 +1143,7 @@ situation to show off a consistency proof, as one subroot of the two is a
 previous merkle tree root. Thus we are only getting two in return we need to
 hash together. 
 
-However, as shown on~\ref{fig:consistency_proof_tree} on
+However, as shown on Figure~\ref{fig:consistency_proof_tree} on
 page~\pageref{fig:consistency_proof_tree} we are returned the correct tree roots
 for the proof and thus we have implemented the needed proofs.
 
@@ -1264,8 +1286,8 @@ found in Table~\ref{api:crypto_api} which shows the newly created endpoints.
 \end{table}
 
 The usage of the endpoints is fairly straight forward. We can call the generated
-signing key with ``/api/crypto/key'' as shown
-in~\ref{lst:display-generated-public-key}. Which enables us to verify the
+signing key with ``/api/crypto/key'' as shown in
+Listing~\ref{lst:display-generated-public-key}. Which enables us to verify the
 signature on the client side instead of on the server side if we need to do
 that.
 
@@ -1320,7 +1342,7 @@ $ curl --header "Content-Type: application/json" \
 \subsection{Fourth Iteration: Transparency log overlay}%
 \label{sub:transparency_overlay}
 In this section we are going to create an abstraction over the values we insert
-into the merkle tree. So far we have only been using mock values to test the
+into the merkle tree. So far we have only been using testing values to test the
 correctness of the tree. But we are after all going to record the submissions
 from the rebuilder and append them to the log. We also need to expose a new API
 to the APT transport which we need to integrate with at a later point.
@@ -1347,11 +1369,12 @@ The goals for this iteration are as follows;
 First we need to figure out what data we are dealing with. Let us start off by
 defining one item appended on the tree as an ``Entry''. An entry should always
 contain two key pieces of information, namely package name and version. This is
-important to retrieve them at a later point.
+important to retrieve them at a later point so we are capable of doing the
+package verification with the APT package manager.
 
 Once we have established this we need to figure out what sort of entries we are
 dealing with. We are going to deal with two actions, accepting submissions from
-the rebuilder, which we will call ``inclusions'', and revocations of said
+the rebuilder, which we will call inclusions, and revocations of said
 submissions. 
 
 \begin{listing}[H]
@@ -1801,4 +1824,5 @@ future.
 We have also done the needed integration between the transparency log and
 verified it works.
 
+\blankpage
 \end{document}

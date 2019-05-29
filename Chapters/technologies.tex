@@ -34,19 +34,24 @@ library to integrate with to provide the needed features.
 \subsection*{flask}
 Flask is a web framework for Python. It was created in 2010 by Armin Ronacher,
 and is one of the two most widely popular web frameworks in Python. It enabled
-developers to easily create REST APIs with good debugging capabilities~\cite{flask}.
+developers to easily create REST APIs with good debugging
+capabilities~\cite{flask}. This framework will be used to create the API
+endpoints for the rebuilder.
 
 \subsection*{jinja}
 One of the added features of using flask is that we get access to the templating
 framework jinja which allows us to easily create webpages and interface them
 with Python values before being served to users. This allows us to easily create
-webpages with the data used by the application~\cite{jinja}.
+webpages with the data used by the application~\cite{jinja}. We will be
+utilizing this library to create the HTML webpages for the rebuilder.
 
 \subsection*{postgresql}
 postgresql is a open-source relational database. It supports a wide number of
 abstract datatypes, such as native support for JSON, along with good support for
 concurrent operation. This enables easier development, along higher workloads
-and scalability~\cite{pgsql}.
+and scalability~\cite{pgsql}. We decided to utilize PostgreSQL over other
+technologies such as MySQL or sqlite because of the ability to embed JSON
+structure directly into the code. 
 
 \subsection*{sqlalchemy}
 SQLAlchemy is a widely used object relation mapping library for Python. It
@@ -70,12 +75,17 @@ class User(db.Model):
 \end{minted}
 \end{listing}
 
+Listing~\ref{lst:sqlalchemy} shows an example ORM model where we define a user
+table. Each model has a created timestamp which defaults to the current time,
+and a name value which defines a string for the name
+
 
 \subsection*{Panda and matplotlib}
 For graphing we will be using pandas and matplotlib. Both used a lot when it
 comes to scientific computing with Python. It enables powerful graphing
 capabilities over simply dataformats, such as CSV, and are tightly integrated
-into one another~\cite{pandas}\cite{matplotlib}.
+into one another~\cite{pandas}\cite{matplotlib}. We will be utilizing these
+libraries to generate graphs during the evaluation phase on this thesis.
 
 \subsection*{Git and Github}%
 \label{sub:git_and_github}
@@ -98,9 +108,10 @@ containers, namely a technology called Docker~\cite{docker}. Docker enables
 reproducible containers with a given Linux distribution and dependencies. They
 can be versioned and recreate environments across machines.
 
-We will be utilizing this technology for extended testing for deployment, and
-data structure testing in this thesis. Scripts and code to recreate these
-containers after the thesis is done will also be done.
+We will be utilizing this technology for extended testing for deployment and
+data structure testing in this thesis. We will be providing scripts to recreate
+the environments used to run the evaluations with docker and the container
+technology.
 
 \subsection*{curl}%
 \label{sub:curl}
@@ -130,25 +141,6 @@ The link metadata is a JSON file that specifies what the values, and outputs of
 the corresponding step should be. Evaluating the specification along with the
 link metadata lets the users, or the organization, verify that the supply chain
 has not been tampered with. 
-
-
-\begin{listing}[H]
-\begin{minted}[]{json}
-{"signatures": [
-  {"keyid": "918b19596...",
-   "other_headers": "0400010800...",
-   "signature": "bc1d9776bf..."}],
- "signed": {
-  "_type": "link",
-  "name": "rebuild",
-  "products": {
-   "python-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8e69d5cbdc..."},
-   "python3-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8234484139..."}}
-}}
-\end{minted}
-\caption{Example linkmetadata file}
-\label{lst:linkmetadata}
-\end{listing}
 
 \begin{listing}[H]
 \begin{minted}[]{json}
@@ -184,9 +176,38 @@ has not been tampered with.
 \label{lst:in-toto-schema}
 \end{listing}
 
+\begin{listing}[H]
+\begin{minted}[]{json}
+{"signatures": [
+  {"keyid": "918b19596...",
+   "other_headers": "0400010800...",
+   "signature": "bc1d9776bf..."}],
+ "signed": {
+  "_type": "link",
+  "name": "rebuild",
+  "products": {
+   "python-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8e69d5cbdc..."},
+   "python3-sshpubkeys_3.1.0-1_all.deb": {"sha256": "8234484139..."}}
+}}
+\end{minted}
+\caption{Example linkmetadata file}
+\label{lst:linkmetadata}
+\end{listing}
+
+Listing~\ref{lst:in-toto-schema} shows a in-toto schema. This is utilized to
+show the needed steps in the supply chain. It aids in verifying who can sign off
+on each step, what keys are used and what the acceptable output can be. To
+verify this we need a link metadata which is an output of the supply chain.
+Listing~\ref{lst:linkmetadata} is an example metadata file that contains a
+signed layout with the products and checksums from the product. These two files
+together allows us to verify that each step of a given supply chain has been
+don.e
+
 In this project we will be utilizing in-toto for the build attestation
-verification part in the APT transport. We don't deal with this directly, but
-it is currently an integral part of the verification part.
+verification part in the APT transport. In the in-toto APT transport we provide a
+in-toto schema where the rebuilder provides the appropriate linkmetadata. Each
+package downloaded by APT gets verified by running the in-toto process over
+these two files.
 
 
 \subsection*{Deployment}%

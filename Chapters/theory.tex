@@ -47,24 +47,25 @@ requirements of the process, and to make sure any milestones are met. The
 ``Release'' step would for instance include a penetration testing, where an
 active party attempts to hack or compromise the given software, and have a
 threat model reviewed where the security concerns are addressed and in some case
-justified.
+justified.This model only encompasses the development and the code written by
+the authors and is fairly similar to a traditional software models. 
 
-This model only encompasses the development and the code written by the authors
-and is fairly similar to a traditional software models, when the security aspect
-of it is removed. However, we are lacking a few considerations from this model;
-distributions and the wider ecosystem that is involved writing and producing
-software. \citeauthor{rj-ellison-2010} in \citetitle{rj-ellison-2010} he
-analyzes how the United states Department of Defense handles software
-acquisition in a very high secure environment. In the context of the military
-``[\dots] supply chains typically involve the movement of materials from home
-base to troops in theater. The responsibility for managing these supply chains
-falls to the acquisition and logistics experts''~\cite{rj-ellison-2010}. In this
-case, the DoD is not producing any software. Their only concern is to get the
-software developed, tested, shipped and updated in a secure fashion. In all of
-these steps they might relay on outside contractors and thus have to safeguard
-themselves against any risks. This in turns makes the supply chain far larger, and
-far more encompassing then a development model like the software lifecycle
-looked upon earlier.
+Traditional software models like Agile development, waterfall and extreme
+programming is all about managing the development lifecycle. Write code, respond
+to changes and delivery a product. However, we are lacking a few considerations
+from this model; distribution of the software and the wider ecosystem that is
+involved writing and producing software. \citeauthor{rj-ellison-2010} in
+\citetitle{rj-ellison-2010} he analyzes how the United states Department of
+Defense handles software acquisition in a very high secure environment. In the
+context of the military ``[\dots] supply chains typically involve the movement
+of materials from home base to troops in theater. The responsibility for
+managing these supply chains falls to the acquisition and logistics
+experts''~\cite{rj-ellison-2010}. In this case, the DoD is not producing any
+software. Their only concern is to get the software developed, tested, shipped
+and updated in a secure fashion. In all of these steps they might relay on
+outside contractors and thus have to safeguard themselves against any risks.
+This in turns makes the supply chain far larger, and far more encompassing then
+a development model like the software lifecycle looked upon earlier.
 
 In this thesis we will focus on how package managers work as a supply chain for
 distributing software in a secure manner.
@@ -95,22 +96,27 @@ by the Debian developers. This allows users to easily fetch, update and remove
 installed packages on their system.
 
 These packages are maintained by package maintainers who package, update and
-maintain the required files to distribute this to the end user. Each maintainer
-has a cryptographic secure signing key they use to fetch, and publish source
-packages to a build server. These source packages contains the needed files,
-patches and package files to compile the project source code to a format
-accepted by the Debian package manager, apt.
+maintain the required files to distribute the packages to the end user. Each
+maintainer has a cryptographic secure signing key they use to fetch, and publish
+source packages to a build server. These source packages contains the needed
+files, patches and package files to compile the project source code to a format
+accepted by the Debian package manager, APT, which allows the users to easily
+install and remove software.
 
 The build server verifies the signatures and compile these source packages to
-the all the supported architectures. It will then sign these packages with its
-own key, and distribute them to the end-user in the form of a mirror system.
+all the supported architectures. It will then sign these packages with its own
+key, and distribute them to the end-user in the form of a mirror system.
 
 
 \section{Software determinism}\label{sec:reproducible_builds}
-% TODO: Usikker på struktur.
-% Skal seksjonen hete reproducible builds? 
-
-% TODO: En seksjon ang "trust"?
+Supply chains can be complicated and ensuring that all parts of it is secured
+can be hard work. How can we make sure the packages from these supply chains are
+not tampered with? Modern toolchains that aids in building software can be
+complicated and embed a lot of information which might not be present in future
+builds. We will be taking a look at some of the fundamental work that has gone
+into considering undeterminism in software and also look at the Reproducible
+Builds effort which is a software development model to aid in producing
+deterministic software.
 
 \subsection*{Trusting trust}
 In a paper from Ken Thompson in 1984 (after he won the Turing Award for his work
@@ -122,24 +128,23 @@ malicious code inserted into compiled code that could be leveraged by malicious
 actors.
 
 \begin{quotation}
-``You can't trust code that you did not totally create yourself. [...] No amount
+``You can't trust code that you did not totally create yourself. [\ldots] No amount
 of source-level verification or scrutiny will protect you from using untrusted
 code. In demonstrating the possibility of this kind of attack, I picked on the C
 compiler. I could have picked on any program-handling program such as an
 assembler, a loader, or even hardware microcode. As the level of program gets
-lower, these bugs will be harder and harder to detect.  A well-installed
+lower, these bugs will be harder and harder to detect. A well-installed
 microcode bug will be almost impossible to
 detect''\cite{Thompson:1984:RTT:358198.358210}.
 \end{quotation}
 
 This paints a very bleak picture, considering most software we get today is
 pre-compiled and provided to us by different vendors. There is no clear cut of
-verifying what is provided by these vendors.
-
-But there are possible ways to counter this problem.  David A. Wheeler in his
-dissertation \citetitle{Wheeler:2005:CTT:1106778.1106809} details a possible solution to
-the ``trusting trust''-problem. It involves what he call diverse ``diverse
-compilation'' \cite{Wheeler:2005:CTT:1106778.1106809}.
+verifying what is provided by these vendors. But there are possible ways to
+counter this problem.  David A. Wheeler in his dissertation
+\citetitle{Wheeler:2005:CTT:1106778.1106809} details a possible solution to the
+``trusting trust''-problem. It involves what he call ``diverse
+double-compilation''~\cite{Wheeler:2005:CTT:1106778.1106809}.
 
 ``Diverse double-compilation'', or ``DCC'', is the act of using two compilers to
 detect any difference in the resulting artifact. The first compilation is done
@@ -147,10 +152,10 @@ with a secondary compiler, then again with the primary compiler. The idea is
 that the secondary compiler is a minimal implementation of the compiler, and can
 be trusted. However, creating compilers is not a trivial task. If we want to
 have a trusted and verified compiler that is capable of outputting the same
-binary we need to write them. This gets complicated quickly when you consider
-the time and effort spent on writing compilers for languages such as C++.
-
-Instead we have had an effort to reproduce software in other ways.
+binary we need to write these compiler our self. This gets complicated quickly
+when you consider the time and effort spent on writing compilers for languages
+such as C++. Instead we have had an effort the past years to reproduce
+deterministic software in other ways.
 
 
 \subsection*{Reproducible builds}
@@ -177,8 +182,8 @@ in oppressive regimes where the internet connection is filtered, or partially
 blocked. To help giving access to this network, they develop a variant of the
 web browser Firefox called ``Tor browser''~\cite{tor-browser}.
 
-The browser is configured to utilize the Tor network for an anonymous browsing
-session. Marginalized protester has been widely using Tor to circumvent
+The browser is configured to utilize the Tor network for anonymous internet
+browsing. Marginalized protester has been widely using Tor to circumvent
 censorship. The supply chain and distribution of this software is important as
 protesters and marginalized groups need the security features to stay secure.
 Receiving a malicious version of this software could in many cases result in
@@ -192,13 +197,16 @@ projects like Debian going to end up distributing state-sponsored malware in
 short order''~\cite{mike-perry-2013}.
 \end{quotation}
 
-The result of this concern is the move to support reproducible builds. Allowing
+The result of this concern is the move to support reproducible builds: Allowing
 users, and multiple independent builders, to recreate the distributed artifact
-bit-for-bit~\cite{unknown-2014}. This is done by utilizing Gitian which builds,
-and packages the software on self-contained virtual machines~\cite{gitian}. This
-enables the project to distribute the same build instructions as used to package
-the software in the first place, and allows users to easily verify if the
-distributed artifact matches the self-produced one.
+bit-for-bit~\cite{unknown-2014}. This lets the user themselves compile the Tor
+browser and make sure there has been no tampering with the distributed binaries
+if there was a suspicion they where. This is done by utilizing Gitian which
+builds, and packages the software on self-contained virtual
+machines~\cite{gitian}. This enables the project to distribute the same build
+instructions as used to package the software in the first place, and allows
+users to easily verify if the distributed artifact matches the self-produced
+one.
 
 Around the same time, in 2013, Debian started a push towards reproducible
 builds, and an effort into achieving this for their distributed
@@ -225,7 +233,8 @@ The requirement is that this variable is exported in the build system used to
 create the package. It also needs to take the current date time if no
 ``SOURCE\_DATE\_EPOCH'' is provided.
 
-\subsection*{Buildinfo}
+\subsection*{Buildinfo}%
+\label{sub:buildinfo}
 One of the main issues with reproducible builds is that it hard to make
 everything universally reproducible. Producing the same binary package on
 multiple different Linux distributions is close to impossible and unmanageable
@@ -334,13 +343,15 @@ The software is packaged and used by a number of distributions and is currently
 a very important tool in debugging reproducability issues.
 
 
-\section{Rebuilders}\label{sec:rebuilders} 
+\section{Rebuilders}%
+\label{sec:rebuilders} 
 One of the main ideals with reproducible builds is the ability to let the users
 recreate distributed artifacts. This is achievable with the correct tooling, and
-k ``BUILDINFO'' file as specified in the previous section. However, building all
-distributed packages is an unwieldy task. The appeal of Linux distributions is
-the ability to download pre-compiled packages to save the effort of building all
-the software one intend to use.
+a ``BUILDINFO'' file as specified in Section~\ref{sub:buildinfo} on
+page~\pageref{sub:buildinfo}. However, building all distributed packages is an
+unwieldy task. The appeal of Linux distributions is the ability to download
+pre-compiled packages to save the effort of building all the software one intend
+to use.
 
 Currently Debian has put a great deal of effort into testing packages by setting
 up a ``Continuous Integration'' framework for testing packages~\cite{debian-ci}.
@@ -351,15 +362,28 @@ developers directly. They are merely built twice in their own environment. The
 real goal is to reproduce distributed packages, so the CI solution it self does
 not fulfill this goal.
 
-What is needed is servers which takes packages as distributed, and reproduces
-these. The general idea is that there should be a pool of diverse servers which
-are capable of rebuilding packages in the correct environment. These rebuilders
-should be capable of sharing some sort of attestation for the built
-package~\cite{reproducible-builds-sharing}.
+What is needed is servers which takes the same packages which are distributed,
+and reproduces these. The general idea is that there should be a pool of diverse
+servers which are capable of rebuilding packages in the correct
+environment~\cite{reproducible-builds-sharing}. These rebuilders should be
+capable of sharing some sort of attestation for the built package.
 
-\section{Merkle Trees}%
+\section{Rebuilder logs}%
+\label{sec:rebuilder_logs}
+The rebuilder system needs to publish build attestation and the results of the
+package builds it performs. The files published is the in-toto link metadata
+used for package verification, and BUILDINFO files which describes the build
+environment. Since these are log files, they could be tampered with and altered
+to pretend a malicious package build is in fact correct. What we need is
+evidence whether or not the logs has been tampered with. This can be
+accomplished by utilizing something called transparency logs. These data
+structures are build on Merkle trees, where nodes are hashed together to
+construct a binary tree, which can prove whether or not a published log has been
+tampered with. In this section we will take a look at how such logs work and the
+theory behind them.
+
+\subsection{Merkle Trees}%
 \label{sec:merkle_trees}
-
 Merkle Trees is a tree structure based on cryptographic secure hashing function
 \cite{ralph-c.-merkle-1998}. It creates a binary tree where each leaf is hashed,
 and combined two and two. The top node of this tree is reffed to as a ''root
@@ -370,8 +394,8 @@ node, and then hash each of the nodes together.
 
 \subsubsection*{Transparency logs}%
 \label{sub:certificate_transparency_log}
-Transparency logs is a use case of Merkle trees by~\citeauthor{182788} and
-describes how Merkle trees can be used to achieve tamper evident
+Transparency logs is a use case of Merkle trees by~\citeauthor{182788} which
+describes how this data structure can be used to achieve tamper evident
 logging~\cite{182788}. In the traditional sense, logs can be plain text files
 published anywhere. It can simply be a line of text detailing something. If this
 where to change on a remote service, there would not normally be any evidence of
@@ -381,7 +405,7 @@ prove the log has been modified at some point in time after the has we got was
 provided. 
 
 Certificate transparency logs
-from~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013}is an implementation
+from~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} is an implementation
 of transparency logs. These logs lets organizations that issue HTTPS
 certificates an audit trail~\cite{b.-laurie-a.-langley-e.kaster-google-2013}.
 It allows the discovery of when abuse, and creation of malicious certificates.
@@ -389,17 +413,23 @@ The log allows organizations to see who issued certificates for what domains,
 and can aid in detecting private key compromise, API misuse or other types of
 misuse early.
 
-Proofs in the context of transparency logs are tuple pairs where the first
-element describes the position of the hash, which can be either left or right,
-and the second element includes the hash of the given object. Given the correct
-order of hashing, the product should be some merkle tree root the log is either
-currently using, or have used in the past.
+To make sure we can prove evidence of tampering, transparency logs has the
+unique feature where we can provide some hashes from the tree, and reconstruct
+an assumed root node. Given a sound and secure hashing function, difference in
+the root tree checksum proves if modifications has been done on the tree.  The
+proofs needed to implement a transparency log is as follows;
 
-The proofs needed to implement a transparency log is as follows;
 \begin{itemize}
 \item Audit proof
 \item Consistency proof
 \end{itemize}
+
+Proofs are tuple pairs where the first element describes the position of the
+hash, which can be either left or right, and the second element includes the
+hash of the given object. Given the correct order of hashing, the product should
+be some merkle tree root the log is either currently using, or have used in the
+past. If this is not the correct root hash it proves some tampering has been
+done on the log.
 
 \begin{figure}[H]
 \centering
@@ -475,12 +505,15 @@ on the merkle tree.
 
 \section{Research Overview}%
 \label{sec:research_overview}
+In this section we will be taking a look at the work done in the surrounding
+areas when it comes to reproducible builds, supply chain security and
+transparency logs.
 
 \subsection{Software Distribution Transparency and Auditability}\label{sec:benjamin}
 The initial work on package transparency logs, as a form of binary transparency,
 was done by \citeauthor{1711.07278v1}. It implements an append-only merkle tree to
 keep track of released versions of software into a package repository, namely
-Debian.\cite{1711.07278v1}
+Debian~\cite{1711.07278v1}.
 
 The paper details a novel hidden attack, where a backdoored package is
 distributed to some users but not everyone. As the transparency log knows which

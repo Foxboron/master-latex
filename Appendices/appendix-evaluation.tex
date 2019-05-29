@@ -10,6 +10,54 @@
 \section{Merkle tree stress test}%
 \label{appendix:merkle_tree_stress_test}
 
+%TC:ignore
+\begin{listing}[H]
+\begin{minted}{bash}
+$ git clone https://github.com/Foxboron/master.git
+Cloning into 'master'...
+$ cd master 
+$ make stress-test
+[*] Starting
+...
+[*] Waiting for system to start...
+[*] Adding 113054 elements to the tree - THIS WILL TAKE A WHILE...
+make: Entering directory '/app'
+(cd test; python create_tree.py --new --append 113054)
+make: Leaving directory '/app'
+[*] Copying stats.txt and roots.txt locally...
+[*] Removing containers...
+...
+\end{minted}
+\caption{running the stress test}
+\label{lst:appendix-stress-test}
+\end{listing}
+%TC:endignore
+
+Listing~\ref{lst:appendix-stress-test} shows the setup for the stress test in
+the evaluation. Since replicating the testing in complete, with 113054 elements
+takes days to complete, a smaller version with ``small-stress-test'' has been
+added for the sake of saving time.
+
+    
+
+%TC:ignore
+\begin{listing}[H]
+\begin{minted}{bash}
+$ python stats/plot_package_count.py stats.txt
+$ python stats/plot_response_time.py stats.txt
+\end{minted}
+\caption{Plotting the graphs}
+\label{lst:appendix-stats}
+\end{listing}
+%TC:endignore
+
+Listing~\ref{lst:appendix-stats} shows how to generate the graphs in the
+evaluation. The ``stats.txt'' file contains the number of leafs, interior nodes,
+hash and response time on the query, and will be generated when the stress tests
+are done from Listing~\ref{lst:appendix-stress-test}. The data used in the
+evaluation can be found in ``stats/stats.txt''.
+
+
 \section{BUILDINFO FTP Server}%
 \label{appendix:buildinfo_ftp_server}
 \url{https://buildinfos.debian.net/ftp-master.debian.org/buildinfo/2019/}
