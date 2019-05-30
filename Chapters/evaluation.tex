@@ -12,7 +12,7 @@ research artifacts we are left with.
 
 So far we have had four iteration on this project. First iteration was to
 reimplement the API and functionality from the first visualizer, the second
-iteration implemented support for merkle trees, the third iteration implemented
+iteration implemented support for Merkle trees, the third iteration implemented
 the needed signing layer on the tree, and the fourth and final iteration that
 implements the transparency log overlay.
 
@@ -62,7 +62,7 @@ overlay.
 \label{sub:seperation_of_concerns}
 Separation of concerns in this scenario is handled well. We have split
 functionality across multiple APIs with clearly labeled names. The tree API does
-not implement functionality in the merkle tree API. However, when utilizing the
+not implement functionality in the Merkle tree API. However, when utilizing the
 API one has to use APIs from both the transparency log API and the transparency
 overlay API.
 
@@ -76,7 +76,7 @@ of tools are available to interact with APIs designed in this fashion.
 \subsection*{Reusability}%
 \label{sub:reusability}
 The API is not designed to be inherently reusable for other usages than the one
-it is supposed to cover. We can however use the raw merkle tree without
+it is supposed to cover. We can however use the raw Merkle tree without
 utilizing the more abstracted API calls in this implementation.
 
 \section{Transparency log testing}%
@@ -94,7 +94,7 @@ all the BUILDINFO submissions. This allows us to grab the files produced for
 each day of the year.
 
 The file server contains builds information from 2016 until 2019 and totals an
-archive of around 130 GB. As the merkle tree grows for every insertion and
+archive of around 130 GB. As the Merkle tree grows for every insertion and
 hashes interior nodes along with signing the root node, we need to limit the
 data for practical reasons. We are going to only consider the build submissions
 from 1st of January 2019, until 19th of May 2019 (see

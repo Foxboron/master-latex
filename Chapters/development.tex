@@ -10,16 +10,16 @@ first section will be focused on learning what the current rebuilder setup is
 doing, establish the base requirements of the rewrite of the visualizer with the
 goal of improving the design.
 
-After the first iteration is done we will be implementing the merkle tree
-storage for the rebuild submissions which consists of a in-toto linkmetadata
+After the first iteration is done we will be implementing the Merkle tree
+storage for the rebuild submissions which consists of a in-toto link metadata
 file, and a BUILDINFO file. Then we will be focusing on implementing the needed
-signing of the merkle tree roots to help verify that the given tree roots
+signing of the Merkle tree roots to help verify that the given tree roots
 actually comes from the given rebuilder. The final iteration will be the
 implementation of the transparency log overlay, which will be the front end for
 the APT client to fetch rebuild submission and check if they have been revoked
 or not.
 
-The last section deals with the integration between the existing apt transport
+The last section deals with the integration between the existing APT transport
 and the new visualizer API. We will be removing the support for the old API and
 connect it with the new rewritten API with support for transparency logs. We
 will then make sure the test suite for the transport completes and everything
@@ -326,11 +326,12 @@ previous iteration had a strict dependency on SQLite, which is a very simple
 database stored in a single file. This works well for point of concept
 implementations and where the database does not grow exceedingly large.
 
-In the rewrite we will be utilizing an ORM for python, the SQLAlchemy library.
+In the rewrite we will be utilizing an ORM for Python, the SQLAlchemy library.
 This will allow us to define data models and instantiate them on top of
 different database engines. The database structure itself closely copies the one
-from the original implementation. The schema as displayed on~\ref{fig:schema},
-page~\pageref{fig:schema}, represent the implemented model in the ORM.
+from the original implementation. The schema as displayed on
+Figure~\ref{fig:schema}, page~\pageref{fig:schema}, represent the implemented
+model in the ORM.
 
 The schema implements the model as follows; ``package'' can have multiple
 ``versions''. The models that belong to ``linkmetadata`` and ``buildinfo`` is
@@ -389,7 +390,7 @@ the database format to the correct data representation in the project.
 \subsection*{API and Frontend}%
 \label{sub:api_and_frontend}
 
-To reimplement the API as can be seen in table~\ref{api:old_visualizer} on
+To reimplement the API as can be seen in Table~\ref{api:old_visualizer} on
 page~\pageref{api:old_visualizer}, we need to create the needed routes for the
 web service. This is being done by Flask, which is a webserver framework for
 Python. The same framework was utilized in the original implementation and
@@ -416,12 +417,12 @@ def all_sources_pkg(pkgname):
 \label{lst:python-source}
 \end{listing}
 
-The listing seen in~\ref{lst:python-source} is a simple example of a route
+The listing seen in Listing~\ref{lst:python-source} is a simple example of a route
 written in Python. It calls out to the needed models, and does an implicit join
 between them to get the needed relationships in place. The results of this is a
 webpage containing all the rebuilder submissions from the builder. Similar
 endpoints are written to provide rest of the functionality as described
-in~\ref{api:old_visualizer}. The input for this route is the name of the package
+in Table~\ref{api:old_visualizer}. The input for this route is the name of the package
 and the version of the given package.
 
 
@@ -472,14 +473,14 @@ The models we create rely heavily on relationships to properly store the
 information across several tables. Since we also back-reference across models,
 we end up in a peculiar situation. When we turn the models to a JSON structure,
 or attempt to debug them with the relationships enabled, they will recurse until
-the global stack limiter in python is hit. This makes it somewhat hard to output
+the global stack limiter in Python is hit. This makes it somewhat hard to output
 the models in a good manner when debugging and developing the models.
 
 For debugging and development purposes, there was a simple REST API developed to
 inspect the created objects when submitting new rebuilds. These would recurse
 indefinitely and crash the application. To counter this we wrote a simple hack
 to make sure the models would not indefinitely recurse. Since we are capable of
-inspecting the stack in python, we wrote a simple wrapper to the functions prone
+inspecting the stack in Python, we wrote a simple wrapper to the functions prone
 to the recurse problem.
 
 \begin{listing}
@@ -566,7 +567,7 @@ further improvements on the API.
 
 \subsection{Second Iteration: Merkle Tree}%
 \label{sub:merkle_tree}
-The second iteration focuses on implementing merkle trees into the visualizer.
+The second iteration focuses on implementing Merkle trees into the visualizer.
 These will create the foundation of the transparency log in the upcoming
 iterations for this project.
 
@@ -577,7 +578,7 @@ implemented to support a transparency log.
 
 \subsection*{Goals}%
 \label{sub:second_iteration_goals}
-The goals of this iteration is to make sure the merkle tree operated properly.
+The goals of this iteration is to make sure the Merkle tree operated properly.
 For this to happen there needs to be validated proofs and a proper tree
 generated when new items are added. We will also be writing a very simple output
 where we can visualize the generated tree as a node graph. This will aid in
@@ -609,7 +610,7 @@ hashes.
 
 The next development challenge in this iteration is to make sure the proofs are
 working. Without appropriate proofs, mainly audit proofs and consistency proofs
-as described in subsection~\ref{sub:certificate_transparency_log}. We will go
+as described in Subsection~\ref{sub:certificate_transparency_log}. We will go
 through the development of these features and make sure they are working before
 moving on for the next iteration.
 
@@ -621,7 +622,7 @@ this library does not provide a persistence storage outside of just storing the
 plain text tree as a JSON structure in a file. Our goal is to reuse portions of
 the library code, and adapt them to a tree structure backed by PostgreSQL to
 provide the transparency log features. This allows us to have a proper backend
-storage for the merkle tree.
+storage for the Merkle tree.
 
 
 \subsection*{Database}%
@@ -734,7 +735,7 @@ by~\citeauthor{182788} where they calculate frozen subroots down on the left
 side of the tree until the appropriate subroot is reached~\cite{182788}.
 
 Our implementation is as follows; we take the count of all leaves in the tree and
-use them to calculate the largest complete subtree in the merkle tree, and
+use them to calculate the largest complete subtree in the Merkle tree, and
 remove this from the count.  What we are left with are all the nodes in surplus
 on the right hand side of the tree.
 
@@ -789,7 +790,7 @@ value. This serves the same purpose as the certificate transparency logs.
 \label{sub:graph_merkle_tree}
 To validate that we are getting the correct association and relationships when
 appending new elements, one of the important things to get is a visualization of
-the currently constructed merkle tree. To aid the discovery of problematic
+the currently constructed Merkle tree. To aid the discovery of problematic
 nodes, the first 10 letters of the hash is printed with the node to easily find
 the affected node and aid debugging.
 
@@ -837,7 +838,7 @@ label="Nodes: 4";
 \label{sub:audit_proof_implementation}
 Audits proofs are important as they prove whether or not a given leaf is part of
 the tree. They are used to validate that the data on the leaf is actually part
-of a merkle tree. The implementation of this is fairly straight forward as we
+of a Merkle tree. The implementation of this is fairly straight forward as we
 have implemented the database structure in a succinct manner.
 
 The audit proof needs the id, or the hash of the node that should have the audit
@@ -864,7 +865,7 @@ given and append the hash on the correct side of the previous hash.
 \label{sub:consistency_proof_implementation}
 Consistency proofs are very similar to audit proofs, however they carry another
 important property. They allow us to follow the path from a given known signed
-merkle tree root to the current new one. They are important to make sure we are
+Merkle tree root to the current new one. They are important to make sure we are
 capable of tracing a path from the last known tree root we have, and to the
 current one. 
 
@@ -881,7 +882,7 @@ tree until the root of the largest complete subtree is found. Then we know how
 many leafs we have to move forward until we can start to climb the next subtree.
 
 Once this is done with all the found heights, we have all the needed roots to
-recreate the previous merkle tree root. This can be checked by taking the
+recreate the previous Merkle tree root. This can be checked by taking the
 previous tree root which is given as the input and do at the same hash
 concatenation as we do with the audit proof. If this value is as expected, we
 can continue recreating the path to the current tree root.
@@ -889,11 +890,11 @@ can continue recreating the path to the current tree root.
 Here we take each of the previous subroots and move up the tree until we reach
 the current tree root. We end up with two paths. One consisting of the previous
 subroots, and one of the remaining interior nodes we need to complete the path
-to the merkle tree root.
+to the Merkle tree root.
 
 \subsection*{Results}%
 \label{sub:second_iteration_results}
-The second iteration was all about finishing up the merkle tree approach so we
+The second iteration was all about finishing up the Merkle tree approach so we
 can construct a transparency log. The result has been a great deal of code to
 make sure the tree works, and the properties and paths are generated correctly.
 We have also made some debug utilities to make sure we have generated a well
@@ -928,7 +929,7 @@ formed binary tree, and no nodes are generating poor relationships.
 
 The Listing~\ref{api:transparency_log} shows the complete API that was designed
 to along with the code base. This API lets us add arbitrary JSON objects to the
-merkle tree, and to inspect these nodes and verify them with an audit proof or
+Merkle tree, and to inspect these nodes and verify them with an audit proof or
 consistency proof.
 
 The API allows for inspection of the tree with graphviz, along with also
@@ -941,13 +942,13 @@ An appropriate database model has been constructed, and given us the needed
 relationships between nodes to form a tree, and effectively ports the needed
 algorithms to this tree structure. By lifting some code from the pymerkle
 library we are able to create append-only trees without having to rehash all
-interior nodes of the merkle tree.
+interior nodes of the Merkle tree.
 
 We are also capable of visualizing the created tree with graphviz for easier
-debugging when dealing with the merkle tree and detecting poor relationship
+debugging when dealing with the Merkle tree and detecting poor relationship
 building and find other issues in the data structure.
 
-To test this we are going to take a look at creating merkle trees, issue audit
+To test this we are going to take a look at creating Merkle trees, issue audit
 proofs, consistency proof and use the hashing scheme earlier to recreate root
 hashes. This will help us prove a well functioning transparency log can be
 achieved.
@@ -960,10 +961,10 @@ achieved.
 \end{figure}
 
 
-Figure~\ref{fig:graph} shows the constructed merkle tree. The first level is the
+Figure~\ref{fig:graph} shows the constructed Merkle tree. The first level is the
 hash of all the leaf nodes which is currently some simple mock data in the JSON
 structure for testing purposes. There is a total of 3 interior nodes, where the
-top one is the merkle tree root. Our goal is to test the appropriate proofs and
+top one is the Merkle tree root. Our goal is to test the appropriate proofs and
 make sure we are getting back the appropriate nodes. These will help us make
 sure we can reconstruct the root node in the tree.
 
@@ -988,7 +989,7 @@ API endpoint. The red color marks the needed nodes to construct the tree node
 for each appropriate proof. 
 
 It should be noted that while annotating the output graphs I discovered that the graphviz
-output as displayed in subsection~\ref{sub:graph_merkle_tree} is inherently
+output as displayed in Subsection~\ref{sub:graph_merkle_tree} is inherently
 unordered, at least for complete subtrees. Incomplete subtrees would always be
 output on the right hand side of the graph, but graphviz does not guarantee
 any ordering of the internal subtrees. That means the graph as shown in these
@@ -1091,7 +1092,7 @@ trust this value blindly. This do make for easy debugging when we are running
 this locally. We are also abbreviating some of the structure and hashes for the
 sake of keeping things terse.
 
-The figure~\ref{fig:validate_proof_tree} on page
+The Figure~\ref{fig:validate_proof_tree} on page
 \pageref{fig:validate_proof_tree} is the audit tree with the appropriately
 highlighted nodes, and the same nodes are found by the audit endpoint and a path
 to the root node is correctly generated. This can be verified running the given
@@ -1140,7 +1141,7 @@ Listing~\ref{lst:consistency proof} displays the consistency proof. It is
 considerably smaller then the audit proof as we are only dealing with the
 subroots. Since we are dealing with a rather small tree, it is not the best
 situation to show off a consistency proof, as one subroot of the two is a
-previous merkle tree root. Thus we are only getting two in return we need to
+previous Merkle tree root. Thus we are only getting two in return we need to
 hash together. 
 
 However, as shown on Figure~\ref{fig:consistency_proof_tree} on
@@ -1152,7 +1153,7 @@ investigate and test the transparency log implementation further.
 
 \subsection{Third Iteration: Tree root signing}%
 \label{sub:tree_root_signing}
-One essential part of merkle trees as implemented
+One essential part of Merkle trees as implemented
 by~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} in certificate
 transparency logs is the ability to have tree-roots
 signed~\cite{b.-laurie-a.-langley-e.kaster-google-2013}. This lets us verify
@@ -1176,7 +1177,7 @@ signatures on tree nodes.
 For the development of this feature we are utilizing the securesystemslib from
 New York University's' secure systems lab~\cite{securesystemslib}. It's a
 library with a collection of easy-to-use primitives to deal with encryption,
-decryption and signature verification on data for python. Utilizing this library
+decryption and signature verification on data for Python. Utilizing this library
 makes it trivial to implement the needed signature functionality in a short and
 concise manner.
 
@@ -1314,7 +1315,7 @@ $ curl 127.0.0.1:5000/api/key
 %TC:endignore
 
 To verify a tree root on the server side, we can provide the output from
-``/api/log/tree/root'' from Listing~\ref{api:transparency_log}, and forward this
+``/api/log/tree/root'' from Table~\ref{api:transparency_log}, and forward this
 to ``/api/crypto/verify''. In the example from
 Listing~\ref{lst:test-verify-endpoint}, we have provided a minimal tree root
 JSON object to display a successful verification of a tree root on the server
@@ -1342,7 +1343,7 @@ $ curl --header "Content-Type: application/json" \
 \subsection{Fourth Iteration: Transparency log overlay}%
 \label{sub:transparency_overlay}
 In this section we are going to create an abstraction over the values we insert
-into the merkle tree. So far we have only been using testing values to test the
+into the Merkle tree. So far we have only been using testing values to test the
 correctness of the tree. But we are after all going to record the submissions
 from the rebuilder and append them to the log. We also need to expose a new API
 to the APT transport which we need to integrate with at a later point.
@@ -1408,12 +1409,12 @@ rebuilt and is a submission.
 The other entry we will be dealing with is a ``revoke'' entry. This denotes an
 inclusion which has been marked as bad. We will be using these entries to mask
 inclusion entries on the client side. This contains two fields. The ``hash''
-field denotes the hash of the merkle tree object containing an inclusion entry.
+field denotes the hash of the Merkle tree object containing an inclusion entry.
 The next field is ``reason'' which can contain an optional message as to why the
 given inclusion has been revoked.
 
 To implement support for this we are going to take the submission endpoint from
-the first iteration on subsection~\ref{sub:first_iteration_development} on
+the first iteration on Subsection~\ref{sub:first_iteration_development} on
 page~\pageref{sub:first_iteration_development}.
 
 Extending the previous ``/new\_build'' endpoint, where we are creating the
@@ -1440,9 +1441,9 @@ def rebuilder_fetch(name, version):
 
 We also need to fetch all entries on the database given a package name and
 version. PostgreSQL has dedicated JSON support in their database, which our
-model defined on listing~\ref{lst:node_model} on page~\pageref{lst:node_model}
+model defined on Listing~\ref{lst:node_model} on page~\pageref{lst:node_model}
 has implemented for the data field. What we can now do is use native PostgreSQL
-filters on the JSON as seen on listing~\ref{lst:fetch_entries}. This allows us
+filters on the JSON as seen on Listing~\ref{lst:fetch_entries}. This allows us
 to easily filter through all entries and return them easily for the REST API.
 
 For each of the entries a corresponding audit proof needs to be fetched. To
@@ -1450,7 +1451,7 @@ lessen the burden on the client, we append this proof to the response. This
 allows us to not having to implement the audit proof fetching and validation 
 
 When it comes to having a ``revoke'' entry, we need to have a few
-considerations in place. As input we need the hash of a node on the merkle
+considerations in place. As input we need the hash of a node on the Merkle
 tree with a ``inclusion'' entry. Currently we don't want to publish revocations
 of any objects, as further entries could be implemented in the future. What we do
 is that we look up the hash, get the object and verify the type of the entry
@@ -1583,16 +1584,13 @@ future. We will now attempt to integrate them into the APT package handler.
 
 
 \subsection{APT Transport integration}\label{sec:apt_transport}
-
-\subsection*{Introduction}%
-\label{sub:apt_transport_introductionn}
-
-So far we have implemented the server side of this software. Now comes the
-client side which will do the package verification towards the visualizer.
-The current rebuilder system as implemented before this thesis, there was an
-integration with the APT package manager for Debian written for this. The
-purpose of this integration is to have a process which let apt download the
-appropriate package, but in a way where we can do additional verification.
+So far in this thesis we have implemented the server side of this software. Now
+comes the client side which will do the package verification towards the
+visualizer.  The current rebuilder system as implemented before this thesis,
+there was an integration with the APT package manager for Debian written for
+this. The purpose of this integration is to have a process which let APT  
+download the appropriate package, but in a way where we can do additional
+verification.
 
 
 \begin{figure}[H]
@@ -1617,10 +1615,10 @@ appropriate package, but in a way where we can do additional verification.
 \end{figure}
 
 The sequence diagram in Figure~\ref{fig:intoto_sequence_diagram} shows the idea
-behind this. When apt communicated with a package repository it will use a
+behind this. When APT communicated with a package repository it will use a
 binary for the communication between the client and the server. What we have is
 an ``in-toto'' client which can be used as a drop-in replacement of the ``http''
-one. We only forward between the client and the apt server until we see that a
+one. We only forward between the client and the APT server until we see that a
 package has been acquired, this is recognized when the ``201 URI Done'' message
 is passed. This implies we have downloaded the package locally. We
 man-in-the-middle this message and begin our verification process.
@@ -1632,7 +1630,7 @@ implemented with ``in-toto''. This involves a layout from in-toto which
 describes the expected keys and the threshold that needs to be met for the
 process to succeed. If the validation with the linkmetadata is approved, which
 means the downloaded package has the same checksum as the signed layout says it
-has, we will forward the ``201 URI Done'' message to the client apt and the
+has, we will forward the ``201 URI Done'' message to the client APT and the
 package will be installed.
 
 The development in this section is to move the current implementation away from
@@ -1661,12 +1659,12 @@ any validations the rebuilder does.
 \label{sub:apt_transport_development}
 To validate the downloaded packages against available linkmetadata, we need to
 implement and support a few states. We can't just ask for the given entries, we
-also need to validate the state of the merkle tree with the consistency proof
-from the merkle tree. All of this should be done locally.
+also need to validate the state of the Merkle tree with the consistency proof
+from the Merkle tree. All of this should be done locally.
 
 The steps needed are
 \begin{enumerate}
-    \item Have previous known merkle tree state
+    \item Have previous known Merkle tree state
     \item Fetch consistency proof and validate this proof
     \item Store new tree root in place of old tree root
     \item Fetch available entries on the given package
@@ -1676,7 +1674,7 @@ The steps needed are
 
 It should be noted that any validation step on tree nodes need to attempt to
 recreate the hash appropriately. We also need to validate any signatures on
-merkle tree roots. Thus our additions to the ``in-toto'' transport amounts to 5
+Merkle tree roots. Thus our additions to the ``in-toto'' transport amounts to 5
 functions.
 
 \begin{itemize}
@@ -1764,7 +1762,7 @@ the least amount of intrusive code to the current project.
 \end{listing}
 %TC:endignore
 
-We have also included a new option in the configuration file for the apt
+We have also included a new option in the configuration file for the APT 
 transport. We need a way to store previous tree roots from multiple rebuilders,
 so settled on a fairly simple JSON format which meets our needs fairly well.
 Listing~\ref{lst:tree_root_store} shows the format which is a simple key value
@@ -1780,11 +1778,11 @@ page~\pageref{appendix:apt-development-source}.
 \subsection*{APT Transport Testing}%
 \label{sub:apt_transport_testing}
 For the testing part we are going to reuse the test setup written for the
-original apt transport and make sure it has everything it needs to test towards
+original APT transport and make sure it has everything it needs to test towards
 the new API.
 
 The current test setup heavily relies on mocking three parts of this setup. The
-apt client, the apt server and the rebuilder. All of these are mocked in an
+APT client, the APT server and the rebuilder. All of these are mocked in an
 attempt to only test the ``intoto'' transport. To test our new API we will
 remove the rebuild mocking which the test setup utilizes. This enables us to
 test the new rebuilder directly instead of utilizing a mock of the API.
@@ -1801,17 +1799,17 @@ utility.
 
 The next challenge is to make sure we are initializing the consistency proof
 tree root correctly. To do this we make sure we are dealing with a reproducible
-setup so the seeded merkle tree root doesn't change between tests. We do this by
-first initializing a merkle tree with 10 elements. Then we pick one of these
+setup so the seeded Merkle tree root doesn't change between tests. We do this by
+first initializing a Merkle tree with 10 elements. Then we pick one of these
 roots which we will use to start off on our testing, in our case we went with
-the merkle tree root present when there was four leaf nodes for no particular
+the Merkle tree root present when there was four leaf nodes for no particular
 reason. We make sure we store this file, and copy it to the right location,
-along with making sure the mock apt client has the configuration set to look for
+along with making sure the mock APT client has the configuration set to look for
 this file.
 
-The resulting test suite thus passes and we have managed to integrate the apt
+The resulting test suite thus passes and we have managed to integrate the APT
 transport with the new API. Appendix~\ref{appendix:apt_testing} on
-page~\pageref{appendix:apt_testing} goes through the test setup of the apt
+page~\pageref{appendix:apt_testing} goes through the test setup of the APT 
 transport and the resulting test suite run. This helps make sure the results are
 reproducible.
 

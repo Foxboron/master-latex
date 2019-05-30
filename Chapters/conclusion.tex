@@ -16,7 +16,12 @@ In this thesis we have used Design Science research to develop a replacement for
 the API front end used by the rebuilder infrastructure, called visualizer. We
 have replaced the old implementation with a new extended version with support
 for additional security properties by implementing a transparency log on top of
-the API. The development has gone over four iterations by establishing a set of
+the API. We are capable of adding build submissions from the rebuilder, which
+consists of a BUILDINFO file and a in-toto link metadata file. We are capable of
+verifying whether or not published submissions have been tampered with after the
+fact and integrate with the Debian package manager.
+
+The development has gone over four iterations by establishing a set of
 goals and making sure the goals are met after each iteration. After the
 iterations on the visualizer rewrite, we had an integration phase into the
 Debian package manager APT, to make sure we are able to utilize with the new
@@ -31,12 +36,13 @@ old API endpoints was correctly implemented.
 The second iteration implemented the Merkle tree data structure in a PostgreSQL
 data storage back end. The implementation encompasses a dedicated API to
 investigate and debug the API, along with appending raw JSON data structures to
-the tree it self. The base proofs was implemented in this iteration: audit
-proofs and consistency proofs. The visualizer also got an endpoint to visualize
-the merkle tree as a graph using the Graphviz library. The end result of this
-iteration was a working merkle tree implementation that works as a transparency
-log and provide tamper evident logging. We are also capable of appending new
-elements without having to re-hash the interior nodes of the tree.
+the tree it self. The proofs we need to prove whether or not the submission have
+been tampered with was implemented in this iteration: audit proofs and
+consistency proofs. The visualizer also got an endpoint to visualize the Merkle
+tree as a graph using the Graphviz library. The end result of this iteration was
+a working Merkle tree implementation that works as a transparency log and
+provide tamper evident logging. We are also capable of appending new elements
+without having to re-hash the interior nodes of the tree.
 
 The third iteration centered around the cryptographic parts of the Merkle tree.
 All Merkle tree roots needs to be signed by a key pair to prove the given tree

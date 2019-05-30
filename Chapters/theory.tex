@@ -9,8 +9,7 @@
 In this section we will take a closer look at the theory surrounding
 supply chains, reproducible builds, transparency logs and rebuilders.
 
-\section{Supply Chains}\label{sec:supply_chain}
-\subsection*{The Supply Chain}
+\section{The Supply Chain}\label{sec:supply_chain}
 Most of the software today are developed through a series of steps. This is
 traditionally called ``The Software Supply Chain''. Software projects today go
 through development, building, testing, staging and production, with slight
@@ -154,14 +153,14 @@ be trusted. However, creating compilers is not a trivial task. If we want to
 have a trusted and verified compiler that is capable of outputting the same
 binary we need to write these compiler our self. This gets complicated quickly
 when you consider the time and effort spent on writing compilers for languages
-such as C++. Instead we have had an effort the past years to reproduce
+such as C++. Instead we have made an effort the past years to reproduce
 deterministic software in other ways.
 
 
 \subsection*{Reproducible builds}
-Reproducible builds is a set of practices for how to achieve deterministic
+Reproducible builds is a set of practices on how to achieve deterministic
 compilation of software. Supply chains are usually handled with multiple tools,
-and on several individual computers, this leaves a rather large attack surface
+and on several individual computers. This leaves a rather large attack surface
 for malicious actors to try compromise the chain. This is not a theoretical
 threat. There has been an increase in attacks on parts of supply chains in
 recent years. They are high impact and affect users as well as developers.
@@ -183,12 +182,12 @@ blocked. To help giving access to this network, they develop a variant of the
 web browser Firefox called ``Tor browser''~\cite{tor-browser}.
 
 The browser is configured to utilize the Tor network for anonymous internet
-browsing. Marginalized protester has been widely using Tor to circumvent
+browsing. Marginalized protesters has been widely using Tor to circumvent
 censorship. The supply chain and distribution of this software is important as
-protesters and marginalized groups need the security features to stay secure.
-Receiving a malicious version of this software could in many cases result in
-prison of life threatening danger to people. Mike Perry highlighted the concern
-when discussing the testing of the ``Tor browser''.
+protesters and marginalized groups need to make sure the browser is not
+compromised. Receiving a malicious version of this software could in many cases
+result in prison or life threatening danger to people. Mike Perry highlighted
+the concern when discussing the testing of the ``Tor browser''.
 
 \begin{quotation}
     ``[...] software development has to evolve beyond the simple models of
@@ -202,59 +201,62 @@ users, and multiple independent builders, to recreate the distributed artifact
 bit-for-bit~\cite{unknown-2014}. This lets the user themselves compile the Tor
 browser and make sure there has been no tampering with the distributed binaries
 if there was a suspicion they where. This is done by utilizing Gitian which
-builds, and packages the software on self-contained virtual
+builds and packages the software on self-contained virtual
 machines~\cite{gitian}. This enables the project to distribute the same build
 instructions as used to package the software in the first place, and allows
 users to easily verify if the distributed artifact matches the self-produced
 one.
 
-Around the same time, in 2013, Debian started a push towards reproducible
-builds, and an effort into achieving this for their distributed
-packages~\cite{debian-repro-2013}. Since then, 22 projects are officially part
-of the initiative to bring reproducible builds to users, among others are Arch
-Linux, Fedora, Tor, openSUSE and more~\cite{repro-who}. There has been 4 summits
-held for volunteers to come together and discuss the issues at
-hand~\cite{repro-paris}.
+Around the same time as Gitian was discussed, in 2013, Debian started a push
+towards reproducible builds, and an effort into achieving this for their
+distributed packages~\cite{debian-repro-2013}. Since then, 22 projects are
+officially part of the initiative to bring reproducible builds to users, among
+others are Arch Linux, Fedora, Tor, openSUSE and more~\cite{repro-who}. There
+has been 4 summits held for volunteers to come together and discuss the issues
+at hand~\cite{repro-paris}.
 
 \subsection*{Source Date Epoch}
 One of the most common offenders for undeterministic builds is the embedding of
-when something was built. On the surface this looks like a completely sane thing
-to do for most builds, but it creates problems when the produced artifact in
-turns become undeterministic because we built it at another point in time.
+when something was built. On the surface this looks like a completely innocent
+thing to do for most builds, but it creates problems when the produced artifact
+in turns become undeterministic because we built it at another point in time.
 
 The Reproducible Builds project defines an environment variable called
-``SOURCE\_DATE\_EPOCH'' which is an means to solve this dilemma
-\cite{reproducible-builds-2019-source-date-epoch}. The variable enables software
+``SOURCE\_DATE\_EPOCH'' which is a means to solve this dilemma
+\cite{reproducible-builds-2019-source-date-epoch}. This variable enables software
 distributors to build artifacts with an embedded time, but it also helps to
-specify the time in a manner that enables reproducible builds as we can set the
-date arbitrarily.
+specify the time in a manner that enables reproducible builds. We can record
+this variable, and at a later point in time define the variable to pretend we
+build this at the given time.
 
-The requirement is that this variable is exported in the build system used to
+The requirement is that this variable is exported to the build system used to
 create the package. It also needs to take the current date time if no
 ``SOURCE\_DATE\_EPOCH'' is provided.
 
 \subsection*{Buildinfo}%
 \label{sub:buildinfo}
-One of the main issues with reproducible builds is that it hard to make
+One of the main issues with reproducible builds is that it is hard to make
 everything universally reproducible. Producing the same binary package on
 multiple different Linux distributions is close to impossible and unmanageable
 for most software. Thus we need to specify the environment being utilized with
-all of the requirements and idiosyncrasies. The environment is made up of a few
-things. The installed software installed on the system. What shell variables are
-present as it denotes the expected timezone, language settings and any other
-special requirements. These things can make builds behave differently and are
-thus important to record and keep track of.
+all of the requirements and idiosyncrasies.
+
+The environment is made up of a few things. The installed software installed on
+the system. What shell variables are present as it denotes the expected
+timezone, language settings and any other special requirements. These things can
+make builds behave differently and are thus important to record and keep track
+of.
 
 This is not a new discovery. \citeauthor{software-reconstruction-1999} in their
-paper \citetitle{software-reconstruction-1999} from 1999, they defined a ``Bill
+paper \citetitle{software-reconstruction-1999} from 1999, defined a ``Bill
 of Material'', or a ``BOM'' for short.
 
 \begin{quotation}
-``Document all of the components that contributed to the build in a list, i.e.,
+``Document all of the components that contributed to the build inn a list, i.e.,
 a bill of materials (BOM). The BOM may contain the names, versions, and
 directory paths of operating systems, libraries, compilers, linkers, make-files,
 build scripts, etc The BOM may be manually created, but many configuration
-management tools generate it as a by- product of the build''~\cite{software-reconstruction-1999}.
+management tools generate it as a byproduct of the build''~\cite{software-reconstruction-1999}.
 \end{quotation}
 
 \begin{listing}[H]
@@ -293,7 +295,7 @@ information, there is a need for multiple formats to define the requirements.
 Currently there are around 5 different formats for different ecosystems on the
 reproducible builds website~\cite{reproducible-builds-2019}.
 
-The Debian format encompasses a wide array of values ``Format'' defines the
+The Debian format encompasses a wide array of values. ``Format'' defines the
 expected fields in the format and gets incremented with any changes.  ``Source''
 and ``Binary'' defines the source package used to produce the artifact, and the
 corresponding binary package it outputs. The ``Architecture'' fields defines
@@ -323,16 +325,13 @@ This file can then be distributed alongside the package, or provided through
 other means. Debian archives all buildinfo-files on a centralized webpage where
 they can be queried and retrieved~\cite{buildinfo-debian}.
 
-\subsection*{disorderfs}
 When distributing files it is very common to do so using file archives. Common
-formats is the ZIP and the TAR format. The order in which files appear in the
-archive needs to be consistent for the checksum to match, however this can be
-hard to test in some cases. ``disorderfs'' is a filesystem that lets you
-introduce unexpected and randomized behavior when reading files. This helps find
-sources for non-deterministic artifacts in the build process.
+formats are the ZIP and the TAR format. The order in which files appear in the
+archive needs to be consistent for the checksum of the archive to match, however
+this can be hard to test in some cases. ``disorderfs'' is a filesystem that lets
+you introduce unexpected and randomized behavior when reading files. This helps
+find sources for non-deterministic artifacts in the build process.
 
-
-\subsection*{diffoscope}
 Diffoscope is a tool to help compare binary formats for differences. It supports
 a lot of binary formats to help find reproducability issues in produced
 artifacts. It enables the user to output reports of the comparison as plain text
@@ -350,23 +349,28 @@ recreate distributed artifacts. This is achievable with the correct tooling, and
 a ``BUILDINFO'' file as specified in Section~\ref{sub:buildinfo} on
 page~\pageref{sub:buildinfo}. However, building all distributed packages is an
 unwieldy task. The appeal of Linux distributions is the ability to download
-pre-compiled packages to save the effort of building all the software one intend
-to use.
+pre-compiled packages to save the effort of building all the software one
+intends to use.
 
-Currently Debian has put a great deal of effort into testing packages by setting
-up a ``Continuous Integration'' framework for testing packages~\cite{debian-ci}.
+Debian has put a great deal of effort into testing packages by setting up a
+``Continuous Integration'' framework for testing packages~\cite{debian-ci}.
 This setup compiles all Debian packages twice with variations to see if they end
 up reproducible or not. This is a neat approach to find reproducability issues,
 but it does not reproduce any packages produced and distributed by Debian
-developers directly. They are merely built twice in their own environment. The
-real goal is to reproduce distributed packages, so the CI solution it self does
-not fulfill this goal.
+developers directly. They are merely built twice in their own environment with
+the packaging files distributed by the developers. The real goal is to reproduce
+distributed packages, so the CI solution it self does not fulfill this goal.
 
-What is needed is servers which takes the same packages which are distributed,
+What is needed are servers which take the same packages which are distributed,
 and reproduces these. The general idea is that there should be a pool of diverse
 servers which are capable of rebuilding packages in the correct
 environment~\cite{reproducible-builds-sharing}. These rebuilders should be
-capable of sharing some sort of attestation for the built package.
+capable of sharing build attestations of the built package. The build
+attestations used in this project is the BUILDINFO files, described in
+Section~\ref{sub:buildinfo} on page~\pageref{sub:buildinfo}, and the in-toto
+link metadata described in Section~\ref{sub:in-toto} on
+page~\pageref{sub:in-toto}. The in-toto link metadata files will be used to
+verify the downloaded package on the user system.
 
 \section{Rebuilder logs}%
 \label{sec:rebuilder_logs}
@@ -385,12 +389,12 @@ theory behind them.
 \subsection{Merkle Trees}%
 \label{sec:merkle_trees}
 Merkle Trees is a tree structure based on cryptographic secure hashing function
-\cite{ralph-c.-merkle-1998}. It creates a binary tree where each leaf is hashed,
-and combined two and two. The top node of this tree is reffed to as a ''root
-node''. The interesting property of merkle trees is the ability to verify the
-inclusion of elements by calculating the path from the given leaf to the root
-node. This can be done by acquiring the missing hashes for each intermediate
-node, and then hash each of the nodes together.
+\cite{ralph-c.-merkle-1998}. It creates a binary tree where each leaf is hashed
+together to create interior nodes. The top node of this tree is reffed to as a root
+node and the data structure is essentially a binary tree structure where two
+nodes has two children. The main idea behind this scheme is to provide a
+cryptographic signature that can consist of multiple messages together. But
+Merkle tree has most widely been used for creating tamper-evident logs.
 
 \subsubsection*{Transparency logs}%
 \label{sub:certificate_transparency_log}
@@ -427,7 +431,7 @@ proofs needed to implement a transparency log is as follows;
 Proofs are tuple pairs where the first element describes the position of the
 hash, which can be either left or right, and the second element includes the
 hash of the given object. Given the correct order of hashing, the product should
-be some merkle tree root the log is either currently using, or have used in the
+be some Merkle tree root the log is either currently using, or have used in the
 past. If this is not the correct root hash it proves some tampering has been
 done on the log.
 
@@ -452,23 +456,30 @@ done on the log.
 \label{fig:audit}
 \end{figure}
 
-Each of these proofs are needed to correctly verify that a transparency log
-is correctly operating and can verify this to monitors.  Monitors follow
-these logs to assure consistency and to make sure logs do not misbehave. It
-also allows monitors to verify the append-only property of the log.
-
 The audit proof is used to verify that the given element in the log has not been
 tampered with. The tree root is given, along with the elements needed to
 recreate the missing nodes for the root. In the Figure~\ref{fig:audit} we can
-see the representation of a merkle tree. For the proof that the node $ d5 $ is
-part of the merkle tree represented with the signed tree root $ r $ the needed
-tree roots are $ r = \{ d5, d6, l, m \} $. If they are hashed together
-appropriately, such as $ r = H( m, H( H(d5, d6), l)) $, we will arrive at the
-same value for and thus the proof is validated.
+see the representation of a Merkle tree. The leafs in this tree $ d1,\ d2,\ d3,
+\ldots d8 $ are hashes of the log values we are storing on the tree. In our
+visualizer components this is the rebuild submissions consisting of the
+BUILDINFO file and in-toto link metadata.
+
+For the proof that the node $ d5 $ is part of the log we need to reconstruct the
+tree root $ r $. It's important to realize that hashes can be a shortcut when
+reconstructing the tree. We only need the tree of the largest subtree the leaf
+is not a part of. Since we want to check $ d5 $, the leafs ${d7,\ d8}$ are not
+needed, we can just utilize the complete subtree $ l $ which is the hash of both
+those nodes. This ensures that we only need the minimal amount of hashes to
+reconstruct the tree root $ r $.
+
+To reconstruct the tree root, the tree nodes we need are $ r = \{ d5, d6, l, m
+\} $.  If they are hashed together appropriately, such as $ r = H( m, H( H(d5,
+d6), l)) $ where $ H $ defines a secure hashing function such as SHA256 or
+SHA512, we will arrive at the same value for and thus the proof is validated.
 
 The consistency proof is used to verify that the log is operating as an
 append-only log in a correct manner. This proof requires two things. A
-previous merkle tree root, and the number of leaves present at the time of
+previous Merkle tree root, and the number of leaves present at the time of
 this tree root. The returned path is the number of subroots needed to
 recreate the path from the root, until the new root.
 
@@ -482,7 +493,7 @@ entries on the log and thus behaves properly.
 \subsection*{Transparency Log Overlays}%
 \label{sub:transparency_log_overlays}
 For our system we will add some semantic meaning to the leaves we add to the
-merkle tree. This will be explained in greater detail in the development of
+Merkle tree. This will be explained in greater detail in the development of
 this in Section~\ref{sub:fourth_iteration_development} on
 page~\pageref{sub:fourth_iteration_development}, however we will go into some of
 the underlying concepts.
@@ -501,7 +512,7 @@ transparency log to make sure the events are tamper-evident. The values of these
 commitments on the log can be arbitrary and aid in providing some semantic
 meaning to the underlying application. In our project, we will utilize this idea
 to provide rebuild attestations, but also the ability to revoke such attestations
-on the merkle tree.
+on the Merkle tree.
 
 \section{Research Overview}%
 \label{sec:research_overview}
@@ -511,7 +522,7 @@ transparency logs.
 
 \subsection{Software Distribution Transparency and Auditability}\label{sec:benjamin}
 The initial work on package transparency logs, as a form of binary transparency,
-was done by \citeauthor{1711.07278v1}. It implements an append-only merkle tree to
+was done by \citeauthor{1711.07278v1}. It implements an append-only Merkle tree to
 keep track of released versions of software into a package repository, namely
 Debian~\cite{1711.07278v1}.
 
@@ -521,31 +532,49 @@ package is the correct one, it is possible to detect such attacks. The
 implementation also defines log monitors, that peek at inclusions and make
 sure the logs are operating properly and doesn't leave out information.
 
+The usage of transparency logs in this project inspired the work done in this
+thesis. The idea here is that the transparency log by~\citeauthor{1711.07278v1}
+can be applied as release monitor and detect malicious or compromised signing
+keys by developers. This is an addition to the rebuilder system described in
+this thesis, and the goal is to see if the addition of transparency logs on the
+rebuilder gives us any security guarantees.
+
 
 \subsection{CHAINIAC}\label{sec:chainiac}
 CHAINIAC by \citeauthor*{kirill-niktin-2017} introduces a framework to help
 collectively validate source-to-binary correspondence\cite{kirill-niktin-2017}.
 This is done by introducing a cothority.  Each developer commits their binaries
-and corresponding source code to a merkle tree which is then signed by the
+and corresponding source code to a Merkle tree which is then signed by the
 developers. This is built through a distributed system which will rebuild and
 corroborate their results to aggregate signatures on packages which makes up the
 cothority. The number of required signatures from this cothority is defined by
 the project and pushed to an updated timeline.
 
+The main problem with this project is that it imposes new requirements on the
+distribution developers. Changing how distribution developers work with
+packages, and how packages are released is something that has been done for
+years. Changing this approach is not going to help adoption by the distribution.
+The rebuilder system in this thesis is an extension of the current release
+process, it does not impose any new methods or requirements on the developers.
 
 \subsection{Contour}\label{sec:contour}
 Contour by \citeauthor{1712.08427v2} is a system that implements binary
-transparency by utilizing blockchains. In blockchains merkle trees are used to
+transparency by utilizing blockchains. In blockchains Merkle trees are used to
 store the data. In this implementation the resulting binaries are hashes on the
-chain. The resulting merkle root is then hashed with previous roots to provide
+chain. The resulting Merkle root is then hashed with previous roots to provide
 the transaction and a block header. This is again distributed and secured from
 split view attacks, where one server presents the client with a malicious view
 of the world. Split view attacks enable the remote log to provide proofs to the
 client which are not present elsewhere. The solution to this is by adding a
 consensus on top of the tree. The implementation was tested using the Python
 packaging index, PyPI, and the Debian package repository to test the
-solution.\cite{1712.08427v2}
+solution~\cite{1712.08427v2}.
 
+This project attempts to commit the Debian package index to a Bitcoin blockchain
+to make sure the index stays consistent across the ledger. This is an
+integration which is strictly not needed to verify packages. Our research
+project presents a simpler solution where consistency across rebuilders are not
+needed.
 
 \subsection{Go transparency log}\label{sec:go-transparency-log}
 Go has been developing their dependency management the past year. With the
@@ -556,15 +585,26 @@ with versions and checksums.
 A recent proposal by \citeauthor{russ-cos-and-filippo-valsorda} details how this
 go.sum file would be commited to a transparency log to provide a verification
 method for dependency releases in the go ecosystem. It implements a own database
-to model merkle trees, and lets nodes validate and monitor the tree for
+to model Merkle trees, and lets nodes validate and monitor the tree for
 dependency inclusions. The idea is to check this log server when dependency
 files are downloaded for proofs of releases.\cite{russ-cos-and-filippo-valsorda}
+
+This project only appends the project dependencies as a way to pin it, and
+enables developers to make sure they have received the proper dependency listing
+of the project.
 
 
 \section*{Summary}\label{sec:summary-theory} 
 In this chapter we have taken a deeper look at the theory surrounding software
-distributions, supply chains, reproducible builds and merkle trees. In the next
-chapter we will be taking a look at the technologies we will be utilizing for
-this project.
-\blankpage
+distributions, supply chains, reproducible builds and Merkle trees. The supply
+chain is important to secure, and Reproducible Builds is possibly one way to
+achieve deterministic building in the world of Linux distributions.
+
+We have looked at how rebuilders can help verify packages are reproducible and
+have introduced transparency log as a way to make sure the logging of these
+package builds can not be tampered with after they have been published.
+
+In the next chapter we will be taking a look at the technologies we will be
+utilizing for this project.
+
 \end{document}
