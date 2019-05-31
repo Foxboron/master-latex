@@ -34,26 +34,26 @@ library to integrate with to provide the needed features.
 \subsection*{flask}
 Flask is a web framework for Python. It was created in 2010 by Armin Ronacher,
 and is one of the two most widely popular web frameworks in Python. It enabled
-developers to easily create REST APIs with good debugging
+developers to easily create REST API endpoints with good debugging
 capabilities~\cite{flask}. This framework will be used to create the API
 endpoints for the rebuilder.
 
-\subsection*{jinja}
+\subsection*{jinja2}
 One of the added features of using flask is that we get access to the templating
-framework jinja which allows us to easily create webpages and interface them
+framework jinja2 which allows us to easily create webpages and interface them
 with Python values before being served to users. This allows us to easily create
 webpages with the data used by the application~\cite{jinja}. We will be
 utilizing this library to create the HTML webpages for the rebuilder.
 
-\subsection*{postgresql}
-postgresql is a open-source relational database. It supports a wide number of
+\subsection*{PostgreSQL}
+PostgreSQL is a open-source relational database. It supports a wide number of
 abstract datatypes, such as native support for JSON, along with good support for
 concurrent operation. This enables easier development, along higher workloads
 and scalability~\cite{pgsql}. We decided to utilize PostgreSQL over other
 technologies such as MySQL or sqlite because of the ability to embed JSON
 structure directly into the code. 
 
-\subsection*{sqlalchemy}
+\subsection*{SQLAlchemy}
 SQLAlchemy is a widely used object relation mapping library for Python. It
 support a wide selection of database backends and translates the raw database
 data into usable Python objects for easier interopability. This helps us to save
@@ -223,5 +223,5 @@ thesis is also done on their platform.
 In this chapter we have taken a deeper look at the theory surrounding supply
 chains, reproducible builds and Merkle trees. In the next chapter we will be
 taking a look at the current research being done towards shared attestation on
-reproducible builds and package transparency logs.
+reproducible builds and transparency logs.
 \end{document}

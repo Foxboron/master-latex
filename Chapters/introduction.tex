@@ -70,7 +70,7 @@ Builds and Debian to provide a system that rebuilds packages to provide
 additional attestation to the user whether or not a package is reproducible by
 integrating it into the Debian package manager APT.
 
-The thesis takes this rebuilder system and introduce an append-only package
+The thesis takes this rebuilder system and introduce an append-only rebuilder
 transparency log, closely resembling certificate transparency logs, where we
 commit build attestations from the rebuilders. This lets users verify that
 rebuild attestations have not been tampered with after publication. We will
@@ -113,7 +113,7 @@ complete rebuilder system for Debian packages and infrastructure.
 
 The development describes in this thesis is the rewrite of the visualizer
 component which provides an API to the user clients. The rewrite adds the
-package transparency log capability of the system along with providing a more
+rebuilder transparency log capability of the system along with providing a more
 refined API for the APT transport used to verify packages.
 
 \section{Research questions and contributions}\label{sec:rq}

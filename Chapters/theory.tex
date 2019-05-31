@@ -10,11 +10,11 @@ In this section we will take a closer look at the theory surrounding
 supply chains, reproducible builds, transparency logs and rebuilders.
 
 \section{The Supply Chain}\label{sec:supply_chain}
-Most of the software today are developed through a series of steps. This is
-traditionally called ``The Software Supply Chain''. Software projects today go
-through development, building, testing, staging and production, with slight
-variations between them. This is largely done with self-hosted solutions, or
-outsourced to external hosting solution.
+Most of the software development today are developed through a series of steps.
+This is traditionally called ``The Software Supply Chain''. Software projects
+today go through development, building, testing, staging and production, with
+slight variations between them. This is largely done with self-hosted solutions,
+or outsourced to external hosting solution.
 
 In the world of open-source, the software delivery are usually done by Linux
 distributions, or other similar methods of distributions. The supply chain in
@@ -295,14 +295,14 @@ information, there is a need for multiple formats to define the requirements.
 Currently there are around 5 different formats for different ecosystems on the
 reproducible builds website~\cite{reproducible-builds-2019}.
 
-The Debian format encompasses a wide array of values. ``Format'' defines the
-expected fields in the format and gets incremented with any changes.  ``Source''
-and ``Binary'' defines the source package used to produce the artifact, and the
-corresponding binary package it outputs. The ``Architecture'' fields defines
-which architecture the product is compiled towards. Debian supports a wide array
-of CPU architectures from ARM to AMD 64 bit. High-level languages usually does
-not compile, therefore ``all'' is used to denote the
-architecture~\cite{deb-buildinfo}.
+Listing~\ref{lst:buildinfo} shows the format used by Debian. It encompasses a
+wide array of values. ``Format'' defines the expected fields in the format and
+gets incremented with any changes.  ``Source'' and ``Binary'' defines the source
+package used to produce the artifact, and the corresponding binary package it
+outputs. The ``Architecture'' fields defines which architecture the product is
+compiled towards. Debian supports a wide array of CPU architectures from ARM to
+AMD 64 bit. High-level languages usually does not compile, therefore ``all'' is
+used to denote the architecture~\cite{deb-buildinfo}.
 
 The ``Build-'' variables denote the build environment used to create the
 artifact in the Debian ecosystem. Since Debian has a slew of derivative and
@@ -346,8 +346,8 @@ a very important tool in debugging reproducability issues.
 \label{sec:rebuilders} 
 One of the main ideals with reproducible builds is the ability to let the users
 recreate distributed artifacts. This is achievable with the correct tooling, and
-a ``BUILDINFO'' file as specified in Section~\ref{sub:buildinfo} on
-page~\pageref{sub:buildinfo}. However, building all distributed packages is an
+a ``BUILDINFO'' file as specified in Listing~\ref{lst:buildinfo} on
+page~\pageref{lst:buildinfo}. However, building all distributed packages is an
 unwieldy task. The appeal of Linux distributions is the ability to download
 pre-compiled packages to save the effort of building all the software one
 intends to use.
@@ -381,7 +381,7 @@ environment. Since these are log files, they could be tampered with and altered
 to pretend a malicious package build is in fact correct. What we need is
 evidence whether or not the logs has been tampered with. This can be
 accomplished by utilizing something called transparency logs. These data
-structures are build on Merkle trees, where nodes are hashed together to
+structures are built on Merkle trees, where nodes are hashed together to
 construct a binary tree, which can prove whether or not a published log has been
 tampered with. In this section we will take a look at how such logs work and the
 theory behind them.
@@ -390,9 +390,9 @@ theory behind them.
 \label{sec:merkle_trees}
 Merkle Trees is a tree structure based on cryptographic secure hashing function
 \cite{ralph-c.-merkle-1998}. It creates a binary tree where each leaf is hashed
-together to create interior nodes. The top node of this tree is reffed to as a root
-node and the data structure is essentially a binary tree structure where two
-nodes has two children. The main idea behind this scheme is to provide a
+together to create interior nodes. The top node of this tree is referred to as a
+root node and the data structure is essentially a binary tree structure where
+two nodes has two children. The main idea behind this scheme is to provide a
 cryptographic signature that can consist of multiple messages together. But
 Merkle tree has most widely been used for creating tamper-evident logs.
 
@@ -401,7 +401,7 @@ Merkle tree has most widely been used for creating tamper-evident logs.
 Transparency logs is a use case of Merkle trees by~\citeauthor{182788} which
 describes how this data structure can be used to achieve tamper evident
 logging~\cite{182788}. In the traditional sense, logs can be plain text files
-published anywhere. It can simply be a line of text detailing something. If this
+published anywhere. It can simply be a line of text detailing an event. If this
 where to change on a remote service, there would not normally be any evidence of
 this. What a transparency log attempts to accomplish is to create hashes of the
 log entries, and create a tree. If we store the hash of this tree, we could
@@ -411,11 +411,11 @@ provided.
 Certificate transparency logs
 from~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} is an implementation
 of transparency logs. These logs lets organizations that issue HTTPS
-certificates an audit trail~\cite{b.-laurie-a.-langley-e.kaster-google-2013}.
-It allows the discovery of when abuse, and creation of malicious certificates.
-The log allows organizations to see who issued certificates for what domains,
-and can aid in detecting private key compromise, API misuse or other types of
-misuse early.
+certificates an audit trail~\cite{b.-laurie-a.-langley-e.kaster-google-2013}
+when issuing SSL certificates.  The audit trail allows the discovery of when
+abuse, and creation of malicious certificates.  The log allows organizations to
+see who issued certificates for what domains, and can aid in detecting private
+key compromise, API misuse or other types of malicious usage early.
 
 To make sure we can prove evidence of tampering, transparency logs has the
 unique feature where we can provide some hashes from the tree, and reconstruct
@@ -485,10 +485,9 @@ recreate the path from the root, until the new root.
 
 To have a correctly vetted tamper-evident log, there needs to be monitor server.
 Monitor servers watch new entries from log servers and verify them. They collect
-the current signed tree root, and make sure they match up with the currently
-fetched server. They are important to make sure that the log collecting server
-do not tamper with the entries on the log and thus do not tamper with the
-entries on the log and thus behaves properly.
+the current signed tree root, and make sure they match up with the transparency
+log by validating consistency proofs. These can be run by volunteers or
+organizations to make sure the logs are behaving correctly. 
 
 \subsection*{Transparency Log Overlays}%
 \label{sub:transparency_log_overlays}
@@ -505,7 +504,7 @@ events~\cite{10.11452976749.2978404}. They create a system greatly inspired by
 the work of both~\citeauthor{182788}, in transparency logs~\cite{182788},
 and~\citeauthor{b.-laurie-a.-langley-e.kaster-google-2013} in certificate
 transparency logs~\cite{b.-laurie-a.-langley-e.kaster-google-2013}, and builds
-on top of of the concepts describe in the paper.
+on top of of the concepts describe in the papers.
 
 The idea of this approach is to log the everyday events of systems on a
 transparency log to make sure the events are tamper-evident. The values of these
