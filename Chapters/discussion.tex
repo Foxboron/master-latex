@@ -58,18 +58,19 @@ the source code for this project to GitHub.
 
 \section{Technical Implementation}%
 \label{sec:technical_Implementation}
-After each iteration of this project we have done basic testing to make sure the
-goals are met and to figure out if there has been any implementation bugs. This
-has resulted in utility tools to verify the integrity of the data structure,
-which was used in the technical testing.
+After each iteration of this project we have done testing to make sure the goals
+are met and to figure out if there has been any implementation bugs. This has
+resulted in utility tools to verify the integrity of the data structure, which
+was used in the technical testing.
 
 \citeauthor{Peffers:2012:DSR:2342209.2342243}
 in~\citetitle{Peffers:2012:DSR:2342209.2342243} did a literature review over
 design science artifacts, and the evaluation method
 used~\cite{Peffers:2012:DSR:2342209.2342243}, and described in
 Section~\ref{sec:methodology_evaluation} on
-page~\pageref{sec:methodology_evaluation} Technical evaluations are done to
-assess how good the artifact is at solving the problem at hand.
+page~\pageref{sec:methodology_evaluation}. Technical evaluations are done to
+assess how good the artifact is at solving the problem at hand, and is a
+suitable evaluation method when the artifact are software implementations.
 
 The technical evaluation was done in Chapter~\ref{ch:evaluation} on
 page~\pageref{ch:evaluation}. The limitations in the implementation restricted
@@ -79,10 +80,12 @@ covered a wider range of data.
 
 There are some further improvements in the current data storage scheme we could
 consider. One of the main disadvantages in the current implementation is that
-all data is stored on one table for the Merkle tree. Another way to layout the
-storage is to have one storage for interior nodes and the hashes of the leafs,
-and storage the leaf data in another table. This could potentially introduce
-less overheard when querying the Node table multiple time.
+all data is stored on one table for the Merkle tree. As PostgreSQL is poorly
+optimized for such workloads other ways to partition up the data model needs to
+be considered for future work. Other ways to layout the storage is to have one
+storage for interior nodes and the hashes of the leafs, and storage the leaf
+data in another table. This could potentially introduce less overheard when
+querying the Node table multiple times.
 
 Another advanced strategy that could help the overall performance is to store
 complete subtrees in another table. This would shorten the time we have to look

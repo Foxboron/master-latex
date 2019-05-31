@@ -5,41 +5,41 @@
 \documentclass[../Main/thesis.tex]{subfiles}
 \begin{document}
 \chapter{Introduction}\label{ch:introduction}
-Distributing software is difficult task. For years Linux distributions have
-distributed software by compiling them on build servers, or personal computers,
-and submitting the packages to a central repository. The packages is then
-distributed to a number of mirrors where users can get the latest software
-updates. This enables users to get pre-compiled binaries instead of building
-them by hand locally. But how do we know that the downloaded software has not
-been tampered with?
+Distributing software is a difficult task. For years Linux distributions have
+distributed software by compiling them on build servers, and submitting the
+packages to a central repository. The packages is then distributed to a number
+of mirrors where users can get the latest software updates. This enables users
+to get pre-compiled binaries instead of building them by hand locally. This is
+an what is commonly referred to as the software supply chain. All the bits and
+pieces that is involved from writing the code until delivery at the end user.
 
-Targeted attacks against software supply chain is an increasing threat.  The
+Targeted attacks against software supply chains is an increasing threat. The
 security company Symantec reported in 2018 that there was one supply chain
 attack reported every month in 2017~\cite{symantec-istr-2018}, and in their 2019
 report noted that targeted attacks has gone up 78\% in 2019
 ~\cite{symantec-istr-2019}. There has also been a growing concern amongst
 security professionals about the dangers of supply chain
-attacks~\cite{crowdstrike-supply-chain-attacks}. Companies are also struggling
-to protect their software deliveries~\cite{cd-pipelines-case-study}.
+attacks~\cite{crowdstrike-supply-chain-attacks} as companies are also struggling
+to protect their software deliveries~\cite{cd-pipelines-case-study}. One example
+is Juniper, a widely used vendor for network equipment, that realized a backdoor
+was installed on equipment they distributed to
+customers~\cite{Checkoway:2016:SAJ:2976749.2978395}~\cite{juniper-backdoor-advisory}.
 
-There has been a number of explicit attacks against supply chains that surrounds
-Linux Distributions. Inappropriate commit access was achieved on the  Gentoo
-build server~\cite{gentoo-compromise-2018}, Linux~\cite{linux-compromise-2011},
-and even managed to install backdoors in a network equipment
-vendor~\cite{Checkoway:2016:SAJ:2976749.2978395}~\cite{juniper-backdoor-advisory}.
-There have even been attempts at breaking package
+There has also been a number of explicit attacks against supply chains that
+surrounds Linux distributions. Inappropriate commit access was achieved on the
+build server used by the Linux distribution Gentoo
+~\cite{gentoo-compromise-2018}, and the server that holds the repository for the
+Linux source code~\cite{linux-compromise-2011}.  In 2011 the Linux distribution
+Fedora had one of their contributors targeted in a malicious
+attack~\cite{fedora-compromise-2011}, coupled with an incident in 2008 where the
+build infrastructure was compromised~\cite{fedora-compromise-2008}. There have
+also been attempts at breaking package
 managers~\cite{Cappos:2008:LMA:1455770.1455841}.
-
-In 2003 one of the servers distributing build files for the Linux distribution
-Gentoo was compromised~\cite{gentoo-compromise-2003}. In 2011 the Linux
-distribution Fedora had one of their contributors targeted in a malicious
-attach~\cite{fedora-compromise-2011}, coupled with an incident in 2008 where the
-build infrastructure was compromised~\cite{fedora-compromise-2008}.
 
 Packages used in programming languages have in recent years been high profile
 targets for supply chain attacks. A popular package from the Ruby programming
-language used by developers to code webpages was compromised in 2019. It started
-to include a snippet of code allowing remote code execution on the developers
+language used by web developers was compromised in 2019. It started to include a
+snippet of code allowing remote code execution on the developers
 machine~\cite{malicious-ruby}. What is interesting about this case is that the
 credentials of the authors where compromised, and the malicious code was never
 found in the code repository. It was only available from the downloaded version
@@ -55,7 +55,7 @@ host~\cite{malicious-npm}. The library itself had been downloaded 800,000 times,
 and is a widely used dependency.
 
 Given the wide reach of supply chain attacks, we need to spend more effort
-looking at how we can mitigate these risks for users and the companies a like.
+looking at how we can mitigate these risks for users and companies.
 
 In this thesis we will look into how Reproducible Builds enable distributions
 and software authors to provide bit-for-bit identical binaries. Reproducible
@@ -65,18 +65,17 @@ been a large focus by Linux distributions the past few years, and multiple
 projects has joined the effort to make sure packages and software is
 reproducible.
 
-We will extend this concept and provide servers that take these packages and
-rebuild them to provide additional attestation to the user whether or not a
-package is reproducible. The build attestations will be using build metadata as
-defined from the reproducible builds project.
+We have contributed with Secure Systems Lab at New York University, Reproducible
+Builds and Debian to provide a system that rebuilds packages to provide
+additional attestation to the user whether or not a package is reproducible by
+integrating it into the Debian package manager APT.
 
-We introduce an append-only package transparency log, closely resembling
-certificate transparency logs, where we commit build attestations from the
-rebuilders. This lets users easily verify rebuild attestations, along with
-enabling the possibility of discovery of attacks against the distribution
-supply-chain. We will further enhance this log by implementing the possibility
-of revoking previous build attestations to further help users when verifying
-packages.
+The thesis takes this rebuilder system and introduce an append-only package
+transparency log, closely resembling certificate transparency logs, where we
+commit build attestations from the rebuilders. This lets users verify that
+rebuild attestations have not been tampered with after publication. We will
+further enhance this log by implementing the possibility of revoking previous
+build attestations to further help users when verifying packages.
 
 The verification step of downloading packages will be performed by the Debian
 package manager APT. APT supports the ability to have multiple transports for
@@ -115,7 +114,7 @@ complete rebuilder system for Debian packages and infrastructure.
 The development describes in this thesis is the rewrite of the visualizer
 component which provides an API to the user clients. The rewrite adds the
 package transparency log capability of the system along with providing a more
-refined API for the apt transport used to verify packages.
+refined API for the APT transport used to verify packages.
 
 \section{Research questions and contributions}\label{sec:rq}
 In this section we will present the research question of this thesis.  Along
