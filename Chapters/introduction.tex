@@ -16,30 +16,30 @@ pieces that is involved from writing the code until delivery at the end user.
 Targeted attacks against software supply chains is an increasing threat. The
 security company Symantec reported in 2018 that there was one supply chain
 attack reported every month in 2017~\cite{symantec-istr-2018}, and in their 2019
-report noted that targeted attacks has gone up 78\% in 2019
-~\cite{symantec-istr-2019}. There has also been a growing concern amongst
+report noted that targeted attacks has gone up 78\% in
+2019~\cite{symantec-istr-2019}. There has also been a growing concern amongst
 security professionals about the dangers of supply chain
-attacks~\cite{crowdstrike-supply-chain-attacks} as companies are also struggling
-to protect their software deliveries~\cite{cd-pipelines-case-study}. One example
-is Juniper, a widely used vendor for network equipment, that realized a backdoor
-was installed on equipment they distributed to
+attacks~\cite{crowdstrike-supply-chain-attacks}, as companies are also
+struggling to protect their software deliveries~\cite{cd-pipelines-case-study}.
+One example is Juniper, a widely used vendor for network equipment, that
+realized a backdoor was installed on equipment they distributed to
 customers~\cite{Checkoway:2016:SAJ:2976749.2978395}~\cite{juniper-backdoor-advisory}.
 
-There has also been a number of explicit attacks against supply chains that
-surrounds Linux distributions. Inappropriate commit access was achieved on the
-build server used by the Linux distribution Gentoo
-~\cite{gentoo-compromise-2018}, and the server that holds the repository for the
-Linux source code~\cite{linux-compromise-2011}.  In 2011 the Linux distribution
-Fedora had one of their contributors targeted in a malicious
+Attacks against the supply chains surrounding Linux distributions has also risen
+the past years. Inappropriate commit access was achieved on the build server
+used by the Linux distribution Gentoo~\cite{gentoo-compromise-2018}, and the
+server that holds the repository for the Linux source
+code~\cite{linux-compromise-2011}.  In 2011 the Linux distribution Fedora had
+one of their contributors targeted in a malicious
 attack~\cite{fedora-compromise-2011}, coupled with an incident in 2008 where the
-build infrastructure was compromised~\cite{fedora-compromise-2008}. There have
+build infrastructure was compromised~\cite{fedora-compromise-2008}.  There have
 also been attempts at breaking package
 managers~\cite{Cappos:2008:LMA:1455770.1455841}.
 
 Packages used in programming languages have in recent years been high profile
 targets for supply chain attacks. A popular package from the Ruby programming
-language used by web developers was compromised in 2019. It started to include a
-snippet of code allowing remote code execution on the developers
+language used by web developers was compromised in 2019, where it started to
+include a snippet of code allowing remote code execution on the developers
 machine~\cite{malicious-ruby}. What is interesting about this case is that the
 credentials of the authors where compromised, and the malicious code was never
 found in the code repository. It was only available from the downloaded version
